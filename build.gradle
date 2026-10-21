@@ -1,0 +1,35 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+version = mod_version
+group = 'dev.animal.afmr'
+base { archivesName = 'animals-final-music-replacer' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+repositories { mavenCentral() }
+neoForge {
+    version = project.neo_version
+    runs { client { client() } }
+    mods { afmr { sourceSet(sourceSets.main) } }
+}
+dependencies {
+    implementation jarJar('com.googlecode.soundlibs:mp3spi:1.9.5.4')
+    implementation jarJar('com.googlecode.soundlibs:vorbisspi:1.0.3.3')
+    implementation jarJar('com.googlecode.soundlibs:jlayer:1.0.1.4')
+    implementation jarJar('com.googlecode.soundlibs:jorbis:0.0.17.4')
+    implementation jarJar('com.googlecode.soundlibs:tritonus-share:0.3.7.4')
+    implementation jarJar('org.jflac:jflac-codec:1.5.2')
+    implementation jarJar('net.jthink:jaudiotagger:3.0.1')
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.13.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test { useJUnitPlatform() }
+processResources { from('THIRD_PARTY.md', 'TEMPLATE_LICENSE.txt') }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.register('sourceZip', Zip) {
+    archiveFileName = "animals-final-music-replacer-${project.version}-source.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(projectDir) { exclude 'build/**', '.gradle/**', 'run/**', '*.zip' }
+}

@@ -1,0 +1,10 @@
+.gradle/
+build/
+run/
+.idea/
+*.iml
+
+# Earlier workspace, build caches, personal snapshots, and published binaries
+/work/
+/outputs/
+/.codex/
