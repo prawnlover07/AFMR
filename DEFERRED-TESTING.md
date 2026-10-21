@@ -27,7 +27,7 @@ These are additional scenarios, not failures found in the session. Pure tests co
 - [ ] **Full library and audio lifecycle:** Longer sessions with the user's real library and unusually tagged files, many songs assigned to active playlists, import/rescan during gameplay, launch rescans and inaccessible folders, sound-device changes, volume interactions and subjective ReplayGain comparisons. Existing ReplayGain decoding/tag regressions pass. The 70k check measured only indexed scheduling, not overall FPS.
 - [ ] **UI/import extremes:** Resize/GUI-scale combinations beyond the tested small window, long names/tooltips, many custom playlists, later keybind pages, repeated .fplite import preserving disabled assignments, cancelled/native picker edge cases. Basic picker, scan, import reporting, custom conditions and reset/persistence already pass.
 
-Continue using the isolated workspace profile and generated fixtures for state-changing checks. Personal music and foobar files remain read-only. The test-only helper, detailed logs and fixtures are retained under `work/overnight`; it is not included in the release mod.
+Continue using the isolated workspace profile and generated fixtures for state-changing checks. Personal music and foobar files remain read-only. The reusable test-only helper is tracked under `testing/native`; full session logs and generated fixtures remain in ignored `work/overnight`. The helper is not included in the release mod.
 
 ## Earlier user report
 

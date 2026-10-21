@@ -2,6 +2,11 @@
 
 Client-side custom soundtrack for **Minecraft Java 26.3 / NeoForge 26.3.0.90+**.
 
+Development now uses this repository root. Start with [project decisions](PROJECT.md),
+[build and Git instructions](DEVELOPMENT.md), and [remaining complex tests](DEFERRED-TESTING.md).
+The validated 0.5.2 baseline is tagged `v0.5.2`. Local workspace/release archives stay under ignored `work/` and `outputs/`.
+
+
 ## Install or upgrade
 
 Replace the old AFMR JAR in the instance's `mods` folder with `animals-final-music-replacer-0.5.2.jar`. Keep exactly one AFMR version installed. Launch Minecraft and press **M**, or use the mod's Config button from the Mods menu.

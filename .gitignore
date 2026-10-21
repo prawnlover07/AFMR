@@ -8,3 +8,13 @@ run/
 /work/
 /outputs/
 /.codex/
+
+# Native integration fixtures and results are generated locally.
+/testing/native/fixtures/
+/testing/native/results/
+/testing/native/scan-fixtures/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+hs_err_pid*.log

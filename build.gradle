@@ -31,5 +31,9 @@ tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.register('sourceZip', Zip) {
     archiveFileName = "animals-final-music-replacer-${project.version}-source.zip"
     destinationDirectory = layout.buildDirectory.dir('distributions')
-    from(projectDir) { exclude 'build/**', '.gradle/**', 'run/**', '*.zip' }
+    from(projectDir) {
+        exclude '.git/**', '.codex/**', 'work/**', 'outputs/**', '*.zip'
+        exclude '**/build/**', '**/.gradle/**', '**/run/**', '**/__pycache__/**', '**/*.pyc'
+        exclude 'testing/native/fixtures/**', 'testing/native/results/**', 'testing/native/scan-fixtures/**'
+    }
 }

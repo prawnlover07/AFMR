@@ -1,0 +1,21 @@
+plugins { id 'java-library'; id 'net.neoforged.moddev' version '2.0.148' }
+
+def afmrProperties = new Properties()
+file('../../gradle.properties').withInputStream { afmrProperties.load(it) }
+def afmrVersion = afmrProperties.getProperty('mod_version')
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+neoForge {
+    version = afmrProperties.getProperty('neo_version')
+    runs {
+        client {
+            client()
+            if (project.hasProperty('keysOnly')) jvmArguments.add('-Dafmr.probe.keysOnly=true')
+            gameDirectory = project.file('run')
+            programArguments.addAll '--quickPlaySingleplayer', 'New World'
+        }
+    }
+    mods { afmrprobe { sourceSet(sourceSets.main) } }
+}
+dependencies { compileOnly files("../../build/libs/animals-final-music-replacer-${afmrVersion}.jar") }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

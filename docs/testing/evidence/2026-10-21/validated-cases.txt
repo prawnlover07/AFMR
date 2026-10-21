@@ -1,0 +1,91 @@
+AFMR 0.5.2 - validated native cases, 2026-10-21
+81 playback/integration checks + 6 persistence checks.
+The initial key-code assertion was invalid for SDL; its corrected saved-key-name check passed in the persistence run.
+
+PASS packaged mixins + local audio start
+PASS day outside without biome constraint
+PASS native channel paused
+PASS native playback position stays fixed
+PASS Minecraft global resume preserves AFMR pause
+PASS native resume advances same source
+PASS pause before delayed stream startup
+PASS delayed start never advances while paused
+PASS Next queues without starting during pause
+PASS queued Next resumes automatic choice
+PASS silent countdown frozen
+PASS Next bypasses long gap
+PASS held override plays Automatic-off playlist
+PASS Next retains held override and avoids repeat
+PASS Next retains one-song override
+PASS one-song natural completion returns to automatic
+PASS shuffle unique entry 1
+PASS shuffle boundary repeat guard 1
+PASS shuffle unique entry 2
+PASS shuffle boundary repeat guard 2
+PASS shuffle unique entry 3
+PASS shuffle boundary repeat guard 3
+PASS shuffle unique entry 4
+PASS shuffle boundary repeat guard 4
+PASS shuffle unique entry 5
+PASS shuffle boundary repeat guard 5
+PASS shuffle unique entry 6
+PASS shuffle boundary repeat guard 6
+PASS shuffle unique entry 7
+PASS shuffle boundary repeat guard 7
+PASS shuffle unique entry 8
+PASS shuffle boundary repeat guard 8
+PASS outdoor night selects Night outside
+PASS enclosed dark area selects Dark exploration
+PASS lit enclosed area below Y cutoff selects Underground
+PASS Y cutoff requires BOTH cover and elevation
+PASS captured Home takes priority
+PASS attack trigger enters Combat
+PASS forced Combat works with global trigger disabled
+PASS Nether toggle applies throughout dimension
+PASS Nether toggle off excludes Dark exploration
+PASS End toggle applies throughout dimension
+PASS End toggle off excludes Dark exploration
+PASS combined custom biome/time/dimension/Y/temperature/cover matches
+PASS single failed custom condition falls through
+PASS combat death CUT while paused stops native channel
+PASS vanilla streamed music pauses
+PASS vanilla position retained
+PASS vanilla resumes on same source
+PASS sound reload clears explicit pause
+PASS entry/exit protection combination 0
+PASS entry/exit protection combination 1
+PASS entry/exit protection combination 2
+PASS entry/exit protection combination 3
+PASS A retained through B to C keeps original source
+PASS returning to retained source avoids restart
+PASS native fade-in gain and position frozen
+PASS native fade-in continues without jumping to full gain
+PASS native fade-out gain and position frozen
+PASS native fade-out continues at held gain
+PASS non-music audio continues during AFMR pause
+PASS combat death begins configured native fade immediately
+PASS combat death fade stops and blocks new dead-player music
+PASS death fade requested while paused retains native paused source
+PASS death fade completes after explicit resume
+PASS combat death Finish retains the playing song
+PASS override request while paused does not start it
+PASS queued override starts after resume
+PASS all-disabled override target refused
+PASS emptied held override releases
+PASS deleted override target releases
+PASS packaged native decoder test.mp3
+PASS packaged native decoder test.flac
+PASS packaged native decoder test.ogg
+PASS packaged native decoder test.wav
+PASS packaged native decoder test24.flac
+PASS packaged native decoder test24.wav
+PASS packaged native decoder testfloat.wav
+PASS async decoder error quarantines and recovers
+PASS Retry failed clears decoder quarantine
+PASS 70k-library native selection remains indexed
+PASS UI priority and captured biome survive restart
+PASS independent entry/exit switches survive restart
+PASS restored Minecraft timing persists
+PASS 5000-file library scan persists
+PASS explicit pause is cleared by restart
+PASS physical Next and Pause bindings persist
