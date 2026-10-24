@@ -1,6 +1,11 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
+import dev.animal.afmr.core.Library.JukeboxMode;
+import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,57 +14,60 @@ import java.util.*;
 final class SettingsScreen extends MusicScreen {
     private final Map<String,EditBox> values=new LinkedHashMap<>();
     private String error="";
-    private int page;
-    SettingsScreen(Screen parent,ClientRuntime runtime){super("Playback settings",parent,runtime);}
+    private int half;
+    SettingsScreen(Screen parent,ClientRuntime runtime){super("Timing & playback",parent,runtime);}
     @Override protected void init(){
         super.init();values.clear();var s=runtime.library().settings;
-        int half=(contentWidth-6)/2;
-        if(page==0){
-            field("Minimum silence (seconds)",s.silenceMinSeconds,47);
-            field("Maximum silence (seconds)",s.silenceMaxSeconds,77);
-            field("Fade duration (seconds)",s.fadeSeconds,107);
-            field("Context buffer (seconds)",s.bufferSeconds,137);
-            button("Restore Minecraft defaults",left,height-65,contentWidth,()->{
-                s.restoreMinecraftPlaybackDefaults();runtime.save();error="";rebuildWidgets();
-            });
-        } else {
-            field("Now-playing duration (seconds)",s.popupSeconds,47);
-            button("Combat settings...",left,83,contentWidth,()->{if(apply())minecraft.gui.setScreen(new CombatSettingsScreen(this,runtime));});
-            button("Combat music: "+(s.combatEnabled?"on":"off"),left,107,half,()->flip(()->s.combatEnabled=!s.combatEnabled));
-            button("Now playing: "+(s.nowPlaying?"on":"off"),left+half+6,107,half,()->flip(()->s.nowPlaying=!s.nowPlaying));
-            button("Rescan folders on launch: "+(s.rescanOnLaunch?"on":"off"),left,131,contentWidth,()->flip(()->s.rescanOnLaunch=!s.rescanOnLaunch));
-            button("ReplayGain track tags: "+(s.replayGainEnabled?"on":"off"),left,155,contentWidth,()->flip(()->s.replayGainEnabled=!s.replayGainEnabled));
-        }
-        button(page==0?"More settings >":"< Timing settings",left,height-29,Math.min(150,half),()->{if(apply()){page=1-page;rebuildWidgets();}});
-        button("Save & back",left+contentWidth-Math.min(130,half),height-29,Math.min(130,half),this::onClose);
+        half=(contentWidth-18)/2;int x=left+half+18;
+        field("Min silence (sec)",s.silenceMinSeconds,52,Component.translatable("afmr.copy.settings.min_silence_sec"));
+        field("Max silence (sec)",s.silenceMaxSeconds,76,Component.translatable("afmr.copy.settings.max_silence_sec"));
+        field("Fade in (sec)",s.fadeInSeconds,100,Component.translatable("afmr.copy.settings.fade_in_sec"));
+        field("Fade out (sec)",s.fadeOutSeconds,124,Component.translatable("afmr.copy.settings.fade_out_sec"));
+        field("Context buffer (sec)",s.bufferSeconds,148,Component.translatable("afmr.copy.settings.context_buffer_sec"));
+        var playImmediatelyOnJoinHelpControl=button("Play immediately on join: "+(s.playImmediatelyOnJoin?"on":"off"),left,176,half,()->flip(()->s.playImmediatelyOnJoin=!s.playImmediatelyOnJoin));
+        var playImmediatelyOnJoinHelpText=Component.translatable("afmr.copy.settings.play_immediately_on_join");
+        if(!playImmediatelyOnJoinHelpText.getString().isBlank())playImmediatelyOnJoinHelpControl.setTooltip(Tooltip.create(playImmediatelyOnJoinHelpText));
+        addRenderableWidget(minecraft.options.musicFrequency().createButton(minecraft.options,x,52,half,value->{
+            values.get("Min silence (sec)").setValue(Double.toString(s.silenceMinSeconds));
+            values.get("Max silence (sec)").setValue(Double.toString(s.silenceMaxSeconds));
+        }));
+        var normalizationHelpControl=button("Normalization: "+(s.replayGainEnabled?"on":"off"),x,78,half,()->flip(()->s.replayGainEnabled=!s.replayGainEnabled));
+        var normalizationHelpText=Component.translatable("afmr.copy.settings.normalization");
+        if(!normalizationHelpText.getString().isBlank())normalizationHelpControl.setTooltip(Tooltip.create(normalizationHelpText));
+        var continuePlayingOnMatchHelpControl=button("Continue playing on match: "+(s.continuePlayingOnMatch?"on":"off"),x,104,half,()->flip(()->s.continuePlayingOnMatch=!s.continuePlayingOnMatch));
+        var continuePlayingOnMatchHelpText=Component.translatable("afmr.copy.settings.continue_playing_on_match");
+        if(!continuePlayingOnMatchHelpText.getString().isBlank())continuePlayingOnMatchHelpControl.setTooltip(Tooltip.create(continuePlayingOnMatchHelpText));
+        var jukeboxPolicyHelpControl=button("Jukebox: "+s.jukeboxMode.label(),x,130,half,()->flip(()->s.jukeboxMode=JukeboxMode.values()[(s.jukeboxMode.ordinal()+1)%JukeboxMode.values().length]));
+        var jukeboxPolicyHelpText=Component.translatable("afmr.copy.settings.jukebox_policy");
+        if(!jukeboxPolicyHelpText.getString().isBlank())jukeboxPolicyHelpControl.setTooltip(Tooltip.create(jukeboxPolicyHelpText));
+        int combatWidth=Math.min(150,contentWidth/3),backWidth=Math.min(130,contentWidth/4);
+        var combatSettingsHelpControl=button("Combat settings",left,height-29,combatWidth,()->{if(apply())minecraft.gui.setScreen(new CombatSettingsScreen(this,runtime));});
+        var combatSettingsHelpText=Component.translatable("afmr.copy.settings.combat_settings");
+        if(!combatSettingsHelpText.getString().isBlank())combatSettingsHelpControl.setTooltip(Tooltip.create(combatSettingsHelpText));
+        var minecraftDefaultsHelpControl=button("Minecraft defaults",left+combatWidth+6,height-29,contentWidth-combatWidth-backWidth-12,()->{s.restoreMinecraftPlaybackDefaults();runtime.save();error="";rebuildWidgets();});
+        var minecraftDefaultsHelpText=Component.translatable("afmr.copy.settings.minecraft_defaults");
+        if(!minecraftDefaultsHelpText.getString().isBlank())minecraftDefaultsHelpControl.setTooltip(Tooltip.create(minecraftDefaultsHelpText));
+        button("Save & back",left+contentWidth-backWidth,height-29,backWidth,this::onClose);
     }
-    private void field(String name,double value,int y){
-        values.put(name,edit(Double.toString(value),name,left+contentWidth-100,y+12,100,null));
+    private void field(String name,double value,int y,Component help){
+        var control=edit(Double.toString(value),name,left+half-76,y,76,null);
+        var fieldHelpText=help;
+        if(!fieldHelpText.getString().isBlank())control.setTooltip(Tooltip.create(fieldHelpText));values.put(name,control);
     }
     private void flip(Runnable change){if(apply()){change.run();runtime.save();rebuildWidgets();}}
     private boolean apply(){
-        Map<String,Double> parsed=new HashMap<>();
-        for(var entry:values.entrySet()){
-            try{double value=Double.parseDouble(entry.getValue().getValue());if(!Double.isFinite(value)||value<0)throw new NumberFormatException();parsed.put(entry.getKey(),value);}
-            catch(NumberFormatException e){error="Enter a finite, non-negative number for every field.";return false;}
-        }
-        var s=runtime.library().settings;
-        if(page==0){
-            double min=parsed.get("Minimum silence (seconds)"),max=parsed.get("Maximum silence (seconds)");
-            double fade=parsed.get("Fade duration (seconds)"),buffer=parsed.get("Context buffer (seconds)");
-            if(max<min||max>86400||fade>60||buffer>60){error="Silence: 0-86400, max >= min. Fade and buffer: 0-60.";return false;}
-            s.silenceMinSeconds=min;s.silenceMaxSeconds=max;s.fadeSeconds=fade;s.bufferSeconds=buffer;
-        }else{
-            double popup=parsed.get("Now-playing duration (seconds)");
-            if(popup<1||popup>60){error="Popup: 1-60 seconds.";return false;}
-            s.popupSeconds=popup;
-        }
+        double[] parsed=new double[5];int i=0;
+        try{for(var value:values.values()){double number=Double.parseDouble(value.getValue());if(!Double.isFinite(number)||number<0)throw new NumberFormatException();parsed[i++]=number;}}
+        catch(NumberFormatException e){error="Invalid number";return false;}
+        if(parsed[1]<parsed[0]||parsed[1]>86400){error="Silence: 0-86400; max >= min.";return false;}
+        if(parsed[2]>60||parsed[3]>60||parsed[4]>60){error="Fades / buffer: 0-60 seconds.";return false;}
+        var s=runtime.library().settings;s.silenceMinSeconds=parsed[0];s.silenceMaxSeconds=parsed[1];s.fadeInSeconds=parsed[2];s.fadeOutSeconds=parsed[3];s.bufferSeconds=parsed[4];
         runtime.save();error="";return true;
     }
+    @Override protected boolean saveChanges(){return apply();}
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        int i=0;for(String name:values.keySet())g.text(font,fit(name,contentWidth-108),left,50+(i++)*30,0xFFD9E8E0);
-        String hint=page==0?"Defaults: 10-20 min gaps, no added fade/buffer. Future gaps only.":"ReplayGain: existing track tags + peak protection; next song only.";
-        g.text(font,fit(error.isBlank()?hint:error,contentWidth),left,height-41,error.isBlank()?0xFF8FA7A0:0xFFFFA0A0);
+        int i=0;for(String name:values.keySet())g.text(font,fit(name,half-82),left,58+(i++)*24,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        if(!error.isBlank())g.text(font,fit(error,half),left,height-43,0xFFFFA0A0);
     }
 }

@@ -1,0 +1,10 @@
+PASS Reviewed restore initializes after actual restart
+PASS Playback flags and volume survive restore
+PASS Appearance and rescan setting survive restore
+PASS Enabled animated background survives restore
+PASS Pending archive is consumed
+CLICK Display on LibraryScreen
+CLICK Menus on NowPlayingSettingsScreen
+STEP Restored GIF texture upload
+PASS Restored GIF uploads every frame
+COMPLETE: 6 passed / 0 failed

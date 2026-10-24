@@ -16,7 +16,7 @@ public abstract class SoundBufferLibraryMixin {
         var source = GameAudio.localSource(location);
         if (source == null) return;
         cir.setReturnValue(CompletableFuture.supplyAsync(() -> {
-            try { return new LocalAudioStream(source.path(),source.replayGain()); }
+            try { return new LocalAudioStream(source.path(),source.replayGain(),source.loudness()); }
             catch (Exception e) {
                 dev.animal.afmr.ClientRuntime.reportAudioFailure(source.path(), e);
                 throw new CompletionException(e);

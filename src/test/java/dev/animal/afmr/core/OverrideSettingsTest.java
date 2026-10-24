@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OverrideSettingsTest {
     @TempDir Path directory;
-    private Context outside(){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,false,false,15,"world",0,80,0,0,0.8,false);}
+    private Context outside(){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);}
     @Test void manualOnlyKeepsConditionsButExcludesAutomaticSelection(){
         var lib=Library.defaults();var p=lib.createPlaylist("Manual");p.manualOnly=true;var t=new Track("a","file","A",false);lib.tracks.add(t);p.tracks.put(t.id,true);
         assertTrue(p.matches(outside(),lib.settings));assertTrue(lib.hasPlayable(p,Set.of(),Set.of()));assertNull(lib.selectPlayable(outside(),Set.of(),Set.of()));

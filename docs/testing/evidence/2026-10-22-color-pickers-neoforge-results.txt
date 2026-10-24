@@ -1,0 +1,26 @@
+PASS Background opens a seeded picker
+PASS Panels opens a seeded picker
+PASS Buttons opens a seeded picker
+PASS Hover opens a seeded picker
+PASS Selection opens a seeded picker
+PASS Highlights opens a seeded picker
+PASS Text opens a seeded picker
+PASS Secondary text opens a seeded picker
+PASS Borders opens a seeded picker
+PASS Scrollbars opens a seeded picker
+PASS Picker controls fit the screen
+PASS Picker hex previews the menu
+PASS Hue strip selects green
+PASS SV square selects expected RGB
+PASS Dragging outside square clamps to black
+PASS Focused arrows adjust the picker
+PASS Invalid hex blocks Apply
+PASS Cancel restores original menu color
+PASS Picker can recover invalid parent hex
+PASS Picker preserves panel opacity
+PASS Unsupported widget style disables picker
+PASS Widget picker previews independently
+PASS Picker survives hide and reopen
+PASS Widget Apply retains chosen RGB
+PASS Escape cancels widget preview
+COMPLETE: 25 passed / 0 failed

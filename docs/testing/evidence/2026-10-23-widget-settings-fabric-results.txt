@@ -1,0 +1,27 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS workspace opens at title screen
+PASS Display has only Widget and Menus
+PASS all fields and information switches share Widget
+PASS small-window top controls fit without overlap
+PASS scrolling retains invalid drafts
+PASS invalid draft blocks tab navigation
+PASS tab switch saves all widget fields
+PASS Menus contains only menu appearance controls
+PASS menu controls fit without overlap
+PASS corner remains configurable
+PASS information toggle works in consolidated panel
+PASS text layout remains configurable
+PASS bottom controls fit without overlap
+PASS hide/reopen retains drafts and scroll
+PASS picker Cancel restores applied opening color
+PASS picker Apply retains color
+PASS Home reaches first row
+PASS Page Down scrolls panel
+PASS scrollbar drag reaches top
+PASS Preview stays directly available
+PASS widget values survive preview
+PASS large-window controls fit without overlap
+PASS menu reset preserves widget appearance
+RESULT passed=25 failed=0

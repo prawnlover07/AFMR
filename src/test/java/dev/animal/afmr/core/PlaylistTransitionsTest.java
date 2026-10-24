@@ -17,7 +17,7 @@ class PlaylistTransitionsTest {
         final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
         final Playlist a=playlist("A"),b=playlist("B"),c=playlist("C");
         Scenario(){
-            lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeSeconds=2;lib.settings.bufferSeconds=2;
+            lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=2;lib.settings.bufferSeconds=2;
             tick(0,a);tick(10,a);tick(12,a);assertEquals(a.id,audio.current.id);assertEquals(1,audio.gain);
         }
         private Playlist playlist(String name){
@@ -25,7 +25,7 @@ class PlaylistTransitionsTest {
             var track=new Track(p.id,"file",name,false);lib.tracks.add(track);p.tracks.put(track.id,true);return p;
         }
         void tick(double time,Playlist where){
-            var context=new Context("minecraft:overworld","test:"+where.name.toLowerCase(Locale.ROOT),false,false,6000,false,false,false,15,"world",0,80,0,0,0.8,false);
+            var context=new Context("minecraft:overworld","test:"+where.name.toLowerCase(Locale.ROOT),false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
             engine.tick(time,lib,context,Set.of());
         }
         void enterB(){tick(14,b);tick(15.9,b);assertEquals(PlaybackEngine.Phase.PLAYING,engine.phase());tick(16,b);}
@@ -81,7 +81,7 @@ class PlaylistTransitionsTest {
     }
     @Test void manualSkipOverridesBothFinishSettingsAndKeepsNormalSilence(){
         var s=new Scenario();s.a.finishCurrentSongOnExit=true;s.b.finishCurrentSong=true;s.enterB();
-        s.engine.skip(17,s.lib.settings);assertNull(s.audio.current);s.tick(26.9,s.b);assertNull(s.audio.current);s.tick(27,s.b);assertEquals(s.b.id,s.audio.current.id);
+        s.engine.skip(17,s.lib);assertNull(s.audio.current);s.tick(26.9,s.b);assertNull(s.audio.current);s.tick(27,s.b);assertEquals(s.b.id,s.audio.current.id);
         s.tick(30,s.b);s.tick(31,s.c);s.tick(33,s.c);assertEquals(PlaybackEngine.Phase.FADING,s.engine.phase());
     }
     @Test void previewsStayIndependentOfPlaylistEntryAndExitSettings(){

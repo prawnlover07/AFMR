@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "afmr",
+  "version": "1.0",
+  "name": "animal's final music replacer",
+  "description": "Local music, contextual playlists and manual soundtrack controls.",
+  "authors": ["animal"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.animal.afmr.Afmr"] },
+  "mixins": ["afmr.mixins.json"],
+  "depends": { "fabricloader": ">=0.19.5", "minecraft": "1.20.1", "java": ">=17", "fabric-api": "*" }
+}

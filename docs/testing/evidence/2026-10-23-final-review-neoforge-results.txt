@@ -1,0 +1,107 @@
+PASS Packaged runtime initialized
+PASS Generated audio exists
+PASS Disabled automatic playlist accepts a held override
+STEP Native playback and inspector
+PASS Native sound is active
+STEP Open inspector
+CLICK Inspector on LibraryScreen
+INPUT 172.50799441337585,17.50699943304062 scale=0.427 bounds=364,30,80,22 handled=true screen=PlaybackInspectorScreen
+STEP Copy live playback
+CLICK Copy diagnostic summary on PlaybackInspectorScreen
+INPUT 158.5,221.0 scale=1.0 bounds=12,211,293,20 handled=true screen=PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Clipboard captures source and override aliases
+PASS Clipboard captures safe location result
+CLICK Pause music on PlaybackInspectorScreen
+INPUT 363.5,197.0 scale=1.0 bounds=315,187,97,20 handled=true screen=PlaybackInspectorScreen
+STEP Copy paused playback
+CLICK Summary copied! on PlaybackInspectorScreen
+INPUT 158.5,221.0 scale=1.0 bounds=12,211,293,20 handled=true screen=PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Clipboard reflects actual pause
+CLICK Resume music on PlaybackInspectorScreen
+INPUT 363.5,197.0 scale=1.0 bounds=315,187,97,20 handled=true screen=PlaybackInspectorScreen
+STEP Copy playback failure
+CLICK Summary copied! on PlaybackInspectorScreen
+INPUT 158.5,221.0 scale=1.0 bounds=12,211,293,20 handled=true screen=PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Failure category replaces raw message
+CLICK Retry failed on PlaybackInspectorScreen
+INPUT 161.5,197.0 scale=1.0 bounds=113,187,97,20 handled=true screen=PlaybackInspectorScreen
+STEP Copy after retry
+CLICK Summary copied! on PlaybackInspectorScreen
+INPUT 158.5,221.0 scale=1.0 bounds=12,211,293,20 handled=true screen=PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Retry clears reported current error
+CLICK Back on PlaybackInspectorScreen
+INPUT 363.0,221.0 scale=1.0 bounds=311,211,104,20 handled=true screen=LibraryScreen
+CLICK Timing on LibraryScreen
+INPUT 83.69199728965759,17.50699943304062 scale=0.427 bounds=164,30,64,22 handled=true screen=SettingsScreen
+PASS Timing no longer contains rescan or global combat switches
+PASS Author copy applied: afmr.copy.settings.play_immediately_on_join
+STEP Timing author tooltip
+CLICK Combat settings on SettingsScreen
+INPUT 79.0,221.0 scale=1.0 bounds=12,211,134,20 handled=true screen=CombatSettingsScreen
+PASS Combat toggle lives in Combat settings
+PASS Author copy applied: afmr.copy.combatsettings.combat_triggers
+STEP Combat author tooltip
+CLICK Save & back on CombatSettingsScreen
+INPUT 363.0,221.0 scale=1.0 bounds=311,211,104,20 handled=true screen=SettingsScreen
+CLICK Library on SettingsScreen
+INPUT 85.5,35.0 scale=1.0 bounds=62,27,47,16 handled=true screen=SourcesScreen
+PASS Rescan switch lives beside repair
+CLICK Rescan on launch: off on SourcesScreen
+INPUT 111.5,83.0 scale=1.0 bounds=12,73,199,20 handled=true screen=SourcesScreen
+PASS Rescan preference toggles
+CLICK Display on SourcesScreen
+INPUT 185.5,35.0 scale=1.0 bounds=162,27,47,16 handled=true screen=NowPlayingSettingsScreen
+CLICK Menus on NowPlayingSettingsScreen
+INPUT 315.0,57.0 scale=1.0 bounds=216,47,198,20 handled=true screen=NowPlayingSettingsScreen
+PASS Cleared menu opacity has no empty tooltip
+STEP Menu appearance
+CLICK Custom background… on NowPlayingSettingsScreen
+INPUT 111.0,145.0 scale=1.0 bounds=12,135,198,20 handled=true screen=MenuBackgroundScreen
+PASS Cleared sizing explanation has no tooltip
+PASS Cleared image opacity has no tooltip
+STEP Generated GIF background
+PASS Generated animated background uploads
+CLICK Back on MenuBackgroundScreen
+INPUT 213.5,221.0 scale=1.0 bounds=12,211,403,20 handled=true screen=NowPlayingSettingsScreen
+CLICK Widget on NowPlayingSettingsScreen
+INPUT 111.0,57.0 scale=1.0 bounds=12,47,198,20 handled=true screen=NowPlayingSettingsScreen
+PASS Cleared widget-corner explanation has no tooltip
+CLICK Preview widget on NowPlayingSettingsScreen
+INPUT 111.0,221.0 scale=1.0 bounds=12,211,198,20 handled=true screen=NowPlayingPreviewScreen
+STEP Widget preview
+CLICK Back on NowPlayingPreviewScreen
+INPUT 365.0,221.0 scale=1.0 bounds=315,211,100,20 handled=true screen=NowPlayingSettingsScreen
+PASS Hidden settings retain author-copy widgets and draft
+PASS Reflow retains numeric drafts
+CLICK Save & back on NowPlayingSettingsScreen
+INPUT 315.0,221.0 scale=1.0 bounds=216,211,198,20 handled=true screen=LibraryScreen
+CLICK Import / export on LibraryScreen
+INPUT 300.18099027872086,17.50699943304062 scale=0.427 bounds=640,30,126,22 handled=true screen=PlaylistSharingScreen
+CLICK Full configuration... on PlaylistSharingScreen
+INPUT 111.0,221.0 scale=1.0 bounds=12,211,198,20 handled=true screen=ConfigBackupScreen
+STEP Export complete animated configuration
+PASS Full backup includes enabled GIF
+STEP Review configuration replacement
+PASS Replacement requires a reviewed backup
+CLICK Replace on restart on ConfigBackupScreen
+INPUT 111.0,221.0 scale=1.0 bounds=12,211,198,20 handled=true screen=ConfigBackupScreen
+STEP Stage restore for a real restart
+PASS Current session remains intact before restart
+PASS Pending archive exists for actual restart
+COMPLETE: 42 passed / 0 failed

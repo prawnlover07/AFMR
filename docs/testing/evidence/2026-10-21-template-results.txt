@@ -1,0 +1,81 @@
+PASS Generated audio fixture exists
+PASS Six direct navigation controls
+PASS Library below priority
+PASS Scaled workspace tooltip fixture
+PASS tooltip-right-edge rendered
+PASS tooltip-right-edge within screen
+PASS tooltip-bottom-edge rendered
+PASS tooltip-bottom-edge within screen
+PASS tooltip-timing-field rendered
+PASS tooltip-timing-field within screen
+PASS Disabled preview fixture
+PASS tooltip-disabled-control rendered
+PASS tooltip-disabled-control within screen
+PASS Double click assigns a library song
+PASS Selected song assigned on same screen
+PASS Bulk disable
+PASS Bulk enable
+PASS Entry independent
+PASS Exit independent
+PASS Priority top
+PASS Priority down
+PASS Priority last
+PASS Held override with Automatic off
+PASS Generated fixture actually starts
+PASS Pause control
+PASS Next keeps held override
+PASS Resume control
+PASS Release override
+PASS One-song override
+PASS Timing direct navigation
+PASS Invalid timing blocks navigation
+PASS Hide settings
+PASS Draft page retained
+PASS Invalid draft retained
+PASS Timing saved on navigation
+PASS Display direct navigation
+PASS Display style changes
+PASS Size controls remain
+PASS All metadata switches remain
+PASS Keys direct navigation
+PASS Physical key bindings reachable
+PASS All eight override slots reachable
+PASS Unified import dialog
+PASS Files/folders can import without assignment
+PASS Custom condition editor reachable
+PASS Match all/any reachable
+PASS Remove keeps library file
+PASS Whole-folder assignment
+PASS Normalization progress reachable
+PASS Normalization report/cancel retained
+PASS Inspector direct navigation
+PASS Retry failed retained
+PASS Inspector details retained
+PASS Create in workspace
+PASS Delete custom playlist
+PASS Library search preserved
+PASS Workspace instance retained
+PASS Two library and song viewports remain
+PASS Default name is editable
+PASS Default groups reachable
+PASS Dimension branch editable
+PASS Clone selected and independent
+PASS Clone keeps nested branch
+PASS Autoplay tap does not change conditions
+PASS Hold warning replaces label
+PASS Short hold cancels
+PASS Moving outside cancels hold
+PASS Still unchanged before one second
+PASS Completed hold replaces conditions
+PASS Autoplay enables only this playlist
+PASS Autoplay keeps assignments and original template
+PASS Navigation cancels an armed hold
+PASS Artwork fixture loaded
+PASS Silent gap clears current track and cover
+PASS Preview selection is retained
+PASS No-cover song does not inherit artwork
+PASS Selected preview still works
+PASS Corner selector exposes all corners and default
+PASS Native toast corner uses screen anchors
+PASS Native popup captured outside the pause menu
+COMPLETE: 80 passed / 0 failed

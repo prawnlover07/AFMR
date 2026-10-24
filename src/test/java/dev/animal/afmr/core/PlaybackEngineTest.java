@@ -9,24 +9,24 @@ class PlaybackEngineTest {
     private final FakeAudio audio=new FakeAudio();
     private PlaybackEngine engine;
     private Library library;
-    private final Context forest=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,false,false,15,"",0,64,0,0,0.8,false);
-    private final Context desert=new Context("minecraft:overworld","minecraft:desert",false,false,6000,false,false,false,15,"",0,64,0,0,0.8,false);
+    private final Context forest=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+    private final Context desert=new Context("minecraft:overworld","minecraft:desert",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
     private Playlist general,forestPlaylist,desertPlaylist;
     private Track a,b,c;
     @BeforeEach void setup(){
         library=new Library();
-        library.playlists.add(new Playlist("combat","Combat",Rule.COMBAT,""));
-        library.playlists.add(new Playlist("underwater","Underwater",Rule.UNDERWATER,""));
-        Playlist night=new Playlist("night","Night",Rule.NIGHT,"");night.enabled=false;library.playlists.add(night);
-        Playlist day=new Playlist("day","Day",Rule.DAY,"");day.enabled=false;library.playlists.add(day);
-        library.playlists.add(new Playlist("general","General",Rule.GENERAL,""));
+        var combat=new Playlist("combat","Combat");combat.conditions.combat=PlaylistConditions.State.YES;library.playlists.add(combat);
+        var water=new Playlist("underwater","Underwater");water.conditions.water=PlaylistConditions.State.YES;water.includeVanilla=false;library.playlists.add(water);
+        Playlist night=new Playlist("night","Night");night.enabled=false;library.playlists.add(night);
+        Playlist day=new Playlist("day","Day");day.enabled=false;library.playlists.add(day);
+        library.playlists.add(new Playlist("general","General"));
         library.settings.silenceMinSeconds=10;library.settings.silenceMaxSeconds=10;
-        library.settings.fadeSeconds=3;library.settings.bufferSeconds=2;
+        library.settings.fadeInSeconds=library.settings.fadeOutSeconds=3;library.settings.bufferSeconds=2;
         general=library.playlist("general");general.includeVanilla=false;
         a=track("a");b=track("b");c=track("c");
         general.tracks.put(a.id,true);
-        forestPlaylist=new Playlist("forest","Forest",Rule.BIOME,"minecraft:forest");forestPlaylist.includeVanilla=false;forestPlaylist.tracks.put(b.id,true);
-        desertPlaylist=new Playlist("desert","Desert",Rule.BIOME,"minecraft:desert");desertPlaylist.includeVanilla=false;desertPlaylist.tracks.put(c.id,true);
+        forestPlaylist=new Playlist("forest","Forest");forestPlaylist.conditions.biomeEnabled=true;forestPlaylist.conditions.biomes.add("minecraft:forest");forestPlaylist.includeVanilla=false;forestPlaylist.tracks.put(b.id,true);
+        desertPlaylist=new Playlist("desert","Desert");desertPlaylist.conditions.biomeEnabled=true;desertPlaylist.conditions.biomes.add("minecraft:desert");desertPlaylist.includeVanilla=false;desertPlaylist.tracks.put(c.id,true);
         library.playlists.add(4,forestPlaylist);library.playlists.add(5,desertPlaylist);
         engine=new PlaybackEngine(audio,new Random(7));
     }
@@ -58,7 +58,7 @@ class PlaybackEngineTest {
     }
     @Test void priorityAndCombatToggle(){
         Playlist combat=library.playlist("combat");combat.includeVanilla=false;combat.tracks.put(a.id,true);
-        Context busy=new Context("minecraft:overworld","minecraft:forest",true,true,18000,false,false,false,15,"",0,64,0,0,0.8,false);
+        Context busy=new Context("minecraft:overworld","minecraft:forest",true,true,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
         assertEquals(combat,library.selectPlayable(busy,Set.of(),Set.of()));
         library.settings.combatEnabled=false;
         assertEquals(forestPlaylist,library.selectPlayable(busy,Set.of(),Set.of()));
@@ -83,25 +83,25 @@ class PlaybackEngineTest {
         tick(11,forest);tick(13,forest);assertEquals(a,audio.current);
     }
     @Test void asyncDecoderFailureQuarantinesSong(){
-        startForest();engine.failed(b.id,"decoder failed",14,library.settings);tick(15,forest);tick(17,forest);
+        startForest();engine.failed(b.id,"decoder failed",14,library);tick(15,forest);tick(17,forest);
         assertEquals(a,audio.current);
     }
     @Test void skipRetainsNormalSilence(){
-        startForest();engine.skip(14,library.settings);tick(23.9,forest);assertNull(audio.current);tick(24,forest);assertEquals(b,audio.current);
+        startForest();engine.skip(14,library);tick(23.9,forest);assertNull(audio.current);tick(24,forest);assertEquals(b,audio.current);
     }
     @Test void resetStopsAudioAndClearsWorldState(){
         startForest();engine.reset();assertNull(audio.current);assertNull(engine.current());assertEquals(PlaybackEngine.Phase.SILENCE,engine.phase());
     }
     @Test void invalidSettingsCannotBreakTimer(){
-        library.settings.silenceMinSeconds=Double.NaN;library.settings.silenceMaxSeconds=-20;library.settings.fadeSeconds=Double.POSITIVE_INFINITY;
+        library.settings.silenceMinSeconds=Double.NaN;library.settings.silenceMaxSeconds=-20;library.settings.fadeInSeconds=library.settings.fadeOutSeconds=Double.POSITIVE_INFINITY;
         library.normalize();assertTrue(Double.isFinite(library.settings.silenceMinSeconds));
-        assertTrue(library.settings.silenceMaxSeconds>=library.settings.silenceMinSeconds);assertEquals(0,library.settings.fadeSeconds);
+        assertTrue(library.settings.silenceMaxSeconds>=library.settings.silenceMinSeconds);assertEquals(0,library.settings.fadeInSeconds);
     }
     @Test void dayNightAndDimensionRules(){
         var night=library.playlist("night");night.enabled=true;night.tracks.put(a.id,true);
-        Context context=new Context("minecraft:the_nether","minecraft:nether_wastes",false,false,18000,false,false,false,15,"",0,64,0,0,0.8,false);
+        Context context=new Context("minecraft:the_nether","minecraft:nether_wastes",false,false,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
         assertEquals(night,library.select(context));night.enabled=false;
-        var dimension=new Playlist("nether","Nether",Rule.DIMENSION,"minecraft:the_nether");dimension.tracks.put(c.id,true);
+        var dimension=new Playlist("nether","Nether");dimension.conditions.dimensionEnabled=true;dimension.conditions.dimension="minecraft:the_nether";dimension.tracks.put(c.id,true);
         library.playlists.add(0,dimension);assertEquals(dimension,library.select(context));
     }
     static class FakeAudio implements PlaybackEngine.Audio{

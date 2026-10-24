@@ -2,6 +2,6 @@
   "required": true,
   "package": "dev.animal.afmr.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": ["SoundBufferLibraryMixin", "SoundEngineMixin"],
+  "client": ["SoundBufferLibraryMixin", "SoundEngineMixin", "NowPlayingToastMixin", "MusicManagerMixin", "LivingEntityMixin", "LevelEventHandlerMixin"],
   "injectors": { "defaultRequire": 1 }
 }

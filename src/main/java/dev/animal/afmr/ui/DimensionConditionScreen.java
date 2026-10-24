@@ -1,5 +1,7 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
 import dev.animal.afmr.core.PlaylistConditions;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -11,7 +13,7 @@ import net.minecraft.resources.Identifier;
 final class DimensionConditionScreen extends MusicScreen {
     private final PlaylistConditions conditions;
     private boolean enabled;
-    private Button toggle;
+    private FlatButton toggle;
     private EditBox dimension;
     private String error="";
     DimensionConditionScreen(Screen parent,ClientRuntime runtime,PlaylistConditions conditions){super("Dimension condition",parent,runtime);this.conditions=conditions;}
@@ -30,7 +32,7 @@ final class DimensionConditionScreen extends MusicScreen {
         catch(IllegalArgumentException e){error="Use a dimension ID such as minecraft:overworld.";}
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        g.text(font,"Dimension ID (modded dimensions are supported)",left,77,0xFFD9E8E0);
+        g.text(font,"Dimension ID (modded dimensions are supported)",left,77,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
         g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
     }
 }

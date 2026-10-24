@@ -35,7 +35,9 @@ public final class VanillaCatalog {
             Set<String> ids = new HashSet<>(); for (String file : expanded) ids.add("vanilla:" + file);
             musicPools.put(Identifier.parse(key), Set.copyOf(ids));
         }
-        Map<String, Track> existing = new HashMap<>(); library.tracks.forEach(t -> existing.put(t.id, t));
+        Map<String, Track> existing = new HashMap<>(); library.tracks.forEach(t -> {
+            existing.put(t.id,t);if(t.vanilla)t.durationSeconds=0; // Resource packs can replace a file at the same ID.
+        });
         for (String file : files) {
             String id = "vanilla:" + file;
             if (!existing.containsKey(id)) {

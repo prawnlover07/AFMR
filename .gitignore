@@ -18,3 +18,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 hs_err_pid*.log
+
+# Minecraft logging can also be initialized by windowless native probes.
+**/logs/
+
+# Complete backups contain personal paths, profiles and settings.
+*.afmrb

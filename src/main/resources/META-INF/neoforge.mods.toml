@@ -1,9 +1,9 @@
 modLoader="javafml"
 loaderVersion="[11,)"
-license="All Rights Reserved"
+license="MIT"
 [[mods]]
 modId="afmr"
-version="0.5.2"
+version="1.0"
 displayName="animal's final music replacer"
 authors="animal"
 description='''A personal, context-aware soundtrack with local music, environment playlists, and smooth transitions.'''

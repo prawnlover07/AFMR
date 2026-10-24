@@ -2,22 +2,36 @@ package dev.animal.afmr.core;
 
 import dev.animal.afmr.core.Library.Settings;
 
-/** Client combat observations, reset on player replacement or disconnect. */
+/** Source-qualified client observations. General combat and PvP expire independently. */
 public final class CombatTracker {
-    private double until;
-    private float health=Float.NaN;
-    private int hurtTime;
-    private boolean dead;
-    public void attack(double now,Settings settings){
-        if(!dead&&settings.combatEnabled&&settings.combatOnAttack)until=now+settings.combatQuietSeconds;
+    public enum Opponent { NONE, PASSIVE, MOB, PLAYER }
+    private double until,playersUntil;
+    private boolean dead,engaged,targeted;
+    public void attack(double now,Opponent opponent,Settings settings){
+        if(dead||!settings.combatEnabled||!settings.combatOnAttack||opponent==Opponent.NONE)return;
+        if(settings.combatThreatsOnly&&opponent==Opponent.PASSIVE)return;
+        until=now+settings.combatQuietSeconds;
+        engaged=true;
+        if(opponent==Opponent.PLAYER)playersUntil=until;
     }
-    public void update(double now,float currentHealth,int currentHurtTime,boolean isDead,Settings settings){
-        if(isDead){until=0;dead=true;health=currentHealth;hurtTime=currentHurtTime;return;}
-        if(dead){reset();health=currentHealth;hurtTime=currentHurtTime;return;}
-        if(settings.combatEnabled&&settings.combatOnDamage&&((!Float.isNaN(health)&&currentHealth<health)||currentHurtTime>hurtTime))
-            until=now+settings.combatQuietSeconds;
-        health=currentHealth;hurtTime=currentHurtTime;
+    public void damage(double now,Opponent opponent,Settings settings){
+        if(dead||!settings.combatEnabled||!settings.combatOnDamage)return;
+        if(settings.combatThreatsOnly&&(opponent==Opponent.NONE||opponent==Opponent.PASSIVE))return;
+        until=now+settings.combatQuietSeconds;
+        engaged=true;
+        if(opponent==Opponent.PLAYER)playersUntil=until;
     }
-    public boolean active(double now,Settings settings){return !dead&&settings.combatEnabled&&now<until;}
-    public void reset(){until=0;health=Float.NaN;hurtTime=0;dead=false;}
+    public void update(boolean isDead){
+        if(dead!=isDead){until=playersUntil=0;engaged=targeted=false;dead=isDead;}
+    }
+    /** Targeting sustains an event-started fight; it can never start or revive one by itself. */
+    public void targeting(double now,boolean hostileTarget,Settings settings){
+        if(dead||!settings.combatEnabled){engaged=targeted=false;return;}
+        if(!engaged||!targeted&&now>=until&&now>=playersUntil){engaged=targeted=false;return;}
+        if(targeted&&!hostileTarget)until=Math.max(until,now+settings.combatQuietSeconds);
+        targeted=hostileTarget;
+    }
+    public boolean active(double now,Settings settings){return !dead&&settings.combatEnabled&&(targeted||now<until||now<playersUntil);}
+    public boolean playersActive(double now,Settings settings){return !dead&&settings.combatEnabled&&now<playersUntil;}
+    public void reset(){until=playersUntil=0;dead=engaged=targeted=false;}
 }

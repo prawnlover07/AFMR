@@ -1,0 +1,9 @@
+Copy diagnostic summary — 2026-10-23
+Version retained: 0.6
+NeoForge: {'tests': 747, 'failures': 0, 'errors': 0, 'skipped': 0}
+NeoForge JAR SHA256: 25be6472f01c722c6c58321ac0d424a0bb09fc9c435f33bbdfc301f058040ca5
+Fabric: {'tests': 757, 'failures': 0, 'errors': 0, 'skipped': 0}
+Fabric JAR SHA256: 389a0636b24bb59ba52c96f4a32a00c7a7889b4b205356dc48c141d54bf586bb
+12 new summary tests per target; private-data omission, safe categories, title screen, overrides, nested conditions, bounded output.
+Guarded 70,000-track library: no full catalog traversal or playback mutation.
+Native clipboard/window/layout checks deferred. No desktop or system-clipboard interaction.

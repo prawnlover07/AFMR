@@ -11,6 +11,42 @@ world and coordinate desktop testing with the user. Do not use a personal game p
 
 ## Prepare
 
+For per-playlist silence, build and prepare the workspace, then run
+`runClient -Pworkspace -PplaylistSilence`. The focused mode creates a playlist from
+an existing generated long WAV, checks range validation and retained drafts, and
+measures a real three-second Skip gap. Results use `playlist-silence-results.txt`;
+screenshots use `workspace-playlist-silence-*.png`. The ten-minute case verifies
+its scheduled countdown without waiting ten minutes. Close the screen before
+leaving the test world so profile activation cannot invalidate its fixture ID.
+
+For the consolidated Display → Widget panel, build and prepare the workspace,
+then run `runClient -Pworkspace -PwidgetSettings` in this test project. It checks
+the actual tab/control layout, drafts, style restrictions, scrolling and drag,
+picker/preview, resize and scrolled tooltip bounds. Results use
+`widget-settings-results.txt`; screenshots use `workspace-widget-settings-*.png`.
+
+For WebP/animated GIF checks, build and prepare the workspace profile, then run
+`python testing/prepare_background_images.py --stage` from the repository root
+(requires Pillow). Run `runClient -Pworkspace -PbackgroundImages` in this test
+project. Results use `background-images-results.txt`; screenshots use
+`workspace-background-*.png`. This exercises packaged decoding, real frame textures,
+fast-import UI refresh, animation export, invalidation/reload, on/off and removal.
+`menuBackgroundProbe` runs the large-PNG native decode/close stress case without a
+game window, unpacking only the packaged nested libraries into the test build folder.
+
+For focused visual picker checks, prepare the workspace profile, then run
+`runClient -Pworkspace -PcolorPickers`. Results use `color-pickers-results.txt`
+and `color-pickers-complete.txt`; screenshots use `workspace-color-picker-*.png`.
+The helper opens every menu color and the widget picker, exercising actual pointer
+dragging, arrows, hex/preset sync, Apply/Cancel, hide/reopen and style availability.
+
+For focused menu-color UI/rendering checks, prepare the workspace profile, then
+run `runClient -Pworkspace -PmenuColors`. This mode writes
+`results/menu-colors-results.txt` and `menu-colors-complete.txt`, and captures
+`workspace-menu-colors-*.png` screenshots. It checks actual screen controls,
+invalid/hidden drafts, live custom RGB/alpha render states and palette reset.
+See [the report](../../docs/testing/2026-10-22-menu-colors.md).
+
 From the AFMR repository root, with Java 25 and Python 3 available:
 
 ```powershell
@@ -47,6 +83,63 @@ that expected decode error must not be mistaken for an unexpected failure.
 
 ## Saved UI checks
 
+### Workspace overhaul
+
+The `WorkspaceSuite` helper drives actual Minecraft screen events and asserts
+the resulting library/settings/runtime state. It uses its own `run/workspace`
+profile; the older native profile remains separate. Prepare it after building:
+
+```powershell
+python testing/native/prepare_fixtures.py --workspace --world "work/overnight/run/saves/New World"
+.\gradlew.bat -p testing/native runClient -Pworkspace
+```
+
+Pass `--world` only on first preparation; the destination must not already exist.
+Only the copied disposable world and generated WAV fixtures are used. This run
+opens a Minecraft window and closes it on completion. Results go to
+`results/workspace-results.txt` and `workspace-complete.txt`; renderer screenshots
+go to `run/workspace/screenshots`. Checks include same-screen assignments, priority,
+independent entry/exit, overrides/transport, navigation and drafts, all eight slots,
+import destinations, normalization access, and create/delete. The checks also
+observe rendered tooltips at the scaled workspace's right and bottom edges, on a
+timing field, and on a disabled display button. They assert screen bounds and
+mouse anchoring and save `workspace-tooltip-*.png` screenshots. These events do not
+establish physical keyboard behavior or Windows Explorer interaction.
+
+The current workspace run has 179 assertions. It also edits default templates and
+groups, clones a playlist, exercises Autoplay here's tap/short-hold/pointer-exit/
+navigation cancellation and completed hold, verifies cover clearing through silence
+and a no-cover song, cycles every widget corner, and records all four AFMR corners,
+Hybrid top-right and native bottom-right. Generated `fixtures/with-cover` audio and
+a tiny orange PNG supply artwork without personal files. Native popup visibility
+and focus-loss pausing are temporarily configured only in the isolated client and
+restored afterward. These checks do not change death/respawn playback semantics.
+
+Timing checks validate independent Fade in/Fade out fields, invalid bounds, hidden
+drafts, saving and the four-state Jukebox selector. Generated WAVs and actual local
+server jukebox placement/disc insertion/removal exercise all three enabled modes,
+same-sequence resume, a full post-record gap, immediate restart despite a buffer,
+overlapping records and muted Records volume. These workspace assertions inspect
+GameAudio's pause intent, not OpenAL sample offsets; the older native suite's channel
+measurements do not automatically validate this new hold path. See the
+[fades/jukebox report](../../docs/testing/2026-10-22-fades-jukebox.md).
+
+Song-column checks open the paged chooser, enable every optional field, retain
+choices while hidden, inspect cached metadata cells, sort numeric track numbers
+through horizontally scrolled headings, drag the horizontal scrollbar, toggle the
+pinned On switch and preserve assignment state when selecting a scrolled row.
+They verify global visibility across playlists and Defaults clearing overflow.
+The generated fixture tracks receive metadata in memory; actual MP3/FLAC/OGG/WAV
+tag parsing and read-only import behavior have separate component tests. See the
+[song-columns report](../../docs/testing/2026-10-22-song-columns.md).
+
+Display → Menus checks exercise the live opacity slider, blur toggle and reset,
+independence from widget opacity, background alpha and fully opaque text in actual
+native render states, and unchanged non-pausing behavior. Settings and workspace
+screenshots cover 0%, 50%, 80% and 100%, plus blur on/off. Full opacity skips the
+hidden blur pass. Physical dragging and unusual window/GUI-scale combinations
+remain manual checks.
+
 For the six persistence checks from the original session, use the isolated UI to:
 
 1. Import all 5,000 scan fixtures into the library.
@@ -68,3 +161,159 @@ the UI fixture if you intend to run the separate persistence test afterward. See
 The helper and fixture preparation compile/check after relocation. The historical
 native/UI results are the recorded October 21 session; relocation alone is not a new
 native test run. Screenshots and validated case names are tracked with the report.
+
+## Combined release checks
+
+The newer `IntegrationSuite` uses its own `run/integration` profile. Its first
+pass expects fresh AFMR test settings and an unused `integration-fixtures` folder;
+it creates/moves generated WAVs, drives queue/history/profile/repair/sharing
+screens, samples OpenAL on Minecraft's existing sound executor, and validates
+shutdown ordering. Never point it at personal configuration. Prepare after building:
+
+```powershell
+python testing/native/prepare_fixtures.py --integration --world "work/overnight/run/saves/New World"
+.\gradlew.bat -p testing/native runClient -Pintegration
+.\gradlew.bat -p testing/native runClient -Pintegration -Prestart
+```
+
+Use `--world` only when the copied destination does not exist. The restart pass
+requires a successfully completed first pass. `-Pinteractive` leaves the client
+open for actual Explorer/input checks afterward. Results are
+`results/integration-results.txt` and `integration-restart-results.txt`. Source
+music is generated, checks include byte preservation, and no personal game is used.
+
+`--fresh` / `-Pfresh` use `run/fresh`, deliberately without a prewritten AFMR
+library file or test key assignments, to check the actual first-install defaults
+and vanilla playback. Preparation refuses an existing AFMR config in that profile.
+
+`--performance --library <read-only-library.json>` / `-Pperformance` use
+`run/performance`. Preparation stages only the local track metadata and linked
+folder paths, omitting playlists, world/server links, appearance and history.
+The probe compares small/full catalogs, 67k-scale assignment data, workspace
+opening, a read-only rescan and post-scan gameplay. It retains bounded timing
+arrays, measures client-tick/Post event spans and Minecraft FPS, and does not
+claim those spans are isolated AFMR-only execution time. Minecraft's AFK frame
+limiter is disabled only in this test client. `-PskipScan` repeats the catalog/UI
+comparison without doing another filesystem scan. Results contain aggregate
+measurements; raw game logs and staged metadata remain ignored/private.
+
+The existing original playback run accepts `-PautoExit` to close its disposable
+client once complete; its default behavior still leaves it open for manual checks.
+
+See the [combined report](../../docs/testing/2026-10-22-release-validation.md)
+for measured results, fixture corrections and remaining limits.
+
+## Vanilla multiplayer suite
+
+`MultiplayerSuite` runs against an **unmodified Minecraft 26.3 server**, with AFMR
+and the probe installed only on the client. It uses another isolated profile,
+`run/multiplayer`, and quiet generated audio. The server must be disposable: tests
+change time, blocks, dimensions, game mode, and kill/respawn the test player.
+Coordinate the client launch with the user. The fixture sends ordinary vanilla
+commands as an operator; AFMR itself needs no commands, permissions, or networking.
+
+Prepare the client after building AFMR:
+
+```powershell
+python testing/native/prepare_fixtures.py --multiplayer
+```
+
+Obtain the official vanilla 26.3 server JAR. This machine's Gradle cache already has
+one at `work/gradle-cache/caches/neoformruntime/artifacts/minecraft_26.3_server.jar`.
+Read the [Minecraft EULA](https://aka.ms/MinecraftEULA); use `--accept-eula` below
+only if you agree. The preparation script never starts the server:
+
+```powershell
+python testing/native/prepare_multiplayer_server.py --server-jar <path-to-vanilla-26.3-server.jar> --accept-eula
+```
+
+It creates `work/multiplayer/server`, binds to **127.0.0.1:25575**, disables remote
+administration, and grants the offline **AFMRProbe** test player operator access.
+Keep this offline test server restricted to loopback. Existing server properties
+are preserved and checked; existing worlds are reused rather than reset.
+
+In that server directory, start it using Java 25:
+
+```powershell
+java -Xmx1G -jar server.jar --nogui
+```
+
+After the server reports `Done`, run from the repository root:
+
+```powershell
+.\gradlew.bat -p testing/native runClient -Pmultiplayer
+```
+
+The client joins automatically, checks native audio and synchronized context, then
+disconnects/reconnects and closes itself. Results are `results/multiplayer-results.txt`
+and `results/multiplayer-complete.txt`. Stop the server normally with `stop` afterward.
+The current suite has 39 checks; its attack case calls AFMR's observation API, whereas damage
+and death come from real server updates. Physical input and UI layout remain separate
+checks. The normalization case verifies waiting online and completing after logout;
+it does not benchmark background analysis during gameplay.
+
+The extended profile checks bind an inactive copy, reconnect to activate it,
+verify independent playlist volume, travel between dimensions without switching
+profiles, unlink and reconnect to Default, and retain server-address identity
+despite a changed display name. These extra travel checks use Creative mode;
+the intentional death/respawn checks use Survival. A dead test player is respawned
+before starting a repeated run. See the
+[combined release report](../../docs/testing/2026-10-22-release-validation.md).
+
+The 0.6 run also edits all four gamemode choices, retains hidden drafts, observes
+actual integrated-server mode updates and automatic source changes, and checks
+Play on trigger with a one-second fade against a five-second buffer/ten-second gap.
+Manual skip retains its gap. Time-screen checks save fitting, discover a generated
+90-second WAV's missing duration on the library worker, keep priority/silence when
+none fit, and resume after widening the range. The disposable clock is paused to
+stabilize the range budget; no natural-clock end-to-end timing benchmark is claimed.
+
+
+### Windowless wallpaper check
+
+After building AFMR, `./gradlew -p testing/native menuBackgroundProbe --offline`
+generates a detailed 4096×1024 wallpaper, imports/reloads its managed copy and runs
+100 actual Minecraft native stream decode/close cycles without a game window.
+It verifies source preservation, bounded dimensions, released native pixels and
+stable LWJGL scratch usage. It does not validate GPU registration or rendered blur.
+The Fabric counterpart is `./gradlew -Psmoke menuBackgroundProbe --offline` from
+that port; `-PartworkJava=<Java 17 executable>` runs it on a selected game runtime.
+
+## Whole-configuration transfer and seam checks
+
+With the workspace fixture prepared, use `runClient -Pworkspace -PconfigBackup`
+for ten real-screen export/review/cancel/stage checks. Restart with those flags
+plus `-PbackupRestart` for six startup checks. `-PbackupFromFabric` expects the
+generated `fabric-import.afmrb` to have been copied into the isolated profile and
+staged as its `config/afmr/pending-restore.afmrb`; it verifies seven transfer cases.
+Adding `-PmenuSeams` repeats sixteen exact render-state coverage/alpha cases at
+four canvas sizes, with and without table overflow. Results are separated by mode
+under ignored `results/`. Use only generated exports; never stage the user's setup.
+
+## First song on join
+
+Prepare ordinary generated fixtures/worlds first, then run
+`python testing/prepare_join_playback.py` from the repository root to replace only
+the disposable workspace configuration. It binds a profile with the join switch
+on to `New World`, leaves Default off, and uses a 600-second gap / 60-second buffer.
+Run `runClient -Pworkspace -PplayOnJoin` for actual first-join selection, Timing
+controls/validation/retention and later normal Skip assertions. Use `--fabric` on
+the fixture script and `-Psmoke -PpackagedSmoke -PplayOnJoin` on the port build for
+its separate actual-join/OpenAL checks. Fixture staging does not open personal
+music or touch a real install. Join-mode logs remain in ignored result folders.
+
+## Final copy, clipboard and animated restore review
+
+After staging the workspace fixtures, place the generated test GIF from
+`src/test/resources/backgrounds/disposal.gif` in that disposable instance's
+`background-fixtures/` folder. Run `runClient -Pworkspace -PfinalReview`, then
+restart with the same flags plus `-PreviewRestart`. This mode owns its generated
+playlist and clipboard report, checks the actual screens/native sound and stages
+a reviewed `.afmrb` restore. It replaces the system clipboard with AFMR's generated
+test report. Coordinate desktop use first. Results are `final-review-results.txt`
+and `final-review-restart-results.txt` under the ignored results directory.
+
+The independent Fabric helper uses `-Psmoke -PpackagedSmoke -PfinalReview runClient`
+and adds `-PreviewRestart` for the second process. Its fixture belongs in
+`ports/fabric-1.20.1/run-smoke/background-fixtures/`; it uses the disposable
+`AFMR Smoke` world and stores results/screenshots inside `run-smoke`.

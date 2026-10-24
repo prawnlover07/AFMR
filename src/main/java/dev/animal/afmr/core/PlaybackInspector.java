@@ -19,53 +19,124 @@ public final class PlaybackInspector {
             else status="Lower priority than "+(automatic==null?"the active choice":automatic.name);
             if(p.id.equals(engine.overrideId()))status="OVERRIDE / "+status;
             var details=new ArrayList<String>();details.add("#"+(i+1)+" "+p.name);details.add(status);
-            details.add("Conditions: "+(p.custom()?p.conditions.summary():p.rule.name().toLowerCase(Locale.ROOT).replace('_',' ')));
+            details.add("Conditions: "+p.conditions.summary());
+            details.add("Condition matching: "+(p.conditions.matchAny?"any enabled filter":"all enabled filters"));
             details.add("Finish on entry: "+p.finishCurrentSong+"; on exit: "+p.finishCurrentSongOnExit);
+            details.add("Play on trigger: "+p.playOnTrigger);
+            details.add("Silence: "+(p.customSilence?"custom "+p.silenceMinSeconds+"-"+p.silenceMaxSeconds:"default "+lib.settings.silenceMinSeconds+"-"+lib.settings.silenceMaxSeconds)+" seconds");
             details.add("Biome: "+c.biome());details.add("Dimension: "+c.dimension());
             details.add("Time: "+c.timeOfDay()+"; block Y: "+(int)Math.floor(c.y()));
             details.add("Covered: "+c.covered()+"; cover depth: "+String.format(Locale.ROOT,"%.1f",c.coverDepth()));
             details.add("Light: "+c.lightLevel()+"; temperature: "+String.format(Locale.ROOT,"%.3f",c.biomeTemperature()));
+            details.add("Rain/snow weather: "+c.raining()+"; thunderstorm: "+c.thundering()+"; local precipitation: "+c.precipitation().name().toLowerCase(Locale.ROOT));
             details.add("Combat: "+c.combat()+" (global switch: "+lib.settings.combatEnabled+"); underwater: "+c.underwater());
-            details.add("At Home: "+c.atHome()+"; underground: "+c.underground()+"; dead: "+c.dead());
+            details.add("PvP: "+c.playerCombat()+"; health: "+String.format(Locale.ROOT,"%.2f red hearts",c.healthHearts()));
+            details.add("Main hand: "+(c.mainHandItem().isEmpty()?"empty":c.mainHandItem())+"; off-hand: "+(c.offHandItem().isEmpty()?"empty":c.offHandItem()));
+            details.add("Dead: "+c.dead());
+            details.add("Gamemode: "+(c.gameMode()==null?"unavailable":c.gameMode().label()));
             details.add("Position: "+String.format(Locale.ROOT,"%.1f, %.1f, %.1f",c.x(),c.y(),c.z()));
-            if(p.custom()&&p.conditions.areaEnabled){var a=p.conditions.area;details.add("Area configured: "+a.configured+"; radius: "+a.radius);details.add("Area dimension: "+a.dimension);details.add("Area world matches: "+a.world.equals(c.world()));}
-            if(p.custom()&&p.conditions.biomeEnabled)for(String id:p.conditions.biomes)details.add("Allowed biome: "+id);
+            if(p.conditions.areaEnabled){var a=p.conditions.area;details.add("Area configured: "+a.configured+"; radius: "+a.radius);details.add("Area dimension: "+a.dimension);details.add("Area world matches: "+a.world.equals(c.world()));}
+            if(p.conditions.biomeEnabled)for(String id:p.conditions.biomes)details.add("Allowed biome: "+id);
+            if(p.conditions.heldItemEnabled)details.add("Held items ("+p.conditions.heldItemHand.label()+"): "+String.join(", ",p.conditions.heldItems));
+            if(p.conditions.structureEnabled){
+                details.add(c.structures().available()?"Structure data: loaded singleplayer structures":"Structure data unavailable: singleplayer required, or observation pending");
+                details.add("Radius outside structure bounds: "+p.conditions.structureRadius);
+                for(String id:p.conditions.structures)details.add("Allowed structure: "+id);
+                for(var box:c.structures().bounds())if(p.conditions.structures.contains(box.id()))
+                    details.add("Nearby structure: "+box.id()+"; distance: "+String.format(Locale.ROOT,"%.1f",Math.sqrt(box.distanceSquared(c.x(),c.y(),c.z()))));
+            }
+            describeGroups(details,p.conditions,c,lib.settings,"");
             result.add(new Entry(p.id,i+1,p.name,status,List.copyOf(details)));
         }
         return result;
     }
-    private static String unmatched(Playlist p,Context c,Library lib){
-        return switch(p.rule){
-            case CUSTOM->"Condition not met: "+p.conditions.failure(c,lib.settings).name().toLowerCase(Locale.ROOT);
-            case COMBAT->lib.settings.combatEnabled?"Not currently in combat":"Combat music disabled globally";
-            case HOME->!lib.home.configured?"Home location not configured":"Outside Home radius, world or dimension";
-            case UNDERGROUND->"Needs solid cover, depth >= "+lib.settings.undergroundDepth+" and Y <= "+lib.settings.undergroundMaxY;
-            case DARK_EXPLORATION->"Needs darkness + solid cover, or an enabled Nether/End switch";
-            case DAY_OUTSIDE->"Needs daytime outside the underground condition";
-            case NIGHT_OUTSIDE->"Needs nighttime outside the underground condition";
-            default->"Environment does not match "+p.rule.name().toLowerCase(Locale.ROOT);
-        };
+    private static void describeGroups(List<String> details,PlaylistConditions parent,Context context,Settings settings,String path){
+        for(int i=0;i<parent.groups.size();i++){
+            var group=parent.groups.get(i);String key=path+(i+1);
+            details.add("Group "+key+" / "+group.label+": "+group.summary()+" / "+group.failure(context,settings).name().toLowerCase(Locale.ROOT));
+            if(group.areaEnabled)details.add("Group "+key+" area: "+group.area.world+" / "+group.area.dimension+" / radius "+group.area.radius+" / configured "+group.area.configured);
+            if(group.biomeEnabled)details.add("Group "+key+" biomes: "+String.join(", ",group.biomes));
+            if(group.heldItemEnabled)details.add("Group "+key+" held items ("+group.heldItemHand.label()+"): "+String.join(", ",group.heldItems));
+            if(group.structureEnabled)details.add("Group "+key+" structures: "+String.join(", ",group.structures)+" / radius "+group.structureRadius);
+            describeGroups(details,group,context,settings,key+".");
+        }
     }
-    public static String waiting(PlaybackEngine e,Library lib,Context c,double now){
-        if(e.paused())return "Music paused; song position, silent gap, fades and context buffer are held";
-        if(!e.error().isBlank())return e.error();
-        if(e.previewing())return "Manual preview: finishes before automatic scheduling resumes";
-        if(e.phase()==PlaybackEngine.Phase.FADING){var p=lib.playlist(e.overrideId());return e.overridePending()?"Fading into override: "+(p==null?"None":p.name)+"; no gap":"Fading out; normal silence follows";}
+    private static String unmatched(Playlist p,Context c,Library lib){
+        var failure=p.conditions.failure(c,lib.settings);
+        if(failure==PlaylistConditions.Failure.COMBAT){
+            if(!lib.settings.combatEnabled)return "Combat music disabled globally";
+            return p.conditions.combatPlayersOnly?(p.conditions.combat==PlaylistConditions.State.YES?"Not currently in PvP":"Currently in PvP")
+                :(p.conditions.combat==PlaylistConditions.State.YES?"Not currently in combat":"Currently in combat");
+        }
+        if(failure==PlaylistConditions.Failure.HEALTH)return "Health is not "+(p.conditions.healthComparison==PlaylistConditions.HealthComparison.BELOW?"below ":"above ")+p.conditions.healthThreshold+" red hearts";
+        if(failure==PlaylistConditions.Failure.HELD_ITEM)return "No selected item held in "+p.conditions.heldItemHand.label().toLowerCase(Locale.ROOT);
+        if(failure==PlaylistConditions.Failure.GAME_MODE)return "Gamemode not selected: "+(c.gameMode()==null?"unavailable":c.gameMode().label());
+        if(failure==PlaylistConditions.Failure.STRUCTURE_DATA)return "Structure data unavailable: singleplayer required, or observation pending";
+        if(failure==PlaylistConditions.Failure.NO_CONDITIONS_MATCH)return "None of the enabled conditions match";
+        return "Condition not met: "+failure.name().toLowerCase(Locale.ROOT);
+    }
+    /** A shared, name/path-free reason for the UI and copied diagnostics. */
+    public enum Reason {
+        PAUSED, JUKEBOX_HELD, JUKEBOX_FADING, PLAYBACK_ERROR, QUEUED_PLAYING, QUEUED_WAITING,
+        TIME_WINDOW, PREVIEW, OVERRIDE_FADING, TRIGGER_FADING, FADING, RESPAWN,
+        NO_PLAYLIST, CONTEXT_BUFFER, SILENT_GAP, FINISH_AFTER_DEATH, FINISH_ON_EXIT,
+        FINISH_ON_ENTRY, CONTINUE_ON_MATCH, ONE_SONG_OVERRIDE, HELD_OVERRIDE, PLAYING
+    }
+    public static Reason reason(PlaybackEngine e,Library lib,Context c,Set<String> vanilla,double now){
+        if(e.paused())return Reason.PAUSED;
+        if(e.jukeboxActive())return e.jukeboxHolding()?Reason.JUKEBOX_HELD:Reason.JUKEBOX_FADING;
+        if(!e.error().isBlank())return Reason.PLAYBACK_ERROR;
+        if(e.queuedPlaying())return Reason.QUEUED_PLAYING;
+        if(e.current()==null&&!e.queue().empty()&&!e.queueWaitingForOverride())return Reason.QUEUED_WAITING;
+        if(e.waitingForTimeFit())return Reason.TIME_WINDOW;
+        if(e.previewing())return Reason.PREVIEW;
+        if(e.phase()==PlaybackEngine.Phase.FADING){
+            if(e.overridePending())return Reason.OVERRIDE_FADING;
+            if(e.triggerPending())return Reason.TRIGGER_FADING;
+            return Reason.FADING;
+        }
         if(e.current()==null){
-            if(c.dead()&&lib.settings.preventMusicWhileDead)return "Waiting for respawn";
-            if(e.selected()==null)return "No available playlist for this environment";
-            if(e.remainingBuffer(now,lib.settings)>0)return "Context buffer: "+seconds(e.remainingBuffer(now,lib.settings));
-            return "Silent gap: "+seconds(e.remainingSilence(now));
+            if(c.dead()&&lib.settings.preventMusicWhileDead)return Reason.RESPAWN;
+            if(e.selected()==null)return Reason.NO_PLAYLIST;
+            if(e.remainingBuffer(now,lib.settings)>0)return Reason.CONTEXT_BUFFER;
+            return Reason.SILENT_GAP;
         }
         var source=lib.playlist(e.sourcePlaylistId());var selected=e.selected();
-        if(e.finishingAfterDeath())return "Finishing combat song: death policy";
-        if(e.remainingBuffer(now,lib.settings)>0)return "Context buffer: "+seconds(e.remainingBuffer(now,lib.settings));
+        if(e.finishingAfterDeath())return Reason.FINISH_AFTER_DEATH;
+        if(e.remainingBuffer(now,lib.settings)>0)return Reason.CONTEXT_BUFFER;
         if(source!=selected){
-            if(source!=null&&source.finishCurrentSongOnExit)return "Finishing "+source.name+" song: its exit setting is on";
-            if(selected!=null&&selected.finishCurrentSong)return "Finishing current song: "+selected.name+" entry setting is on";
+            if(source!=null&&source.finishCurrentSongOnExit)return Reason.FINISH_ON_EXIT;
+            if(selected!=null&&selected.finishCurrentSong)return Reason.FINISH_ON_ENTRY;
+            if(e.overrideId()==null&&lib.settings.continuePlayingOnMatch&&lib.isPlayable(selected,e.current().id,vanilla,e.failedTracks()))return Reason.CONTINUE_ON_MATCH;
         }
-        if(e.overrideMode()!=null)return e.overrideMode()==OverrideMode.ONE_SONG?"One-song override: automatic selection resumes after this song":"Playlist override held until released";
-        return "Playing normally";
+        if(e.overrideMode()!=null)return e.overrideMode()==OverrideMode.ONE_SONG?Reason.ONE_SONG_OVERRIDE:Reason.HELD_OVERRIDE;
+        return Reason.PLAYING;
+    }
+    public static String waiting(PlaybackEngine e,Library lib,Context c,Set<String> vanilla,double now){
+        return switch(reason(e,lib,c,vanilla,now)){
+            case PAUSED -> "Music paused; song position, silent gap, fades and context buffer are held";
+            case JUKEBOX_HELD -> "Jukebox playing; AFMR is held";
+            case JUKEBOX_FADING -> "Fading AFMR out for jukebox music";
+            case PLAYBACK_ERROR -> e.error();
+            case QUEUED_PLAYING -> "Manual queued song; "+e.queue().size()+" remaining; normal silence follows";
+            case QUEUED_WAITING -> "Queued song waiting for normal silence: "+seconds(e.remainingSilence(now));
+            case TIME_WINDOW -> "Waiting for a song that fits the remaining time window; unknown lengths are checked automatically";
+            case PREVIEW -> "Manual preview: finishes before automatic scheduling resumes";
+            case OVERRIDE_FADING -> {var p=lib.playlist(e.overrideId());yield "Fading into override: "+(p==null?"None":p.name)+"; no gap";}
+            case TRIGGER_FADING -> "Fading into trigger: "+(e.selected()==null?"None":e.selected().name)+"; no gap";
+            case FADING -> "Fading out; normal silence follows";
+            case RESPAWN -> "Waiting for respawn";
+            case NO_PLAYLIST -> "No available playlist for this environment";
+            case CONTEXT_BUFFER -> "Context buffer: "+seconds(e.remainingBuffer(now,lib.settings));
+            case SILENT_GAP -> "Silent gap: "+seconds(e.remainingSilence(now));
+            case FINISH_AFTER_DEATH -> "Finishing combat song: death policy";
+            case FINISH_ON_EXIT -> "Finishing "+lib.playlist(e.sourcePlaylistId()).name+" song: its exit setting is on";
+            case FINISH_ON_ENTRY -> "Finishing current song: "+e.selected().name+" entry setting is on";
+            case CONTINUE_ON_MATCH -> "Continue Playing on Match: current song is eligible in "+e.selected().name;
+            case ONE_SONG_OVERRIDE -> "One-song override: automatic selection resumes after this song";
+            case HELD_OVERRIDE -> "Playlist override held until released";
+            case PLAYING -> "Playing normally";
+        };
     }
     /** Count assignments only when the user opens details, not on each inspector refresh. */
     public static List<String> songCounts(Library lib,Playlist p,Set<String> vanilla,Set<String> failed){

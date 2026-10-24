@@ -1,5 +1,7 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
@@ -7,18 +9,49 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract class MusicScreen extends Screen {
-    protected final Screen parent;
+    protected Screen parent;
     protected final ClientRuntime runtime;
     protected int left, contentWidth;
     private IntConsumer scrollPage;
+    private List<MenuSurface> backgrounds;
     protected MusicScreen(String title, Screen parent, ClientRuntime runtime) {
         super(Component.literal(title)); this.parent = parent; this.runtime = runtime;
     }
-    @Override protected void init() { contentWidth = Math.min(760, width - 24); left = (width-contentWidth)/2; }
-    protected Button button(String text, int x, int y, int w, Runnable action) {
-        return addRenderableWidget(Button.builder(Component.literal(text), b -> action.run()).bounds(x, y, w, 20).build());
+    @Override protected void init() {
+        backgrounds=null;
+        contentWidth = Math.min(760, width - 24); left = (width-contentWidth)/2;
+        if(parent instanceof LibraryScreen editor){
+            int count=WorkspacePage.values().length,gap=3,w=(contentWidth-gap*(count-1))/count;
+            WorkspacePage selected=this instanceof SourcesScreen?WorkspacePage.LIBRARY:this instanceof SettingsScreen?WorkspacePage.TIMING
+                :this instanceof NowPlayingSettingsScreen?WorkspacePage.DISPLAY:this instanceof OverrideBindingsScreen?WorkspacePage.KEYS
+                :this instanceof PlaybackInspectorScreen?WorkspacePage.INSPECTOR:this instanceof ListeningScreen?WorkspacePage.ACTIVITY
+                :this instanceof ProfilesScreen?WorkspacePage.PROFILES:null;
+            int i=0;
+            if(selected!=null)for(WorkspacePage page:WorkspacePage.values()){
+                var tab=addRenderableWidget(new FlatButton(page.label,left+i++*(w+gap),27,w,16,1,()->{if(saveChanges())editor.openPage(page);}));
+                tab.selected=page==selected;
+            }
+        }
+    }
+    protected boolean saveChanges(){return true;}
+    @Override protected void repositionElements() {
+        if (MusicMenu.retainWidgets(this)) return;
+        // Resizing a hidden page still needs new bounds, but must keep draft text and list positions.
+        var drafts = children().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).map(EditBox::getValue).toList();
+        var offsets = children().stream().filter(c -> c instanceof DenseList<?>).map(c -> ((DenseList<?>) c).offset()).toList();
+        super.repositionElements();
+        int field = 0, list = 0;
+        for (var child : children()) {
+            if (child instanceof EditBox box && field < drafts.size()) box.setValue(drafts.get(field++));
+            if (child instanceof DenseList<?> rows && list < offsets.size()) rows.offset(offsets.get(list++));
+        }
+    }
+    protected FlatButton button(String text, int x, int y, int w, Runnable action) {
+        return addRenderableWidget(new FlatButton(text,x,y,w,20,1,action));
     }
     protected EditBox edit(String text, String hint, int x, int y, int w, Consumer<String> action) {
         EditBox box = new EditBox(font, x, y, w, 20, Component.literal(hint));
@@ -41,13 +74,25 @@ abstract class MusicScreen extends Screen {
         return super.mouseScrolled(x,y,horizontal,vertical);
     }
     protected void drawBody(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {}
+    @Override public void extractBackground(GuiGraphicsExtractor g,int x,int y,float delta) {
+        if(minecraft.level==null)extractPanorama(g,delta);
+        // Blur starts before the current stratum, so the image must occupy the preceding one.
+        if(runtime.menuBackground().draw(g,width,height))g.nextStratum();
+        if(runtime.library().settings.menuBlur&&runtime.library().settings.menuBackgroundOpacity<1&&minecraft.gui.screen()==this)extractBlurredBackground(g);
+        minecraft.gui.hud.extractDeferredSubtitles();
+    }
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        g.fill(0,0,width,height,0xF511181C);
-        g.fill(left,12,left+3,35,0xFF8DE0BE);
-        if (runtime.scanning()) ScanProgressView.draw(g, font, runtime.scanProgress(), left+12, 13, contentWidth-12);
+        if(backgrounds==null){
+            backgrounds=new ArrayList<>();
+            backgrounds.add(new MenuSurface(0,0,width,45,MenuColor.PANELS,0x1D2727));
+            backgrounds.add(new MenuSurface(0,45,width,height,MenuColor.BACKGROUND,0x141B1B));
+            for(var child:children())if(child instanceof DenseList<?> list)
+                MenuSurface.cutOut(backgrounds,list.getX(),list.getY(),list.getRight(),list.getBottom());
+        }
+        for(var surface:backgrounds)g.fill(surface.x0(),surface.y0(),surface.x1(),surface.y1(),MenuAppearance.background(surface.color(),surface.rgb()));
+        if (runtime.scanning()) g.text(font,fit("Working / "+runtime.scanProgress().processed()+" / "+runtime.scanProgress().discovered(),contentWidth),left,12,MenuAppearance.color(MenuColor.ACCENT,0xFFB9D7B7));
         else {
-            g.text(font, title, left+12, 15, 0xFFF0F7F3);
-            g.text(font, "animal's final music replacer", left+12, 28, 0xFF8FA7A0);
+            g.text(font, title, left, 12, MenuAppearance.color(MenuColor.TEXT,0xFFE5EEE6));
         }
         drawBody(g, mouseX, mouseY, partialTick);
         super.extractRenderState(g, mouseX, mouseY, partialTick);

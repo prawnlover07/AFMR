@@ -1,4 +1,6 @@
 package dev.animal.afmr.ui;
+
+import dev.animal.afmr.core.MenuColor;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.*;
@@ -21,18 +23,27 @@ final class DenseList<T> extends AbstractWidget {
     DenseList(int x,int y,int w,int h,RowRenderer<T> renderer,Click<T> click,Function<T,String> label){super(x,y,w,h,Component.literal("Music list"));this.renderer=renderer;this.click=click;this.label=label;}
     void items(List<T> value){items=value;offset=Math.clamp(offset,0,maxOffset());}
     void top(){offset=0;}
+    int offset(){return offset;}
+    void offset(int value){offset=Math.clamp(value,0,maxOffset());}
     void reveal(T item){int index=items.indexOf(item);if(index>=0){if(index<offset)offset=index;else if(index>=offset+visible())offset=index-visible()+1;}}
     private int visible(){return Math.max(1,height/ROW);}
     private int maxOffset(){return Math.max(0,items.size()-visible());}
     @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mx,int my,float dt){
-        g.fill(getX(),getY(),getX()+width,getY()+height,0xFF191D20);
+        int even=MenuAppearance.background(MenuColor.BACKGROUND,0x1B2023),odd=MenuAppearance.background(MenuColor.BACKGROUND,0x202629);
+        int end=Math.min(items.size(),offset+visible()+1);
+        int emptyY=getY()+Math.min(items.size()-offset,visible()+1)*ROW;
+        if(emptyY<getBottom())g.fill(getX(),emptyY,getX()+width-8,getBottom(),MenuAppearance.background(MenuColor.BACKGROUND,0x191D20));
+        // Paint exact viewport geometry before the rounded text scissor can trim fractional edges.
+        for(int i=offset;i<end;i++){
+            int y=getY()+(i-offset)*ROW;g.fill(getX(),y,getX()+width-8,Math.min(y+ROW,getBottom()),(i%2==0)?even:odd);
+        }
         g.enableScissor(getX(),getY(),getX()+width-8,getY()+height);
-        for(int i=offset;i<Math.min(items.size(),offset+visible()+1);i++){
-            int y=getY()+(i-offset)*ROW;g.fill(getX(),y,getX()+width-8,y+ROW,(i%2==0)?0xFF1B2023:0xFF202629);
+        for(int i=offset;i<end;i++){
+            int y=getY()+(i-offset)*ROW;
             renderer.draw(g,items.get(i),getX(),y,width-8,mx>=getX()&&mx<getX()+width-8&&my>=y&&my<y+ROW);
         }
-        g.disableScissor();g.fill(getX()+width-7,getY(),getX()+width,getY()+height,0xFF111619);
-        if(maxOffset()>0){int thumb=Math.max(16,height*visible()/items.size()),y=getY()+(height-thumb)*offset/maxOffset();g.fill(getX()+width-6,y,getX()+width-1,y+thumb,0xFF637B75);}
+        g.disableScissor();g.fill(getX()+width-8,getY(),getX()+width,getY()+height,MenuAppearance.background(MenuColor.CONTROLS,0x111619));
+        if(maxOffset()>0){int thumb=Math.max(16,height*visible()/items.size()),y=getY()+(height-thumb)*offset/maxOffset();g.fill(getX()+width-6,y,getX()+width-1,y+thumb,MenuAppearance.color(MenuColor.SCROLLBARS,0xFF637B75));}
     }
     @Override public void onClick(MouseButtonEvent e,boolean twice){
         if(e.x()>=getX()+width-8){dragging=true;scrollTo(e.y());return;}

@@ -1,0 +1,23 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS workspace opens at title screen
+PASS Volume and silence share one row without overlap
+PASS Playlist silence editor opens with inherited default
+PASS Small-window controls fit without overlap
+PASS Fixed ten-minute custom gap can be enabled
+PASS Invalid draft blocks saving
+PASS Invalid draft also blocks toggling
+PASS Reversed range blocks saving
+PASS Over-limit range blocks saving
+PASS Hide and reopen retains fields
+PASS Resize retains numeric drafts
+PASS Workspace label reflects custom timing
+PASS Disabling keeps the saved range
+PASS Workspace label returns to default
+PASS Manual override starts generated music despite custom gap
+PASS Skip waits inside the custom three-second gap
+PASS Generated music restarts after the custom gap
+PASS Native audio is active
+PASS Ten-minute range schedules without waiting in real time
+RESULT passed=21 failed=0

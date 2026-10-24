@@ -10,7 +10,7 @@ class PlaybackTransportTest {
     private PlaybackEngineTest.FakeAudio audio;
     private PlaybackEngine engine;
     private Playlist manual;
-    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:plains",false,false,day?6000:18000,false,false,false,15,"world",0,80,0,0,0.8,dead);}
+    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:plains",false,false,day?6000:18000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);}
     private void tick(double time,boolean day){engine.tick(time,lib,context(day,false),Set.of());}
     private void next(double time,boolean day){assertTrue(engine.nextSong(time,lib,context(day,false),Set.of()));tick(time,day);}
     private void combat(){assertTrue(engine.overridePlaylist("combat",OverrideMode.ONE_SONG,15,lib,Set.of()));tick(19,true);tick(23,true);assertEquals("combat",engine.sourcePlaylistId());}
@@ -18,7 +18,7 @@ class PlaybackTransportTest {
         lib=Library.defaults();audio=new PlaybackEngineTest.FakeAudio();engine=new PlaybackEngine(audio,new Random(8));manual=lib.createPlaylist("Manual");manual.manualOnly=true;
         for(var p:List.of(lib.playlist("day_outside"),lib.playlist("night_outside"),lib.playlist("combat"),manual))for(int i=0;i<3;i++){
             var t=new Track(p.id+"-"+i,"file",p.name+" "+i,false);lib.tracks.add(t);p.tracks.put(t.id,true);}
-        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeSeconds=4;lib.settings.bufferSeconds=2;
+        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=4;lib.settings.bufferSeconds=2;
         tick(0,true);tick(10,true);tick(14,true);assertEquals(1,audio.gain);
     }
     @Test void pauseHoldsCurrentSongAndResumesWithoutRestartingIt(){
@@ -61,11 +61,11 @@ class PlaybackTransportTest {
         assertSame(preview,engine.current());assertTrue(engine.previewing());assertTrue(audio.paused);engine.setPaused(false,200);tick(201,true);assertSame(preview,engine.current());assertEquals(0.25,audio.gain,0.001);
     }
     @Test void ordinarySkipWhilePausedKeepsTheNormalFrozenGap(){
-        engine.setPaused(true,15);engine.skip(100,lib.settings);tick(200,true);assertNull(engine.current());assertEquals(10,engine.remainingSilence(200));
+        engine.setPaused(true,15);engine.skip(100,lib);tick(200,true);assertNull(engine.current());assertEquals(10,engine.remainingSilence(200));
         engine.setPaused(false,200);tick(209.9,true);assertNull(engine.current());tick(210,true);assertNotNull(engine.current());
     }
     @Test void decoderFailureWhilePausedPreservesPauseAndRetryTiming(){
-        String bad=engine.current().id;engine.setPaused(true,15);engine.failed(bad,"bad decoder",100,lib.settings);tick(200,true);assertTrue(engine.paused());assertNull(engine.current());assertEquals(1,engine.remainingSilence(200));
+        String bad=engine.current().id;engine.setPaused(true,15);engine.failed(bad,"bad decoder",100,lib);tick(200,true);assertTrue(engine.paused());assertNull(engine.current());assertEquals(1,engine.remainingSilence(200));
         engine.setPaused(false,200);tick(201,true);assertNotEquals(bad,engine.current().id);
     }
     @Test void repeatedPauseDoesNotResetItsTimeAndResetClearsIt(){
@@ -108,6 +108,6 @@ class PlaybackTransportTest {
     @Test void pauseAndNextUseIndexedTracksWithALargeLibrary(){
         var tracks=new LibraryIndexTest.GuardedTracks();tracks.addAll(lib.tracks);lib.tracks=tracks;for(int i=0;i<70000;i++)tracks.add(new Track("unused"+i,"file","Unused",false));lib.rebuildTrackIndex();tracks.locked=true;
         engine.setPaused(true,15);next(100,true);tick(200,true);engine.setPaused(false,200);tick(200,true);assertEquals("day_outside",engine.sourcePlaylistId());
-        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),200).contains("Playing"));engine.setPaused(true,201);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),300).contains("Music paused"));
+        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),200).contains("Playing"));engine.setPaused(true,201);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),300).contains("Music paused"));
     }
 }

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "afmr_smoke",
+  "version": "1.0.0",
+  "name": "AFMR disposable smoke checks",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.animal.afmr.smoke.FabricSmoke", "dev.animal.afmr.smoke.FinalReviewSuite"] },
+  "depends": { "afmr": "*" }
+}

@@ -1,0 +1,12 @@
+PASS Reviewed restore initializes after actual restart
+PASS Playback flags and volume survive restore
+PASS Appearance and rescan setting survive restore
+PASS Enabled animated background survives restore
+PASS Pending archive is consumed
+CLICK Display on LibraryScreen
+INPUT 113.58199632167816,17.50699943304062 scale=0.427 bounds=232,30,68,22 handled=true screen=NowPlayingSettingsScreen
+CLICK Menus on NowPlayingSettingsScreen
+INPUT 315.0,57.0 scale=1.0 bounds=216,47,198,20 handled=true screen=NowPlayingSettingsScreen
+STEP Restored GIF texture upload
+PASS Restored GIF uploads every frame
+COMPLETE: 6 passed / 0 failed

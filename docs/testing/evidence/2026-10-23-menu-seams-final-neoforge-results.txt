@@ -1,0 +1,17 @@
+PASS List and scrollbar edges painted once 427x240 opacity=1.0 overflow=false
+PASS List and scrollbar edges painted once 500x271 opacity=1.0 overflow=false
+PASS List and scrollbar edges painted once 853x479 opacity=1.0 overflow=false
+PASS List and scrollbar edges painted once 1280x681 opacity=1.0 overflow=false
+PASS List and scrollbar edges painted once 427x240 opacity=0.5 overflow=false
+PASS List and scrollbar edges painted once 500x271 opacity=0.5 overflow=false
+PASS List and scrollbar edges painted once 853x479 opacity=0.5 overflow=false
+PASS List and scrollbar edges painted once 1280x681 opacity=0.5 overflow=false
+PASS List and scrollbar edges painted once 427x240 opacity=1.0 overflow=true
+PASS List and scrollbar edges painted once 500x271 opacity=1.0 overflow=true
+PASS List and scrollbar edges painted once 853x479 opacity=1.0 overflow=true
+PASS List and scrollbar edges painted once 1280x681 opacity=1.0 overflow=true
+PASS List and scrollbar edges painted once 427x240 opacity=0.5 overflow=true
+PASS List and scrollbar edges painted once 500x271 opacity=0.5 overflow=true
+PASS List and scrollbar edges painted once 853x479 opacity=0.5 overflow=true
+PASS List and scrollbar edges painted once 1280x681 opacity=0.5 overflow=true
+COMPLETE: 16 passed / 0 failed

@@ -1,0 +1,16 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS workspace opens at title screen
+PASS join activates bound profile before reading policy
+PASS actual world join starts the correct context playlist
+PASS first start bypasses long silence and buffer
+PASS Timing exposes saved join toggle
+PASS Timing controls fit without overlap
+PASS Minecraft defaults stays directly available
+PASS invalid numeric drafts block toggle mutation
+PASS toggle saves without interrupting song
+PASS join option survives hide and reopen
+PASS join music reaches actual native playback
+PASS later manual Skip retains normal silence
+RESULT passed=14 failed=0

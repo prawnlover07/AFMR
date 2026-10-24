@@ -1,0 +1,12 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS NeoForge backup restores shared settings on Fabric startup
+PASS NeoForge backup restores editable playlist flags on Fabric
+PASS NeoForge backup restores all profiles on Fabric
+PASS NeoForge backup restores physical shortcut on Fabric
+PASS Fabric startup consumes pending backup
+PASS Fabric startup keeps prior configuration
+PASS backup without image removes the old managed background
+PASS restored configuration remains editable
+RESULT passed=10 failed=0

@@ -1,0 +1,82 @@
+PASS Packaged runtime initialized
+PASS Generated audio exists
+PASS Disabled automatic playlist accepts a held override
+STEP Native playback and inspector
+PASS Native sound is active
+STEP Open inspector
+CLICK Inspector on LibraryScreen
+STEP Copy live playback
+CLICK Copy diagnostic summary on PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Clipboard captures source and override aliases
+PASS Clipboard captures safe location result
+CLICK Pause music on PlaybackInspectorScreen
+STEP Copy paused playback
+CLICK Summary copied! on PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Clipboard reflects actual pause
+CLICK Resume music on PlaybackInspectorScreen
+STEP Copy playback failure
+CLICK Summary copied! on PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Failure category replaces raw message
+CLICK Retry failed on PlaybackInspectorScreen
+STEP Copy after retry
+CLICK Summary copied! on PlaybackInspectorScreen
+PASS Real clipboard contains diagnostic header
+PASS Clipboard confirmation is visible
+PASS Copy preserves playback
+PASS Clipboard omits private fixture names, IDs, paths and location
+PASS Retry clears reported current error
+CLICK Back on PlaybackInspectorScreen
+CLICK Timing on LibraryScreen
+PASS Timing no longer contains rescan or global combat switches
+PASS Author copy applied: afmr.copy.settings.play_immediately_on_join
+STEP Timing author tooltip
+CLICK Combat settings on SettingsScreen
+PASS Combat toggle lives in Combat settings
+PASS Author copy applied: afmr.copy.combatsettings.combat_triggers
+STEP Combat author tooltip
+CLICK Save & back on CombatSettingsScreen
+CLICK Library on SettingsScreen
+PASS Rescan switch lives beside repair
+CLICK Rescan on launch: off on SourcesScreen
+PASS Rescan preference toggles
+CLICK Display on SourcesScreen
+CLICK Menus on NowPlayingSettingsScreen
+PASS Cleared menu opacity has no empty tooltip
+STEP Menu appearance
+CLICK Custom background… on NowPlayingSettingsScreen
+PASS Cleared sizing explanation has no tooltip
+PASS Cleared image opacity has no tooltip
+STEP Generated GIF background
+PASS Generated animated background uploads
+CLICK Back on MenuBackgroundScreen
+CLICK Widget on NowPlayingSettingsScreen
+PASS Cleared widget-corner explanation has no tooltip
+CLICK Preview widget on NowPlayingSettingsScreen
+STEP Widget preview
+CLICK Back on NowPlayingPreviewScreen
+PASS Hidden settings retain author-copy widgets and draft
+PASS Reflow retains numeric drafts
+CLICK Save & back on NowPlayingSettingsScreen
+CLICK Import / export on LibraryScreen
+CLICK Full configuration... on PlaylistSharingScreen
+STEP Export complete animated configuration
+PASS Full backup includes enabled GIF
+STEP Review configuration replacement
+PASS Replacement requires a reviewed backup
+CLICK Replace on restart on ConfigBackupScreen
+STEP Stage restore for a real restart
+PASS Current session remains intact before restart
+PASS Pending archive exists for actual restart
+COMPLETE: 42 passed / 0 failed

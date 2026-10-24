@@ -1,0 +1,16 @@
+PASS Packaged WebP decoder imports through actual menu worker
+PASS Static WebP uploads one texture
+PASS Fast import refreshes enabled and remove controls
+PASS Animated GIF uploads all four composited textures
+PASS GPU texture pixels preserve transparent and colored patches
+PASS Animation clock follows GIF timing
+PASS Full backup exports the animation bytes
+PASS Resource invalidation releases every frame
+PASS Managed GIF reloads and uploads after invalidation
+PASS Disable releases animation textures
+PASS Re-enable loads the retained animation
+PASS Static replacement releases previous animation
+PASS Static replacement removes managed GIF
+PASS Remove clears owned files and image selection
+PASS Original WebP and GIF remain intact
+COMPLETE: 15 passed / 0 failed

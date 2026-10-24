@@ -3,6 +3,7 @@ package dev.animal.afmr.audio;
 import dev.animal.afmr.core.Library.Track;
 import dev.animal.afmr.core.Library.Settings;
 import dev.animal.afmr.core.PlaybackEngine;
+import dev.animal.afmr.core.TrackLoudness;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import java.nio.file.*;
@@ -10,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public final class GameAudio implements PlaybackEngine.Audio {
-    public record LocalSource(Path path,boolean replayGain) {}
+    public record LocalSource(Path path,boolean replayGain,TrackLoudness loudness) {}
     private static final Map<Identifier, LocalSource> LOCAL = new ConcurrentHashMap<>();
     private final Minecraft minecraft;
     private final Settings settings;
@@ -28,7 +29,7 @@ public final class GameAudio implements PlaybackEngine.Audio {
             Path path = Path.of(track.path);
             if (!Files.isRegularFile(path)) throw new java.io.IOException("File missing; rescan its folder");
             file = Identifier.fromNamespaceAndPath("afmr", "library/" + track.id.substring(5));
-            LOCAL.put(Identifier.fromNamespaceAndPath("afmr", "sounds/" + file.getPath() + ".ogg"), new LocalSource(path,settings.replayGainEnabled));
+            LOCAL.put(Identifier.fromNamespaceAndPath("afmr", "sounds/" + file.getPath() + ".ogg"), new LocalSource(path,settings.replayGainEnabled,track.loudness));
         }
         sound = new MusicSound(file); sound.gain(gain);sound.setPaused(paused);warmup = 10;
         if (minecraft.getSoundManager().play(sound) == net.minecraft.client.sounds.SoundEngine.PlayResult.NOT_STARTED) {

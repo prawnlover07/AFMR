@@ -1,0 +1,23 @@
+Author copy review, October 23, 2026; AFMR version unchanged at 0.6.
+
+Writing file: 156 entries; 87 changed from initial copy.
+61 revised explanations, 26 cleared explanations, 69 retained passages.
+17 minimal proofreading/behavior corrections applied; metadata preserved.
+
+NeoForge build sourceZip uiCopyLanguageProbe --offline: BUILD SUCCESSFUL.
+JUnit: 778 tests, 0 failures/errors/skips.
+Copy compiler: 20 checks passed.
+Native Language + Component: 150 exact entries, including 21 cleared entries.
+
+Fabric build sourceZip uiCopyLanguageProbe --offline: BUILD SUCCESSFUL.
+JUnit: 788 tests, 0 failures/errors/skips.
+Copy compiler: 20 checks passed.
+Native Language + Component: 148 exact entries, including 23 cleared entries.
+
+Both probes also pass Unicode, quotes, paragraphs, reordered arguments and %.
+All Java string literals and translation references preserved.
+Both JAR resources match the reviewed file plus 15 unchanged key labels.
+Source ZIPs carry current authoring inputs and exclude private/generated state.
+
+No game window, personal profile, music/foobar file, native picker, audio playback
+or clipboard used. Focused visual/input/narration checks remain recorded separately.

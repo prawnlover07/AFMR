@@ -1,0 +1,17 @@
+PASS Fresh installation loads successfully without AFMR config | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh installation seeds exactly six templates | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh default template priority | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh template Minecraft switches and volumes use intended defaults | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh timing uses Minecraft-like ten to twenty minutes | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh fades and buffer add no extra delay | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh now-playing uses Minecraft style | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh library has no local imports or folder links | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh history and queue are empty | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh setup uses unlinked Default profile | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Fresh Next and Pause keys are unbound | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 0 Fresh vanilla playback
+PASS Fresh vanilla soundtrack plays through actual native channel | source=day_outside phase=PLAYING audio=Sample[sequence=1, source=8, state=4114, offset=0.18999939, gain=1.0, error=0]
+PASS Shutdown saves Default transition before closing writer | source=null phase=SILENCE audio=Sample[sequence=1, source=8, state=4114, offset=0.2399992, gain=1.0, error=0]
+PASS Late logout and screen saves do not reopen closed runtime | source=null phase=SILENCE audio=Sample[sequence=1, source=8, state=4114, offset=0.2399992, gain=1.0, error=0]
+PASS Final writer flush preserves profile | source=null phase=SILENCE audio=Sample[sequence=1, source=8, state=4114, offset=0.2399992, gain=1.0, error=0]
+COMPLETE: 15 passed / 0 failed

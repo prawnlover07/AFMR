@@ -1,0 +1,27 @@
+PASS Display has Widget and Menus without the old sub-tabs
+PASS All five numeric/color fields and seven information switches share Widget
+PASS Small-window top controls fit without overlap
+PASS Scrolling retains invalid drafts without committing
+PASS Invalid widget draft blocks tab navigation
+PASS Switching tabs saves all widget fields
+PASS Menus contains only menu controls
+PASS Menus controls fit without overlap
+PASS Corner remains configurable
+PASS Minecraft style keeps native controls and disables custom fields
+PASS Hybrid retains size and metadata while keeping its native frame
+PASS Information toggle works in the consolidated panel
+PASS Text layout remains configurable
+PASS Bottom controls fit without overlap
+PASS Hide/reopen retains widget drafts and scroll
+PASS Color picker cancel retains the applied opening color
+PASS Color picker Apply still works
+PASS Home scrolls to first setting row
+PASS Page Down scrolls the panel
+PASS Scrollbar dragging reaches the top
+PASS Preview remains directly available
+PASS Widget keeps saved values after preview
+PASS Large-window controls fit without overlap
+PASS widget-settings-scrolled-picker rendered
+PASS widget-settings-scrolled-picker within screen
+PASS Menu reset preserves widget appearance
+COMPLETE: 26 passed / 0 failed

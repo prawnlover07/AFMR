@@ -8,7 +8,8 @@ ignored `work/` and `outputs/` are archives, not editing targets.
 
 - If a request misunderstands the actual code or asks for behavior that does not
   make sense, explain the issue and clarify before editing. Raise relevant concerns.
-- Follow the user's accepted playback semantics in `PROJECT.md` and `README.md`.
+- Follow the user's accepted playback semantics in `PROJECT.md` and
+  `docs/USER-GUIDE.md`.
   In particular, Automatic off must still allow overrides; song-level off excludes
   the song; entry and exit finish controls are independent.
 - Preserve music files and foobar playlists/settings as read-only. Use generated
@@ -36,6 +37,13 @@ ignored `work/` and `outputs/` are archives, not editing targets.
   Existing shipped behavior should not be changed incidentally during cleanup.
 
 ## Verification and Git
+
+- Keep the mod version unchanged while any development tasks are in progress,
+  including work in other chats. Individual fixes, features, and task completions
+  must not bump it. Collect pending changes under Unreleased in the changelog.
+  Only after all in-progress tasks are complete, increment the version once for
+  the combined update, synchronize Gradle, NeoForge metadata and current guide/install
+  references, and rebuild the numbered JAR. Preserve historical version references.
 
 - Run checks appropriate to the change. `./gradlew build` runs the regression suite;
   do not claim native audio/UI validation from pure scheduler tests.

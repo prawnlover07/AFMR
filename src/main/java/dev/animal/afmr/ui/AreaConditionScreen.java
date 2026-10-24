@@ -1,5 +1,7 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
 import dev.animal.afmr.core.PlaylistConditions;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -13,7 +15,7 @@ final class AreaConditionScreen extends MusicScreen {
     private EditBox x,y,z,radius,dimension;
     private boolean enabled,configured;
     private String world,error="";
-    private Button toggle;
+    private FlatButton toggle;
     AreaConditionScreen(Screen parent,ClientRuntime runtime,PlaylistConditions conditions){super("Location condition",parent,runtime);this.conditions=conditions;}
     @Override protected void init(){
         super.init();var area=conditions.area;enabled=conditions.areaEnabled;configured=area.configured;world=area.world;
@@ -41,8 +43,8 @@ final class AreaConditionScreen extends MusicScreen {
         }catch(IllegalArgumentException e){error="Use finite coordinates, a dimension ID, and radius 1-100000.";}
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int mx,int my,float delta){
-        int third=(contentWidth-8)/3;g.text(font,"Center X",left,75,0xFFD9E8E0);g.text(font,"Y",left+third+4,75,0xFFD9E8E0);g.text(font,"Z",left+2*(third+4),75,0xFFD9E8E0);
-        g.text(font,"Radius",left,117,0xFFD9E8E0);g.text(font,"Dimension",left+108,117,0xFFD9E8E0);
-        g.text(font,fit(error.isEmpty()?"Spherical radius, scoped to the captured world and dimension.":error,contentWidth),left,height-48,error.isEmpty()?0xFF8FA7A0:0xFFFFA0A0);
+        int third=(contentWidth-8)/3;g.text(font,"Center X",left,75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.text(font,"Y",left+third+4,75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.text(font,"Z",left+2*(third+4),75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.text(font,"Radius",left,117,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.text(font,"Dimension",left+108,117,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        if(!error.isEmpty())g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
     }
 }

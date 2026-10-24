@@ -1,5 +1,7 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
 import dev.animal.afmr.core.PlaylistConditions;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,7 +20,7 @@ final class BiomeConditionScreen extends MusicScreen {
     private final Set<String> available=new HashSet<>();
     private List<Entry> entries=List.of();
     private DenseList<Entry> list;
-    private Button toggle;
+    private FlatButton toggle;
     private EditBox search;
     private String query="",error="";
     private boolean enabled;
@@ -35,7 +37,7 @@ final class BiomeConditionScreen extends MusicScreen {
         button("Add current biome",left+half+6,47,half,()->add(runtime.context().biome())).active=runtime.inWorld();
         list=addRenderableWidget(new DenseList<>(left,97,contentWidth,Math.max(14,height-155),
             (g,item,x,y,w,hover)->g.text(font,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
-                selected.contains(item.id())?0xFF8DE0BE:hover?0xFFFFFFFF:0xFFD9E8E0),
+                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0)),
             (item,event,twice)->{if(!selected.remove(item.id())){selected.add(item.id());enabled=true;}error="";updateToggle();},Entry::label));
         search=edit(query,"Search biomes or enter namespace:id",left,71,contentWidth-82,value->{query=value;filter();});
         button("Add ID",left+contentWidth-76,71,76,()->add(search.getValue().strip()));
@@ -68,8 +70,7 @@ final class BiomeConditionScreen extends MusicScreen {
         conditions.biomeEnabled=enabled;conditions.biomes=new LinkedHashSet<>(selected);runtime.save();super.onClose();
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        String status=!error.isEmpty()?error:available.isEmpty()?"Join a world to list biomes, or add IDs manually. Selected: "+selected.size():
-            selected.size()+" selected. Any selected biome may match; click rows to toggle.";
-        g.text(font,fit(status,contentWidth),left,height-51,error.isEmpty()?0xFF8FA7A0:0xFFFFA0A0);
+        String status=!error.isEmpty()?error:selected.size()+" selected";
+        g.text(font,fit(status,contentWidth),left,height-51,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0):0xFFFFA0A0);
     }
 }

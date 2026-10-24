@@ -1,6 +1,7 @@
 package dev.animal.afmr.library;
 
 import dev.animal.afmr.core.Library.*;
+import dev.animal.afmr.audio.ReplayGain;
 import java.nio.file.*;
 import java.io.*;
 import java.util.*;
@@ -14,10 +15,10 @@ import org.jaudiotagger.tag.FieldKey;
 public final class MusicFiles {
     private static final Set<String> EXTENSIONS = Set.of("mp3", "flac", "ogg", "wav");
     public record Request(Path path, String playlistId, boolean recursive) {}
-    public record Found(Track track, String playlistId) {}
+    public record Found(Track track,String playlistId,Path sourcePath) {}
     public record Result(List<Found> found,List<String> errors,List<String> playlists,int skipped,int duplicates,int reused) {}
     private record WorkFile(Path path,String playlistId,boolean reuseMetadata) {}
-    public enum ScanStage { DISCOVERING, READING_TAGS, FINALIZING }
+    public enum ScanStage { DISCOVERING, READING_TAGS, CHECKING, REPAIRING, READING_PRESET, WRITING_PRESET, FINALIZING }
     /** Immutable snapshots can be published directly from the scanner to the render thread. */
     public record ScanProgress(ScanStage stage, int discovered, int processed, String currentPath) {
         public static ScanProgress starting() { return new ScanProgress(ScanStage.DISCOVERING, 0, 0, ""); }
@@ -72,12 +73,16 @@ public final class MusicFiles {
             WorkFile file = files.get(i);
             progress.accept(new ScanProgress(ScanStage.READING_TAGS, files.size(), i, file.path().toString()));
             try{
-                Track cached=file.reuseMetadata()?known.get(file.path()):null;
+                Track existing=known.get(file.path());
+                Track cached=file.reuseMetadata()?existing:null;
                 if(!Files.isRegularFile(file.path()))throw new IOException("File missing or unavailable");
                 Track track=cached==null?read(file.path()):cached;
+                // A repair preserves identity even though it changes the path used for future rescans.
+                if(existing==null&&cached==null)existing=known.get(Path.of(track.path));
+                if(existing!=null)track.id=existing.id;
                 if(file.reuseMetadata()&&cached==null)known.put(file.path(),track);
                 if(imported.computeIfAbsent(file.playlistId(),unused->new HashSet<>()).add(track.id)){
-                    found.add(new Found(track,file.playlistId()));if(cached!=null)reused++;
+                    found.add(new Found(track,file.playlistId(),file.path()));if(cached!=null)reused++;
                 }else duplicates++;
             }catch(Exception e){skipped++;if(errors.size()<100)errors.add(file.path()+": "+e.getMessage());}
             progress.accept(new ScanProgress(ScanStage.READING_TAGS, files.size(), i + 1, file.path().toString()));
@@ -85,7 +90,7 @@ public final class MusicFiles {
         progress.accept(new ScanProgress(ScanStage.FINALIZING, files.size(), files.size(), ""));
         return new Result(List.copyOf(found),List.copyOf(errors),List.copyOf(playlists),skipped,duplicates,reused);
     }
-    private static Track read(Path file) throws IOException {
+    static Track read(Path file) throws IOException {
             Path canonical = file.toRealPath();
             String id = "file:" + UUID.nameUUIDFromBytes(canonical.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
             String name = canonical.getFileName().toString();
@@ -98,6 +103,10 @@ public final class MusicFiles {
                     String title = clean(tag.getFirst(FieldKey.TITLE));
                     if (!title.isBlank()) track.title = title;
                     track.artist = clean(tag.getFirst(FieldKey.ARTIST)); track.album = clean(tag.getFirst(FieldKey.ALBUM));
+                    track.albumArtist=clean(tag.getFirst(FieldKey.ALBUM_ARTIST));
+                    track.trackNumber=clean(tag.getFirst(FieldKey.TRACK));track.discNumber=clean(tag.getFirst(FieldKey.DISC_NO));
+                    track.genre=clean(tag.getFirst(FieldKey.GENRE));track.date=clean(tag.getFirst(FieldKey.YEAR));
+                    track.replayGain=ReplayGain.metadata(tag);
                 }
             } catch (Exception ignored) { /* Untagged audio remains importable. Playback verifies the audio. */ }
             return track;

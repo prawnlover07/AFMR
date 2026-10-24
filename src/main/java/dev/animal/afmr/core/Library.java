@@ -6,13 +6,13 @@ import java.util.*;
 public final class Library {
     public int schemaVersion = 2;
     public Settings settings = new Settings();
+    public PlaylistProfiles profiles = new PlaylistProfiles();
     public List<Track> tracks = new ArrayList<>();
     public List<Folder> folders = new ArrayList<>();
     /** Earlier entries have higher priority. */
     public List<Playlist> playlists = new ArrayList<>();
     /** Older biome/dimension assignments are preserved, but no longer clutter the editor. */
     public List<Playlist> legacyPlaylists = new ArrayList<>();
-    public Home home = new Home();
     private transient Map<String, Track> tracksById;
     private transient List<Track> indexedTracks;
     private transient int indexedCount = -1;
@@ -34,29 +34,71 @@ public final class Library {
         public OverrideBinding[] overrideSlots=defaultOverrideSlots();
         public double silenceMinSeconds = 600;
         public double silenceMaxSeconds = 1200;
-        public double fadeSeconds = 0;
+        public double fadeInSeconds = 0,fadeOutSeconds = 0;
+        public JukeboxMode jukeboxMode=JukeboxMode.OFF;
         public double bufferSeconds = 0;
+        public boolean continuePlayingOnMatch = false;
+        public boolean playImmediatelyOnJoin = false;
         public double combatQuietSeconds = 15;
         public boolean combatEnabled = true;
+        public boolean combatThreatsOnly = true;
         public boolean combatOnAttack = true,combatOnDamage = true,preventMusicWhileDead = true;
         public DeathMusic combatDeathMusic = DeathMusic.FADE;
         public double combatDeathFadeSeconds = 1;
         public boolean rescanOnLaunch = false;
+        public double menuBackgroundOpacity = 0.80;
+        public Map<MenuColor,Integer> menuColors=MenuColor.defaults();
+        public boolean menuImageEnabled = false;
+        public String menuImageName = "";
+        public double menuImageOpacity = 1;
+        public MenuImageLayout.Fit menuImageFit = MenuImageLayout.Fit.FILL;
+        public boolean menuBlur = true;
         public boolean nowPlaying = true;
+        public NowPlayingStyle nowPlayingStyle = NowPlayingStyle.MINECRAFT;
+        public WidgetCorner widgetCorner=WidgetCorner.DEFAULT;
+        public double widgetScale = 1;
+        public int widgetWidth = 260;
+        public int widgetBackgroundColor = 0x000000;
+        public double widgetBackgroundOpacity = 0.92;
+        public boolean widgetArtwork = true, widgetTitle = true, widgetArtist = true;
+        public boolean widgetAlbum = false, widgetDuration = false, widgetPlaylist = false;
+        public boolean widgetScroll = false;
+        public boolean widgetWrap = false;
         public boolean replayGainEnabled = true;
+        public Set<SongColumn> songColumns=SongColumn.defaults();
         public double popupSeconds = 7;
-        public double undergroundDepth = 5;
-        public int undergroundMaxY = 64;
-        public int darkMaxLight = 4;
-        public boolean darkInNether = false;
-        public boolean darkInEnd = false;
-
         /** Normal GAME/CREATIVE music delays in Minecraft 26.3, without AFMR's extra transitions. */
         public void restoreMinecraftPlaybackDefaults() {
-            silenceMinSeconds=600;silenceMaxSeconds=1200;fadeSeconds=0;bufferSeconds=0;
+            silenceMinSeconds=600;silenceMaxSeconds=1200;fadeInSeconds=fadeOutSeconds=0;bufferSeconds=0;
+        }
+        public void normalizePlayback(){
+            silenceMinSeconds=bounded(silenceMinSeconds,0,86400,600);
+            silenceMaxSeconds=bounded(silenceMaxSeconds,silenceMinSeconds,86400,1200);
+            fadeInSeconds=bounded(fadeInSeconds,0,60,0);fadeOutSeconds=bounded(fadeOutSeconds,0,60,0);
+            if(jukeboxMode==null)jukeboxMode=JukeboxMode.OFF;
+            bufferSeconds=bounded(bufferSeconds,0,60,0);
+            combatQuietSeconds=bounded(combatQuietSeconds,1,600,15);
+            combatDeathFadeSeconds=bounded(combatDeathFadeSeconds,0,60,1);
+            if(combatDeathMusic==null)combatDeathMusic=DeathMusic.FADE;
         }
     }
 
+    public enum NowPlayingStyle { MINECRAFT, HYBRID, AFMR }
+    public enum JukeboxMode {
+        OFF("off"),RESUME("resume song"),AFTER_SILENCE("new after silence"),IMMEDIATE("new immediately");
+        private final String label;
+        JukeboxMode(String label){this.label=label;}
+        public String label(){return label;}
+    }
+    public enum WidgetCorner {
+        DEFAULT("Default"),TOP_LEFT("Top left"),TOP_RIGHT("Top right"),BOTTOM_LEFT("Bottom left"),BOTTOM_RIGHT("Bottom right");
+        private final String label;
+        WidgetCorner(String label){this.label=label;}
+        public String label(){return label;}
+        public WidgetCorner resolved(NowPlayingStyle style){return this==DEFAULT?(style==NowPlayingStyle.AFMR?BOTTOM_LEFT:TOP_LEFT):this;}
+        public boolean right(){return this==TOP_RIGHT||this==BOTTOM_RIGHT;}
+        public boolean bottom(){return this==BOTTOM_LEFT||this==BOTTOM_RIGHT;}
+    }
     public enum OverrideMode { ONE_SONG, UNTIL_RELEASED }
     public static final int OVERRIDE_SLOTS=8;
     public static final class OverrideBinding {
@@ -82,22 +124,29 @@ public final class Library {
         public String title = "";
         public String artist = "";
         public String album = "";
+        public String albumArtist="",trackNumber="",discNumber="",genre="",date="";
+        public ReplayGainInfo replayGain;
         public boolean vanilla;
         public double durationSeconds;
+        public TrackLoudness loudness;
         public Track() {}
         public Track(String id, String path, String title, boolean vanilla) {
             this.id = id; this.path = path; this.title = title; this.vanilla = vanilla;
         }
     }
+    /** Owned metadata snapshot for a writer or scanner; never publish mutable live tracks to workers. */
+    public static Track copyTrack(Track t){
+        Track next=new Track(t.id,t.path,t.title,t.vanilla);
+        next.artist=t.artist;next.album=t.album;next.durationSeconds=t.durationSeconds;next.loudness=t.loudness;
+        next.albumArtist=t.albumArtist;next.trackNumber=t.trackNumber;next.discNumber=t.discNumber;
+        next.genre=t.genre;next.date=t.date;next.replayGain=t.replayGain;return next;
+    }
 
-    public enum Rule { GENERAL, DIMENSION, BIOME, COMBAT, UNDERWATER, DAY, NIGHT, DAY_OUTSIDE, NIGHT_OUTSIDE, UNDERGROUND, HOME, DARK_EXPLORATION, CUSTOM }
     public enum DeathMusic { FADE, CUT, KEEP_PLAYING }
 
     public static final class Playlist {
         public String id = UUID.randomUUID().toString();
         public String name = "New playlist";
-        public Rule rule = Rule.GENERAL;
-        public String match = "";
         /** Controls automatic selection; explicit overrides and previews remain available. */
         public boolean enabled = true;
         public boolean manualOnly = false;
@@ -105,41 +154,45 @@ public final class Library {
         public boolean finishCurrentSong = false;
         /** On exit, let a song started by this playlist finish. */
         public boolean finishCurrentSongOnExit = false;
+        /** On automatic entry, skip buffer and silence while retaining fades and finish controls. */
+        public boolean playOnTrigger = false;
+        /** Override the global gap for this playlist, including initial automatic selection. */
+        public boolean customSilence = false;
+        public double silenceMinSeconds = 600, silenceMaxSeconds = 1200;
         public boolean includeVanilla = true;
+        /** Linear playlist gain; independent of the fade envelope and ReplayGain. */
+        public double volume = 1;
         public PlaylistConditions conditions = new PlaylistConditions();
         /** Explicit entries take precedence over automatic vanilla membership. */
         public Map<String, Boolean> tracks = new LinkedHashMap<>();
         public Playlist() {}
-        public Playlist(String id, String name, Rule rule, String match) {
-            this.id = id; this.name = name; this.rule = rule; this.match = match;
+        public Playlist(String id,String name){this.id=id;this.name=name;}
+        public boolean matches(Context c,Settings settings){return enabled&&conditions.matches(c,settings);}
+        public boolean combatDriven(Context c,Settings settings){return conditions.combatDriven(c,settings);}
+        public void autoplayHere(Context context){
+            if(context.world().isBlank()||context.dimension().isBlank()||!Double.isFinite(context.x())||!Double.isFinite(context.y())||!Double.isFinite(context.z()))
+                throw new IllegalArgumentException("Join a world before setting an autoplay area.");
+            var next=new PlaylistConditions();next.areaEnabled=true;
+            var area=next.area;area.configured=true;area.world=context.world();area.dimension=context.dimension();
+            area.x=context.x();area.y=context.y();area.z=context.z();area.radius=64;
+            conditions=next;enabled=true;manualOnly=false;
         }
-        public boolean matches(Context c, Settings settings) {
-            if (!enabled) return false;
-            return switch (rule) {
-                case GENERAL -> true;
-                case DIMENSION -> match.equals(c.dimension());
-                case BIOME -> match.equals(c.biome());
-                case COMBAT -> settings.combatEnabled && c.combat();
-                case UNDERWATER -> c.underwater();
-                case DAY -> c.day();
-                case NIGHT -> !c.day();
-                case DAY_OUTSIDE -> c.day() && !c.underground();
-                case NIGHT_OUTSIDE -> !c.day() && !c.underground();
-                case UNDERGROUND -> c.underground();
-                case HOME -> c.atHome();
-                case DARK_EXPLORATION -> EnvironmentConditions.dark(c.dimension(),c.covered(),c.lightLevel(),settings);
-                case CUSTOM -> conditions.matches(c,settings);
-            };
-        }
-        public boolean custom(){return rule==Rule.CUSTOM;}
-        public boolean combatDriven(){return rule==Rule.COMBAT||custom()&&conditions.combat==PlaylistConditions.State.YES;}
+    }
+
+    public enum Precipitation { NONE, RAIN, SNOW }
+    public enum GameMode {
+        SURVIVAL("Survival"),CREATIVE("Creative"),ADVENTURE("Adventure"),SPECTATOR("Spectator");
+        private final String label;
+        GameMode(String label){this.label=label;}
+        public String label(){return label;}
     }
 
     public record Context(String dimension, String biome, boolean combat, boolean underwater, int timeOfDay,
-                          boolean underground, boolean atHome, boolean covered, int lightLevel,
-                          String world, double x, double y, double z,double coverDepth,double biomeTemperature,boolean dead) {
+                          boolean covered, int lightLevel,
+                          String world, double x, double y, double z,double coverDepth,double biomeTemperature,boolean dead,
+                          StructureContext structures,boolean raining,boolean thundering,Precipitation precipitation,
+                          double healthHearts,boolean playerCombat,String mainHandItem,String offHandItem,GameMode gameMode,boolean jukeboxPlaying) {
         public boolean day(){return Math.floorMod(timeOfDay,24000)<12000;}
-        public Context withHome(boolean value) { return new Context(dimension,biome,combat,underwater,timeOfDay,underground,value,covered,lightLevel,world,x,y,z,coverDepth,biomeTemperature,dead); }
     }
 
     public Playlist playlist(String id) {
@@ -150,9 +203,9 @@ public final class Library {
     public Playlist createPlaylist(String name){
         String clean=name.replaceAll("\\p{Cc}","").strip();
         if(clean.isBlank()||clean.length()>80)throw new IllegalArgumentException("Use a playlist name of 1-80 characters.");
-        Playlist p=new Playlist("custom:"+UUID.randomUUID(),clean,Rule.CUSTOM,"");p.includeVanilla=false;
+        Playlist p=new Playlist("custom:"+UUID.randomUUID(),clean);p.includeVanilla=false;
         // Start above broad day/night fallbacks, retaining the existing special-playlist order.
-        int index=playlists.size();for(int i=0;i<playlists.size();i++)if(playlists.get(i).rule==Rule.DAY_OUTSIDE||playlists.get(i).rule==Rule.NIGHT_OUTSIDE){index=i;break;}
+        int index=playlists.size();for(int i=0;i<playlists.size();i++)if(playlists.get(i).id.equals("day_outside")||playlists.get(i).id.equals("night_outside")){index=i;break;}
         playlists.add(index,p);return p;
     }
     public boolean movePlaylist(String id,int index){
@@ -160,7 +213,7 @@ public final class Library {
         if(old==next)return false;playlists.remove(old);playlists.add(next,p);return true;
     }
     public boolean removePlaylist(String id){
-        Playlist p=playlist(id);if(p==null||!p.custom())return false;
+        Playlist p=playlist(id);if(p==null)return false;
         playlists.remove(p);for(Folder f:folders)if(id.equals(f.playlistId))f.playlistId="library";return true;
     }
 
@@ -190,14 +243,14 @@ public final class Library {
     }
 
     public Playlist select(Context c) {
-        return playlists.stream().filter(p -> !p.manualOnly&&p.matches(c, settings))
-            .filter(p -> !legacyRule(p.rule) || p.rule == Rule.GENERAL || !p.tracks.isEmpty()).findFirst().orElse(null);
+        for(var p:playlists)if(!p.manualOnly&&p.matches(c,settings))return p;
+        return null;
     }
     public Playlist selectPlayable(Context c, Set<String> vanilla, Set<String> failed) {
         ensureTrackIndex();
         for (int i = 0; i < playlists.size(); i++) {
             Playlist p = playlists.get(i);
-            if (p.manualOnly||!p.matches(c, settings) || (legacyRule(p.rule) && p.tracks.isEmpty())) continue;
+            if (p.manualOnly||!p.matches(c, settings)) continue;
             if(hasPlayable(p,vanilla,failed))return p;
         }
         return null;
@@ -210,67 +263,42 @@ public final class Library {
         }
         return false;
     }
+    /** Indexed membership check; explicit exclusions override automatic vanilla inclusion. */
+    public boolean isPlayable(Playlist p,String trackId,Set<String> vanilla,Set<String> failed){
+        if(p==null||failed.contains(trackId))return false;
+        Track track=track(trackId);if(track==null)return false;
+        if(p.tracks.containsKey(trackId))return Boolean.TRUE.equals(p.tracks.get(trackId));
+        return p.includeVanilla&&track.vanilla&&vanilla.contains(trackId);
+    }
     public String playbackUnavailable(Context c, Set<String> vanilla) {
         if (selectPlayable(c, vanilla, Set.of()) != null) return "";
         Playlist matched = select(c);
-        if (matched != null) return "No enabled songs for " + matched.name + ". Add songs or use Play selected.";
-        String ambient = c.underground() ? "Underground" : c.day() ? "Day outside" : "Night outside";
-        var ambientPlaylist=playlist(c.underground()?"underground":c.day()?"day_outside":"night_outside");
-        if(ambientPlaylist!=null&&ambientPlaylist.manualOnly)return ambient+" is manual only. Use Overrides to play it.";
-        return ambient + " playlist is off. Enable it in Playlist settings or use Play selected.";
-    }
-
-    public static Library defaults() {
-        Library l = new Library();
-        l.playlists.add(new Playlist("combat", "Combat", Rule.COMBAT, ""));
-        l.playlists.add(new Playlist("home", "Home", Rule.HOME, ""));
-        Playlist dark=new Playlist("dark_exploration","Dark exploration",Rule.DARK_EXPLORATION,"");
-        dark.includeVanilla=false;l.playlists.add(dark);
-        l.playlists.add(new Playlist("underground", "Underground", Rule.UNDERGROUND, ""));
-        l.playlists.add(new Playlist("night_outside", "Night outside", Rule.NIGHT_OUTSIDE, ""));
-        l.playlists.add(new Playlist("day_outside", "Day outside", Rule.DAY_OUTSIDE, ""));
-        return l;
-    }
-
-    private static boolean legacyRule(Rule rule) {
-        return rule == Rule.BIOME || rule == Rule.DIMENSION || rule == Rule.UNDERWATER || rule == Rule.DAY || rule == Rule.NIGHT;
-    }
-
-    /** Non-destructive one-time upgrade from 0.1: keep music, toggles, and an archive of old rules. */
-    public void migrate() {
-        if (schemaVersion != 1) return;
-        List<Playlist> old = new ArrayList<>(playlists);
-        Library fresh=defaults(); playlists=fresh.playlists;
-        if (legacyPlaylists==null) legacyPlaylists=new ArrayList<>();
-        legacyPlaylists.addAll(old);
-        for (String[] mapping : new String[][]{{"combat","combat"},{"day","day_outside"},{"night","night_outside"}}) {
-            Playlist from=old.stream().filter(p->p.id.equals(mapping[0])).findFirst().orElse(null);
-            Playlist to=playlist(mapping[1]);
-            if(from!=null){to.tracks.putAll(from.tracks);to.finishCurrentSong=from.finishCurrentSong;to.finishCurrentSongOnExit=from.finishCurrentSongOnExit;to.includeVanilla=from.includeVanilla;
-                // Old day/night defaults were disabled and empty; new ambient rules must work immediately.
-                if(!from.tracks.isEmpty())to.enabled=from.enabled;
-            }
+        if (matched != null) return "No enabled songs for " + matched.name;
+        for(var p:playlists)if(p.conditions.matches(c,settings)){
+            if(!p.enabled)return p.name+" playlist is off";
+            if(p.manualOnly)return p.name+" / manual only";
         }
-        Playlist general=old.stream().filter(p->p.id.equals("general")).findFirst().orElse(null);
-        if(general!=null) for(String id:List.of("day_outside","night_outside","underground")){
-            Playlist target=playlist(id);general.tracks.forEach(target.tracks::putIfAbsent);
-            if(target.tracks.equals(general.tracks)) { target.includeVanilla=general.includeVanilla;target.finishCurrentSong=general.finishCurrentSong;target.finishCurrentSongOnExit=general.finishCurrentSongOnExit; }
-        }
-        for(Folder f:folders) f.playlistId=switch(f.playlistId){
-            case "general" -> "ambient";
-            case "day" -> "day_outside";
-            case "night" -> "night_outside";
-            case "combat" -> "combat";
-            default -> "library";
-        };
-        schemaVersion=2;
+        return "No playlist matches this environment";
     }
 
-    public void assignImported(String destination,String trackId) {
+    public static Library defaults(){
+        Library library=new Library();library.playlists.addAll(PlaylistTemplates.create());return library;
+    }
+
+    public Playlist clonePlaylist(String sourceId,String name){
+        Playlist source=playlist(sourceId);if(source==null)throw new IllegalArgumentException("Playlist no longer exists.");
+        String clean=name.replaceAll("\\p{Cc}","").strip();
+        if(clean.isBlank()||clean.length()>80)throw new IllegalArgumentException("Use a playlist name of 1-80 characters.");
+        Playlist copy=copyPlaylist(source,true);copy.id="custom:"+UUID.randomUUID();copy.name=clean;
+        playlists.add(playlists.indexOf(source)+1,copy);return copy;
+    }
+
+    public void assignImported(String profileId,String destination,String trackId) {
+        List<Playlist> targets=profiles.playlists(this,profileId);
         if (destination.equals("ambient")) {
-            for(String id:List.of("day_outside","night_outside","underground")) playlist(id).tracks.putIfAbsent(trackId,true);
+            for(var p:targets)if(p.id.equals("day_outside")||p.id.equals("night_outside")||p.id.equals("underground"))p.tracks.putIfAbsent(trackId,true);
         } else {
-            Playlist p=playlist(destination);if(p!=null)p.tracks.putIfAbsent(trackId,true);
+            for(var p:targets)if(p.id.equals(destination)){p.tracks.putIfAbsent(trackId,true);break;}
         }
     }
 
@@ -279,32 +307,47 @@ public final class Library {
         Library copy = new Library(); copy.schemaVersion = schemaVersion;
         Settings s = copy.settings;
         s.silenceMinSeconds=settings.silenceMinSeconds;s.silenceMaxSeconds=settings.silenceMaxSeconds;
-        s.fadeSeconds=settings.fadeSeconds;s.bufferSeconds=settings.bufferSeconds;s.combatQuietSeconds=settings.combatQuietSeconds;
-        s.combatEnabled=settings.combatEnabled;s.rescanOnLaunch=settings.rescanOnLaunch;
+        s.fadeInSeconds=settings.fadeInSeconds;s.fadeOutSeconds=settings.fadeOutSeconds;s.bufferSeconds=settings.bufferSeconds;s.combatQuietSeconds=settings.combatQuietSeconds;
+        s.jukeboxMode=settings.jukeboxMode;
+        s.continuePlayingOnMatch=settings.continuePlayingOnMatch;
+        s.playImmediatelyOnJoin=settings.playImmediatelyOnJoin;
+        s.combatEnabled=settings.combatEnabled;s.combatThreatsOnly=settings.combatThreatsOnly;s.rescanOnLaunch=settings.rescanOnLaunch;
         s.combatOnAttack=settings.combatOnAttack;s.combatOnDamage=settings.combatOnDamage;s.preventMusicWhileDead=settings.preventMusicWhileDead;
         s.combatDeathMusic=settings.combatDeathMusic;s.combatDeathFadeSeconds=settings.combatDeathFadeSeconds;
-        s.nowPlaying=settings.nowPlaying;s.popupSeconds=settings.popupSeconds;s.undergroundDepth=settings.undergroundDepth;
+        s.nowPlaying=settings.nowPlaying;s.nowPlayingStyle=settings.nowPlayingStyle;s.popupSeconds=settings.popupSeconds;
+        s.widgetCorner=settings.widgetCorner;
+        s.menuColors=MenuColor.normalize(settings.menuColors);
+        s.menuImageEnabled=settings.menuImageEnabled;s.menuImageName=settings.menuImageName;
+        s.menuImageOpacity=settings.menuImageOpacity;s.menuImageFit=settings.menuImageFit;
+        s.menuBackgroundOpacity=settings.menuBackgroundOpacity;s.menuBlur=settings.menuBlur;
+        s.widgetScale=settings.widgetScale;s.widgetWidth=settings.widgetWidth;
+        s.widgetBackgroundColor=settings.widgetBackgroundColor;s.widgetBackgroundOpacity=settings.widgetBackgroundOpacity;
+        s.widgetArtwork=settings.widgetArtwork;s.widgetTitle=settings.widgetTitle;
+        s.widgetArtist=settings.widgetArtist;s.widgetAlbum=settings.widgetAlbum;s.widgetDuration=settings.widgetDuration;s.widgetPlaylist=settings.widgetPlaylist;
+        s.widgetScroll=settings.widgetScroll;
+        s.widgetWrap=settings.widgetWrap;
         s.replayGainEnabled=settings.replayGainEnabled;
+        s.songColumns=SongColumn.normalize(settings.songColumns);
         for(int i=0;i<OVERRIDE_SLOTS;i++){s.overrideSlots[i].playlistId=settings.overrideSlots[i].playlistId;s.overrideSlots[i].mode=settings.overrideSlots[i].mode;}
-        s.undergroundMaxY=settings.undergroundMaxY;s.darkMaxLight=settings.darkMaxLight;
-        s.darkInNether=settings.darkInNether;s.darkInEnd=settings.darkInEnd;
-        Home h=copy.home;h.configured=home.configured;h.world=home.world;h.dimension=home.dimension;
-        h.x=home.x;h.y=home.y;h.z=home.z;h.radius=home.radius;
         copy.tracks = new ArrayList<>(tracks.size());
         for (int i=0;i<tracks.size();i++) {
-            Track t=tracks.get(i), next=new Track(t.id,t.path,t.title,t.vanilla);
-            next.artist=t.artist;next.album=t.album;next.durationSeconds=t.durationSeconds;copy.tracks.add(next);
+            copy.tracks.add(copyTrack(tracks.get(i)));
         }
         for (Folder f:folders) { Folder next=new Folder(f.path,f.playlistId);next.recursive=f.recursive;copy.folders.add(next); }
-        for (Playlist p:playlists) copy.playlists.add(copyPlaylist(p));
-        for (Playlist p:legacyPlaylists) copy.legacyPlaylists.add(copyPlaylist(p));
+        for (Playlist p:playlists) copy.playlists.add(copyPlaylist(p,true));
+        for (Playlist p:legacyPlaylists) copy.legacyPlaylists.add(copyPlaylist(p,true));
+        copy.profiles=profiles.copy();
         return copy;
     }
-    private static Playlist copyPlaylist(Playlist p) {
-        Playlist next=new Playlist(p.id,p.name,p.rule,p.match);next.enabled=p.enabled;
+    public static Playlist copyPlaylist(Playlist p,boolean includeTracks) {
+        Playlist next=new Playlist(p.id,p.name);next.enabled=p.enabled;
         next.manualOnly=p.manualOnly;
         next.finishCurrentSong=p.finishCurrentSong;next.finishCurrentSongOnExit=p.finishCurrentSongOnExit;
-        next.includeVanilla=p.includeVanilla;next.conditions=p.conditions.copy();next.tracks.putAll(p.tracks);return next;
+        next.playOnTrigger=p.playOnTrigger;
+        next.customSilence=p.customSilence;next.silenceMinSeconds=p.silenceMinSeconds;next.silenceMaxSeconds=p.silenceMaxSeconds;
+        next.volume=p.volume;
+        next.includeVanilla=p.includeVanilla;next.conditions=p.conditions.copy();
+        if(includeTracks)next.tracks.putAll(p.tracks);return next;
     }
 
     public void normalize() {
@@ -314,20 +357,35 @@ public final class Library {
             var b=settings.overrideSlots[i];if(b==null)b=settings.overrideSlots[i]=new OverrideBinding();
             if(b.playlistId==null)b.playlistId="";if(b.mode==null)b.mode=OverrideMode.ONE_SONG;
         }
-        settings.silenceMinSeconds = bounded(settings.silenceMinSeconds, 0, 86400, 600);
-        settings.silenceMaxSeconds = bounded(settings.silenceMaxSeconds, settings.silenceMinSeconds, 86400, 1200);
-        settings.fadeSeconds = bounded(settings.fadeSeconds, 0, 60, 0);
-        settings.bufferSeconds = bounded(settings.bufferSeconds, 0, 60, 0);
-        settings.combatQuietSeconds = bounded(settings.combatQuietSeconds, 1, 600, 15);
-        settings.combatDeathFadeSeconds=bounded(settings.combatDeathFadeSeconds,0,60,1);
-        if(settings.combatDeathMusic==null)settings.combatDeathMusic=DeathMusic.FADE;
+        settings.normalizePlayback();
         settings.popupSeconds = bounded(settings.popupSeconds, 1, 60, 7);
-        settings.undergroundDepth = bounded(settings.undergroundDepth, 1, 64, 5);
-        settings.darkMaxLight = Math.clamp(settings.darkMaxLight,0,15);
-        if(home==null)home=new Home();
-        home.radius=bounded(home.radius,1,100000,64);
-        for(Playlist p:playlists){if(p.conditions==null)p.conditions=new PlaylistConditions();p.conditions.normalize();}
-        for(Playlist p:legacyPlaylists){if(p.conditions==null)p.conditions=new PlaylistConditions();p.conditions.normalize();}
+        settings.widgetScale = bounded(settings.widgetScale, 0.5, 2, 1);
+        settings.widgetWidth = Math.clamp(settings.widgetWidth, 140, 600);
+        settings.widgetBackgroundColor = Math.clamp(settings.widgetBackgroundColor, 0, 0xFFFFFF);
+        settings.widgetBackgroundOpacity = bounded(settings.widgetBackgroundOpacity, 0, 1, 0.92);
+        settings.menuBackgroundOpacity = bounded(settings.menuBackgroundOpacity, 0, 1, 0.80);
+        settings.menuColors=MenuColor.normalize(settings.menuColors);
+        settings.menuImageOpacity = bounded(settings.menuImageOpacity, 0, 1, 1);
+        if(settings.menuImageName==null)settings.menuImageName="";
+        if(settings.menuImageFit==null)settings.menuImageFit=MenuImageLayout.Fit.FILL;
+        if(settings.nowPlayingStyle==null)settings.nowPlayingStyle=NowPlayingStyle.MINECRAFT;
+        if(settings.widgetCorner==null)settings.widgetCorner=WidgetCorner.DEFAULT;
+        settings.songColumns=SongColumn.normalize(settings.songColumns);
+        for(Track t:tracks){
+            if(t.albumArtist==null)t.albumArtist="";if(t.trackNumber==null)t.trackNumber="";if(t.discNumber==null)t.discNumber="";
+            if(t.genre==null)t.genre="";if(t.date==null)t.date="";
+        }
+        for(Playlist p:playlists)normalizePlaylist(p);
+        for(Playlist p:legacyPlaylists)normalizePlaylist(p);
+        profiles.normalize();
+        for(Track t:tracks)if(t.loudness!=null&&!t.loudness.valid())t.loudness=null;
+    }
+    static void normalizePlaylist(Playlist p){
+        if(p==null||p.id==null||p.name==null||p.tracks==null)throw new IllegalArgumentException("Invalid playlist");
+        if(p.conditions==null)p.conditions=new PlaylistConditions();p.conditions.normalize();
+        p.volume=bounded(p.volume,0,1,1);
+        p.silenceMinSeconds=bounded(p.silenceMinSeconds,0,86400,600);
+        p.silenceMaxSeconds=bounded(p.silenceMaxSeconds,p.silenceMinSeconds,86400,1200);
     }
     private static double bounded(double value, double min, double max, double fallback) {
         return Double.isFinite(value) ? Math.clamp(value, min, max) : Math.clamp(fallback, min, max);

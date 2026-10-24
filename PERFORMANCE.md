@@ -1,5 +1,42 @@
 # Performance investigation — 0.2.2
 
+## Combined Unreleased validation — October 22, 2026
+
+In an isolated client using 67,812 real catalog entries, a small library, the full
+catalog, 67k assignment data, and the large workspace all held a median 119 FPS
+under the same 120-FPS cap. Gameplay Post-event median/p95 was 0.0668/0.0957 ms
+with the full catalog versus 0.0950/0.1920 ms in the small baseline; these include
+event/test overhead and order/JIT effects, not isolated AFMR time or an improvement
+caused by catalog size. Large workspace opening was 567 ms in one measured pass.
+
+A full linked-folder rescan completed in 436.78 s with zero missing-source issues.
+That pass included hundreds of thousands of routine WAV chunk log messages. The
+reader now suppresses third-party INFO messages while retaining warnings/errors;
+scan-throughput improvement has not been measured. Initial scan-period FPS was
+idle-capped and a 606-ms tick spike overlapped menu inspection, so neither proves
+a steady gameplay regression or a scan-completion hitch. See the
+[combined report](docs/testing/2026-10-22-release-validation.md) for methods,
+limitations and preservation checks. Analysis-during-gameplay remains disabled:
+this measures ordinary metadata scanning, not loudness decoding.
+
+## Unreleased loudness scanner
+
+Explicit playlist normalization uses at most two homogeneous worker lanes. Each
+lane owns its decoder, 16-KiB PCM buffer and 160,016-byte histogram arrays; memory
+does not grow with song duration. Files are dynamically assigned through one
+atomic index, results use disjoint slots, and the last lane publishes a report.
+Progress is published at most ten times per second per lane during decoding.
+The client applies completed measurements at the batch boundary and saves an owned
+snapshot. Report rows and summaries are formatted once, and only visible rows draw.
+Playback checks tags or the captured cache for one opening file, never the whole library.
+
+A warmed 120-s, 48-kHz stereo PCM meter benchmark measured 78.1 ms median thread CPU
+(seven samples, three warmups), about 1,536x real time. This excludes decoding, I/O,
+metadata, Minecraft, and saving. Independent FFmpeg comparisons and limitations are
+in the [scanner test report](docs/testing/2026-10-21-loudness.md). Actual gameplay
+impact has not been measured, so analysis suspends during active gameplay and runs
+only at the title screen or with singleplayer paused.
+
 The saved library used for the investigation contained **67,812 local tracks**, 70 vanilla tracks, and 250 explicit Day outside assignments. Its JSON occupied about 21.4 MiB. The local format counts were 63,327 WAV, 2,438 FLAC, 1,952 MP3, and 95 OGG entries. This is the indexed collection size, not a new recursive filesystem count.
 
 ## Causes and changes

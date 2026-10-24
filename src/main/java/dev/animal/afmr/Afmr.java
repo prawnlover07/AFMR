@@ -3,15 +3,18 @@ package dev.animal.afmr;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import dev.animal.afmr.audio.MusicSound;
-import dev.animal.afmr.ui.LibraryScreen;
+import dev.animal.afmr.ui.MusicMenu;
 import dev.animal.afmr.ui.PlaybackInspectorScreen;
 import dev.animal.afmr.ui.OverridesScreen;
 import dev.animal.afmr.core.Library;
+import dev.animal.afmr.library.ConfigBackup;
+import java.util.*;
 import net.minecraft.client.*;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.EntityHitResult;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.*;
@@ -25,7 +28,9 @@ import org.slf4j.Logger;
 @EventBusSubscriber(modid = "afmr", value = Dist.CLIENT)
 public final class Afmr {
     public static final Logger LOG = LogUtils.getLogger();
+    private static final java.util.logging.Logger METADATA_LOG=java.util.logging.Logger.getLogger("org.jaudiotagger");
     private static final KeyMapping OPEN = new KeyMapping("key.afmr.open", InputConstants.KEY_M, KeyMapping.Category.MISC);
+    private static boolean menuKeyClosing;
     private static final KeyMapping SKIP = new KeyMapping("key.afmr.skip", InputConstants.UNKNOWN.getValue(), KeyMapping.Category.MISC);
     private static final KeyMapping NEXT=new KeyMapping("key.afmr.next",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
     private static final KeyMapping PAUSE=new KeyMapping("key.afmr.pause",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
@@ -36,9 +41,35 @@ public final class Afmr {
     static{for(int i=0;i<OVERRIDE_KEYS.length;i++)OVERRIDE_KEYS[i]=new KeyMapping("key.afmr.override_"+(i+1),InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);}
     public static String overrideKeyName(int slot){return OVERRIDE_KEYS[slot].getTranslatedKeyMessage().getString();}
 
+    public static Map<String,ConfigBackup.Key> backupKeys(){
+        var result=new LinkedHashMap<String,ConfigBackup.Key>();
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        Collections.addAll(keys,OVERRIDE_KEYS);
+        for(var key:keys)result.put(key.getName(),new ConfigBackup.Key(key.saveString(),key.getKeyModifier().name()));
+        return Map.copyOf(result);
+    }
+    public static int unavailableBackupKeys(Map<String,ConfigBackup.Key> keys){
+        int count=0;
+        for(var key:keys.values())try{InputConstants.getKey(key.code());KeyModifier.valueOf(key.modifier());}
+        catch(RuntimeException e){count++;}
+        return count;
+    }
+    public static void restoreKeys(Map<String,ConfigBackup.Key> saved){
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        Collections.addAll(keys,OVERRIDE_KEYS);
+        for(var key:keys){
+            var value=saved.get(key.getName());if(value==null)continue;
+            try{key.setKeyModifierAndCode(KeyModifier.valueOf(value.modifier()),InputConstants.getKey(value.code()));}catch(RuntimeException e){key.setKeyModifierAndCode(KeyModifier.NONE,InputConstants.UNKNOWN);}
+        }
+        KeyMapping.resetMapping();Minecraft.getInstance().options.save();
+    }
+
     public Afmr(ModContainer container) {
+        // The WAV reader logs every RIFF chunk at INFO, including playback tag reads.
+        // Configure it at startup so imports, cover reads and decoders all stay quiet.
+        METADATA_LOG.setLevel(java.util.logging.Level.WARNING);
         container.registerExtensionPoint(IConfigScreenFactory.class,
-            (ignored, parent) -> new LibraryScreen(parent, ClientRuntime.get(),"day_outside"));
+            (ignored, parent) -> MusicMenu.reopen(parent, ClientRuntime.get()));
     }
     @SubscribeEvent public static void keys(RegisterKeyMappingsEvent e) {
         e.register(OPEN);e.register(SKIP);e.register(NEXT);e.register(PAUSE);e.register(INSPECT);e.register(OVERRIDES);e.register(AUTOMATIC);
@@ -47,7 +78,7 @@ public final class Afmr {
     @SubscribeEvent public static void tick(ClientTickEvent.Post e) {
         var mc = Minecraft.getInstance(); var runtime = ClientRuntime.get();
         runtime.tick();
-        while (OPEN.consumeClick()) if(mc.gui.screen()==null)mc.gui.setScreen(new LibraryScreen(null, runtime,"day_outside"));
+        while (OPEN.consumeClick()) if(!menuKeyClosing&&mc.gui.screen()==null)mc.gui.setScreen(MusicMenu.reopen(null,runtime));
         while (SKIP.consumeClick()) if(mc.gui.screen()==null)runtime.skip();
         while(NEXT.consumeClick())if(mc.gui.screen()==null)runtime.nextSong();
         while(PAUSE.consumeClick())if(mc.gui.screen()==null)runtime.togglePause();
@@ -56,16 +87,31 @@ public final class Afmr {
         while(AUTOMATIC.consumeClick())if(mc.gui.screen()==null)runtime.returnAutomatic();
         for(int i=0;i<OVERRIDE_KEYS.length;i++)while(OVERRIDE_KEYS[i].consumeClick())if(mc.gui.screen()==null)runtime.overrideSlot(i);
     }
+    @SubscribeEvent public static void menuKey(ScreenEvent.KeyPressed.Pre e) {
+        if (OPEN.matches(e.getKeyEvent()) && OPEN.getKeyModifier().isActive(null) && !e.getScreen().isInputCaptured()
+            && MusicMenu.hide(e.getScreen())) {
+            menuKeyClosing = true;
+            e.setCanceled(true);
+        }
+    }
+    @SubscribeEvent public static void menuKeyInput(InputEvent.Key e) {
+        if (e.getAction() == InputConstants.PRESS && OPEN.matches(e.getKeyEvent())) menuKeyClosing = false;
+        if (e.getAction() == InputConstants.RELEASE && OPEN.matches(e.getKeyEvent()) && menuKeyClosing) {
+            while (OPEN.consumeClick()) {}
+            menuKeyClosing = false;
+        }
+    }
     @SubscribeEvent public static void sound(PlaySoundEvent e) {
         var mc = Minecraft.getInstance();
         if (mc.level != null && e.getOriginalSound().getSource() == SoundSource.MUSIC
             && !(e.getOriginalSound() instanceof MusicSound) && ClientRuntime.get().enabled()) e.setSound(null);
     }
     @SubscribeEvent public static void attack(InputEvent.InteractionKeyMappingTriggered e) {
-        if (!e.isCanceled() && e.isAttack() && Minecraft.getInstance().hitResult instanceof EntityHitResult)
-            ClientRuntime.get().attack();
+        if (!e.isCanceled() && e.isAttack() && Minecraft.getInstance().hitResult instanceof EntityHitResult hit)
+            ClientRuntime.get().attack(hit.getEntity());
     }
     @SubscribeEvent public static void reload(SoundEngineLoadEvent e) { ClientRuntime.requestReload(); }
+    @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut e) { MusicMenu.clear();menuKeyClosing=false;ClientRuntime.disconnect(); }
     @SubscribeEvent public static void streaming(PlayStreamingSourceEvent e){
         // This event runs on the sound executor, including when decoding finished after pause was requested.
         if(e.getSound() instanceof MusicSound music&&music.paused())e.getChannel().pause();

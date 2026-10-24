@@ -1,0 +1,163 @@
+PASS Generated audio fixture exists
+PASS Six direct navigation controls
+PASS Library below priority
+PASS Scaled workspace tooltip fixture
+PASS tooltip-right-edge rendered
+PASS tooltip-right-edge within screen
+PASS tooltip-bottom-edge rendered
+PASS tooltip-bottom-edge within screen
+PASS tooltip-timing-field rendered
+PASS tooltip-timing-field within screen
+PASS Disabled preview fixture
+PASS tooltip-disabled-control rendered
+PASS tooltip-disabled-control within screen
+PASS Double click assigns a library song
+PASS Selected song assigned on same screen
+PASS Bulk disable
+PASS Bulk enable
+PASS Entry independent
+PASS Exit independent
+PASS Priority top
+PASS Priority down
+PASS Priority last
+PASS Held override with Automatic off
+PASS Generated fixture actually starts
+PASS Pause control
+PASS Next keeps held override
+PASS Resume control
+PASS Release override
+PASS One-song override
+PASS Timing direct navigation
+PASS Invalid timing blocks navigation
+PASS Hide settings
+PASS Draft page retained
+PASS Invalid draft retained
+PASS Timing saved on navigation
+PASS Display direct navigation
+PASS Display style changes
+PASS Size controls remain
+PASS All metadata switches remain
+PASS Keys direct navigation
+PASS Physical key bindings reachable
+PASS All eight override slots reachable
+PASS Unified import dialog
+PASS Files/folders can import without assignment
+PASS Custom condition editor reachable
+PASS Match all/any reachable
+PASS Remove keeps library file
+PASS Whole-folder assignment
+PASS Normalization progress reachable
+PASS Normalization report/cancel retained
+PASS Inspector direct navigation
+PASS Retry failed retained
+PASS Inspector details retained
+PASS Create in workspace
+PASS Delete custom playlist
+PASS Library search preserved
+PASS Workspace instance retained
+PASS Two library and song viewports remain
+PASS Default name is editable
+PASS Default groups reachable
+PASS Dimension branch editable
+PASS Clone selected and independent
+PASS Clone keeps nested branch
+PASS Autoplay tap does not change conditions
+PASS Hold warning replaces label
+PASS Short hold cancels
+PASS Moving outside cancels hold
+PASS Still unchanged before one second
+PASS Completed hold replaces conditions
+PASS Autoplay enables only this playlist
+PASS Autoplay keeps assignments and original template
+PASS Navigation cancels an armed hold
+PASS Artwork fixture loaded
+PASS Silent gap clears current track and cover
+PASS Preview selection is retained
+PASS No-cover song does not inherit artwork
+PASS Selected preview still works
+PASS Corner selector exposes all corners and default
+PASS Native toast corner uses screen anchors
+PASS Native popup captured outside the pause menu
+PASS Menu appearance is independent of widget style
+PASS Slider previews immediately
+PASS Menu blur toggle
+PASS Settings at 50% background alpha
+PASS Settings at 50% text stays opaque
+PASS Settings at 50% native blur
+PASS Settings at 50% does not pause gameplay
+PASS Settings with blur background alpha
+PASS Settings with blur text stays opaque
+PASS Settings with blur native blur
+PASS Settings with blur does not pause gameplay
+PASS Settings at 0% background alpha
+PASS Settings at 0% text stays opaque
+PASS Settings at 0% native blur
+PASS Settings at 0% does not pause gameplay
+PASS Workspace at 0% background alpha
+PASS Workspace at 0% text stays opaque
+PASS Workspace at 0% native blur
+PASS Workspace at 0% does not pause gameplay
+PASS Workspace at 100% background alpha
+PASS Workspace at 100% text stays opaque
+PASS Workspace at 100% native blur
+PASS Workspace at 100% does not pause gameplay
+PASS Menu defaults restored
+PASS Widget opacity unchanged
+PASS Gamemode editor reachable
+PASS All four gamemodes visible
+PASS Gamemode draft survives hide/reopen
+PASS Multiple gamemode choices saved
+PASS Server Survival observed
+PASS Survival selects fallback
+PASS Server Creative observed
+PASS Creative starts gamemode playlist
+PASS Server Adventure observed
+PASS Adventure returns to fallback
+PASS Server Spectator observed
+PASS Spectator starts gamemode playlist
+PASS Filter off keeps choices and matches Survival
+PASS Enabled empty selection falls through
+PASS Saved empty selection reopens
+PASS Play on trigger toggle saves
+PASS Trigger toggle keeps finish controls independent
+PASS Trigger source starts before time window
+PASS Trigger starts normal fade before global buffer
+PASS Outgoing source remains during trigger fade
+PASS Triggered song starts without ten-second silence
+PASS Native trigger audio starts without error
+PASS Matching ticks do not restart triggered song
+PASS Manual skip still uses normal silence
+PASS Time-window fit saves through editor
+PASS Missing generated WAV duration is cached
+PASS Fitting generated WAV starts automatically
+PASS No fitting song keeps playlist priority
+PASS No fitting song remains silent
+PASS Wider window resumes a fitting song
+PASS Independent fade fields are present
+PASS Out-of-range fade blocks navigation
+PASS Both fade drafts survive hide/reopen
+PASS Distinct fades save independently
+PASS Jukebox selector exposes off and three behaviors
+PASS RESUME starts generated AFMR fixture
+PASS RESUME detects actual jukebox playback
+PASS RESUME requests native audio pause after fading
+PASS RESUME retains or ends the song correctly
+PASS RESUME detects jukebox stop
+PASS Resume retains the same playback sequence
+PASS AFTER_SILENCE starts generated AFMR fixture
+PASS AFTER_SILENCE detects actual jukebox playback
+PASS AFTER_SILENCE requests native audio pause after fading
+PASS AFTER_SILENCE retains or ends the song correctly
+PASS AFTER_SILENCE detects jukebox stop
+PASS After-silence mode starts a full gap after the record
+PASS IMMEDIATE starts generated AFMR fixture
+PASS IMMEDIATE detects actual jukebox playback
+PASS IMMEDIATE requests native audio pause after fading
+PASS IMMEDIATE retains or ends the song correctly
+PASS IMMEDIATE detects jukebox stop
+PASS Immediate mode starts a new song without buffer/gap
+PASS Overlapping jukeboxes hold AFMR
+PASS One remaining jukebox keeps AFMR held
+PASS Last jukebox stopping releases AFMR
+PASS Muted records do not suppress AFMR
+COMPLETE: 162 passed / 0 failed

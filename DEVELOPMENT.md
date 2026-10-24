@@ -1,11 +1,30 @@
 # Developing AFMR
 
+For the independent **Fabric 1.20.1** target, use
+[`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
+Gradle build, JAR and disposable native test profile are separate from the
+NeoForge target described below. Keep its mod version synchronized with the root
+build; the current release is 1.0 and its shipped bytecode targets Java 17.
+
+For a guided explanation of the implementation, read the
+[developer guide](docs/DEVELOPER-GUIDE.md). For player-facing instructions, use the
+[user guide](docs/USER-GUIDE.md). This file covers development setup and commands.
+
 Work from this repository root. `src/` and the root Gradle build are authoritative.
 The imported `work/` directory contains old checkouts, toolchains/caches, private
 metadata snapshots and isolated game instances; `outputs/` contains earlier releases.
 Both stay local and are ignored. Do not edit those archived source copies.
 
 ## Build and test
+
+For release source/notices preparation, run
+`python testing/prepare_dependency_sources.py` after building the NeoForge JAR.
+It reads the exact nested-library coordinates, fetches original Maven Central
+source JARs into ignored `outputs/<version>/third-party-sources`, and reproduces
+their copyright/license comment blocks in `THIRD_PARTY_NOTICES.txt`. Include
+the GNU LGPL texts and all notices in both runtime/source distributions; keep
+the independently buildable Fabric copies synchronized. Network access belongs
+only to this explicit release step, not gameplay or ordinary offline builds.
 
 Install a 64-bit Java 25 JDK and make it available through `JAVA_HOME` or Gradle's
 toolchain discovery. The wrapper uses Gradle 9.2.1 and NeoForge ModDevGradle.
@@ -33,6 +52,29 @@ $env:GRADLE_USER_HOME = Join-Path $PWD 'work/gradle-cache'
 Fresh setups need dependency downloads. Gradle's Foojay resolver can provision the
 Java 21 asset tool; Minecraft and AFMR themselves use Java 25.
 
+## Writing descriptions and hover text
+
+Edit [docs/UI-COPY.md](docs/UI-COPY.md), the single authoring source for both
+targets. Replace only the prose beneath each **Text to edit:** marker, or clear
+the paragraph to remove that explanation. Keep the entry's metadata. The
+screen/control context, reference behavior and placeholder notes are there for
+the author; only the editable prose ships. Utility labels and runtime messages
+remain in their existing code, with shared key-binding translations in
+`copy/utility-en_us.json`.
+
+Both builds automatically compile the Markdown through `gradle/ui-copy.gradle`
+into `build/generated/uiCopy/assets/afmr/lang/en_us.json`. Screens use native
+`Component.translatable` calls; there is no runtime Markdown reader or custom
+text loader. No Python or extra authoring dependency is needed. Do not edit or
+commit the generated JSON. Rebuild and restart a test profile to review wording.
+
+Run `.\gradlew.bat validateUiCopy` for missing/unused entries, target restrictions
+and placeholders in nonempty passages. Empty text disables only its explanation;
+utility labels and overflow-label tooltips remain. `build` also runs `testUiCopy`, which exercises
+the compiler's parsing and rejection cases. Keep reference behavior current when
+a feature changes. The Fabric source ZIP includes the shared writing file,
+compiler and utility translations so it remains independently buildable.
+
 ## Code and test layout
 
 - `src/main/java/dev/animal/afmr/core`: library model, conditions, scheduler, combat,
@@ -48,6 +90,21 @@ Java 21 asset tool; Minecraft and AFMR themselves use Java 25.
 Running `runClient` opens Minecraft. Coordinate desktop testing with the user and
 use an isolated profile; never point tests at personal game configuration or music.
 Pure unit tests cannot prove native pause position, device behavior, or real input.
+
+## Update versions
+
+Keep the current version (1.0) unchanged while any development tasks are in
+progress, including concurrent work in other chats. Do not increment it for an
+individual fix, feature, or completed task. Record pending changes under
+**Unreleased** in `CHANGELOG.md`; routine builds and tests keep the current version.
+
+Only when all in-progress tasks are complete, increment the version once for the
+combined update. A single task finishing does not establish that the other work
+is complete. At that point, update `mod_version` in `gradle.properties`, the mod
+version in `src/main/resources/META-INF/neoforge.mods.toml`, current install/guide
+references, and the combined changelog entry, then rebuild the numbered JAR and
+source ZIP. Keep historical test reports and Git baseline references at their
+original versions. Documentation edits alone do not require a new mod version.
 
 ## Git checkpoints
 
@@ -67,3 +124,25 @@ git log --oneline --decorate
 Repository-local author details are configured from the user's supplied name/email.
 No global Git configuration was changed. Local Git history is not an off-computer backup;
 remote hosting or another backup destination can be set up separately when requested.
+
+## Full-backup and seam verification
+
+`ConfigBackupTest` adds eleven generated-only transfer/rejection/recovery tests per
+target. Run the ordinary builds for all 702 NeoForge / 712 Fabric tests. The native
+workspace helper accepts `-PconfigBackup` to export/review/stage, then the same
+flags plus `-PbackupRestart` to verify an actual restart. `-PbackupFromFabric`
+reads a disposable staged Fabric export; `-PmenuSeams` repeats the 16 render-state
+coverage checks. The Fabric packaged smoke run includes full backup review and
+framebuffer seams; `-PbackupRestart` consumes a generated NeoForge export at title.
+See the reports for exact fixtures and limits. Never stage personal configurations
+in these test runs. Complete `.afmrb` files are ignored and excluded from source
+packages because they contain private paths and world/server bindings.
+
+## Join playback checks
+
+The existing builds include sixteen `PlayImmediatelyOnJoinTest` cases per target,
+plus profile and full-backup round trips for the setting. Native join-only fixtures
+are staged with `testing/prepare_join_playback.py` (add `--fabric` for the port).
+See `testing/native/README.md` for the mode flags and disposable-world requirement.
+Only actual session entry calls `joinedWorld`; never rearm it from generic engine
+reset, resource reload, profile switching or player-object replacement.

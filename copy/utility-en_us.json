@@ -1,0 +1,17 @@
+{
+  "key.afmr.open": "Open/close music library",
+  "key.afmr.skip": "Skip song (with normal silence)",
+  "key.afmr.next": "Next song (skip silence)",
+  "key.afmr.pause": "Pause/resume AFMR music",
+  "key.afmr.inspect": "Open playback inspector",
+  "key.afmr.overrides": "Open playlist overrides",
+  "key.afmr.automatic": "Return music to automatic selection",
+  "key.afmr.override_1": "Music override slot 1",
+  "key.afmr.override_2": "Music override slot 2",
+  "key.afmr.override_3": "Music override slot 3",
+  "key.afmr.override_4": "Music override slot 4",
+  "key.afmr.override_5": "Music override slot 5",
+  "key.afmr.override_6": "Music override slot 6",
+  "key.afmr.override_7": "Music override slot 7",
+  "key.afmr.override_8": "Music override slot 8"
+}

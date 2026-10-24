@@ -6,12 +6,13 @@ import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
+import dev.animal.afmr.core.TrackLoudness;
 
 public final class LocalAudioStream implements AudioStream {
     private final AudioInputStream pcm;
     private final double replayGain;
-    public LocalAudioStream(Path file,boolean normalize) throws Exception {
-        replayGain=normalize?ReplayGain.readMultiplier(file):1;
+    public LocalAudioStream(Path file,boolean normalize,TrackLoudness cached) throws Exception {
+        replayGain=normalize?ReplayGain.resolve(file,cached):1;
         pcm=PcmDecoder.open(file);
     }
     @Override public AudioFormat getFormat() { return pcm.getFormat(); }

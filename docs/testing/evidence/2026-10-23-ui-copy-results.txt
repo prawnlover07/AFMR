@@ -1,0 +1,36 @@
+AFMR UI copy verification, October 23, 2026; version remains 0.6.
+
+NeoForge: build sourceZip uiCopyLanguageProbe --offline
+  Java 25; temporary init scripts request complete Java compilation and the
+  windowless Minecraft language probe.
+  BUILD SUCCESSFUL
+  JUnit: 778 tests, 0 failures, 0 errors, 0 skipped.
+  testUiCopy: 19 compiler checks passed.
+  validateUiCopy: 150 applicable passages.
+  Language + Component probe: all 150 original passages reproduced exactly.
+
+Fabric: build sourceZip uiCopyLanguageProbe --offline
+  Java 25 build JVM; shipped Java 17 bytecode target unchanged.
+  BUILD SUCCESSFUL
+  JUnit: 788 tests, 0 failures, 0 errors, 0 skipped.
+  testUiCopy: 19 compiler checks passed.
+  validateUiCopy: 148 applicable passages.
+  Language + Component probe: all 148 original passages reproduced exactly.
+
+Both language probes also pass Unicode, quotes/apostrophes, paragraph breaks,
+reordered placeholders and literal percentage checks.
+
+Captured original UI strings: no unexpected utility text removals.
+Generated language JSON: exact original-copy inventory plus 15 unchanged key labels.
+Both packaged JARs: exactly one matching English language resource.
+Both source ZIPs: shared authoring inputs present; generated/private paths absent.
+
+Extracted standalone Fabric source ZIP:
+  Edited one shared paragraph in the isolated copy only.
+  validateUiCopy testUiCopy generateUiCopy sourceZip --offline: BUILD SUCCESSFUL.
+  Edited paragraph reached resource; all other entries unchanged.
+  Edited document/shared inputs present in repackaged standalone source ZIP.
+
+No Minecraft window, personal profile, music/foobar files, native picker,
+audio playback or clipboard used. Physical UI, wrapping and narration checks
+remain for the author's final writing pass.

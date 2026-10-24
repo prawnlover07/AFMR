@@ -1,6 +1,10 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
+import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.components.Tooltip;
 import dev.animal.afmr.core.Library.DeathMusic;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -14,14 +18,25 @@ final class CombatSettingsScreen extends MusicScreen {
     @Override protected void init(){
         super.init();var s=runtime.library().settings;int half=(contentWidth-6)/2;
         if(page==0){
-            button("Combat music: "+(s.combatEnabled?"on":"off"),left,47,contentWidth,()->flip(()->s.combatEnabled=!s.combatEnabled));
+            var combatMusicHelpControl=button("Combat music: "+(s.combatEnabled?"on":"off"),left,47,contentWidth,()->flip(()->s.combatEnabled=!s.combatEnabled));
+            var combatMusicHelpText=Component.translatable("afmr.copy.combatsettings.combat_music");
+            if(!combatMusicHelpText.getString().isBlank())combatMusicHelpControl.setTooltip(Tooltip.create(combatMusicHelpText));
             button("On attack: "+(s.combatOnAttack?"on":"off"),left,75,half,()->flip(()->s.combatOnAttack=!s.combatOnAttack));
             button("On damage: "+(s.combatOnDamage?"on":"off"),left+half+6,75,half,()->flip(()->s.combatOnDamage=!s.combatOnDamage));
-            value=edit(""+s.combatQuietSeconds,"Combat quiet period",left+contentWidth-100,119,100,null);
+            var combatTriggersHelpControl=button("Triggers: "+(s.combatThreatsOnly?"combatants only":"any entity / any damage"),left,103,contentWidth,()->flip(()->s.combatThreatsOnly=!s.combatThreatsOnly));
+            var combatTriggersHelpText=Component.translatable("afmr.copy.combatsettings.combat_triggers");
+            if(!combatTriggersHelpText.getString().isBlank())combatTriggersHelpControl.setTooltip(Tooltip.create(combatTriggersHelpText));
+            value=edit(""+s.combatQuietSeconds,"Combat quiet period",left+contentWidth-100,143,100,null);
+            var quietPeriodHelpText=Component.translatable("afmr.copy.combatsettings.quiet_period");
+            if(!quietPeriodHelpText.getString().isBlank())value.setTooltip(Tooltip.create(quietPeriodHelpText));
         }else{
             button("On death: "+switch(s.combatDeathMusic){case FADE->"start fading immediately";case CUT->"cut immediately";case KEEP_PLAYING->"finish combat song";},left,47,contentWidth,()->flip(()->s.combatDeathMusic=DeathMusic.values()[(s.combatDeathMusic.ordinal()+1)%3]));
             value=edit(""+s.combatDeathFadeSeconds,"Death fade seconds",left+contentWidth-100,95,100,null);
-            button("New music while dead: "+(s.preventMusicWhileDead?"paused":"allowed"),left,127,contentWidth,()->flip(()->s.preventMusicWhileDead=!s.preventMusicWhileDead));
+            var deathFadeHelpText=Component.translatable("afmr.copy.combatsettings.death_fade");
+            if(!deathFadeHelpText.getString().isBlank())value.setTooltip(Tooltip.create(deathFadeHelpText));
+            var newMusicWhileDeadHelpControl=button("New music while dead: "+(s.preventMusicWhileDead?"paused":"allowed"),left,127,contentWidth,()->flip(()->s.preventMusicWhileDead=!s.preventMusicWhileDead));
+            var newMusicWhileDeadHelpText=Component.translatable("afmr.copy.combatsettings.new_music_while_dead");
+            if(!newMusicWhileDeadHelpText.getString().isBlank())newMusicWhileDeadHelpControl.setTooltip(Tooltip.create(newMusicWhileDeadHelpText));
         }
         button(page==0?"Death options >":"< Combat triggers",left,height-29,150,()->{if(apply()){page=1-page;rebuildWidgets();}});
         button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
@@ -34,10 +49,7 @@ final class CombatSettingsScreen extends MusicScreen {
     }
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        g.text(font,fit(page==0?"Combat quiet period (seconds)":"Death fade duration (seconds)",contentWidth-108),left,page==0?125:101,0xFFD9E8E0);
-        String hint=page==0?"Each enabled trigger restarts the quiet period.":"Death fades bypass the normal context buffer and finish-song toggle.";
-        g.text(font,fit(hint,contentWidth),left,157,0xFF8FA7A0);
-        g.text(font,fit(page==0?"Death and respawn clear the combat timer.":"Applies to Combat and custom playlists requiring combat.",contentWidth),left,174,0xFF8FA7A0);
+        g.text(font,fit(page==0?"Combat quiet period (seconds)":"Death fade duration (seconds)",contentWidth-108),left,page==0?149:101,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
         g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
     }
 }

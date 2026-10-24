@@ -1,0 +1,7 @@
+PASS Restart installs staged settings
+PASS Restart restores editable playlist flags
+PASS Restart restores all profiles
+PASS Restart restores AFMR physical shortcut
+PASS Restart consumes pending archive
+PASS Restart keeps prior files
+COMPLETE: 6 passed / 0 failed

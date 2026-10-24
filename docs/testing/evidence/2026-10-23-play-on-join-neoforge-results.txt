@@ -1,0 +1,11 @@
+PASS Join activates bound profile before reading policy
+PASS Actual world join starts its fresh-context winner
+PASS First start bypasses long silence and buffer
+PASS Timing exposes the saved join toggle
+PASS Timing controls fit without overlapping
+PASS Minecraft defaults stays directly available
+PASS Invalid numeric drafts block toggle mutation
+PASS Toggle saves without interrupting the playing song
+PASS Join option survives hide and reopen
+PASS Later manual Skip retains normal silence
+COMPLETE: 10 passed / 0 failed

@@ -34,7 +34,8 @@ class PlaylistImportTest {
         assertEquals(42,result.found().getFirst().track().durationSeconds);
         var rescan=scan(List.of(new Request(directory,"combat",true)),List.of(known),p->{});
         assertEquals(0,rescan.reused());assertEquals("known",rescan.found().getFirst().track().title);
-        assertNotEquals(known.id,rescan.found().getFirst().track().id);
+        assertEquals(known.id,rescan.found().getFirst().track().id);
+        assertNotSame(known,rescan.found().getFirst().track());
     }
 
     @Test void mergingAndRepeatedImportsKeepDisabledAssignments() throws Exception {
@@ -44,7 +45,7 @@ class PlaylistImportTest {
         Library library=Library.defaults();var track=first.found().getFirst().track();library.tracks.add(track);
         library.playlist("home").tracks.put(track.id,false);library.playlist("home").enabled=false;
         var repeated=scan(List.of(new Request(source,"home",false)),library.tracks,p->{});
-        for(var found:repeated.found())library.assignImported(found.playlistId(),found.track().id);
+        for(var found:repeated.found())library.assignImported(library.profiles.activeId,found.playlistId(),found.track().id);
         assertEquals(Boolean.FALSE,library.playlist("home").tracks.get(track.id));
         assertFalse(library.playlist("home").enabled);assertEquals(1,library.playlist("home").tracks.size());
         assertEquals(1,repeated.reused());assertEquals(6,library.playlists.size());

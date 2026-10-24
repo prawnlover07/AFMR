@@ -1,0 +1,85 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS workspace opens at title screen
+PASS integrated world joined
+PASS world profile key available
+PASS native picker library loads
+PASS packaged decoder reads test.mp3
+PASS packaged decoder reads test.flac
+PASS packaged decoder reads test.ogg
+PASS packaged decoder reads test.wav
+PASS packaged decoder reads test24.flac
+PASS packaged decoder reads test24.wav
+PASS packaged decoder reads testfloat.wav
+PASS local WAV starts
+PASS actual OpenAL playback starts
+PASS manual pause reaches native channel
+PASS paused sample position stays fixed
+PASS resume advances the same native source
+PASS override works with Automatic off
+PASS Next retains playback
+PASS history records successful starts
+PASS playlist volume reaches native gain
+PASS queued request starts through native playback
+PASS workspace renders during playback
+PASS SourcesScreen renders
+PASS SettingsScreen renders
+PASS NowPlayingSettingsScreen renders
+PASS OverrideBindingsScreen renders
+PASS PlaybackInspectorScreen renders
+PASS ListeningScreen renders
+PASS ProfilesScreen renders
+PASS PlaylistConditionsScreen renders
+PASS vanilla music streams through AFMR
+PASS vanilla music pauses natively
+PASS vanilla music resumes natively
+PASS pause requested during asynchronous stream startup survives attachment
+PASS return to automatic clears override
+PASS workspace hides
+PASS workspace reopens
+PASS generated music imports on the library worker
+PASS menu color editor opens
+PASS invalid RGB blocks navigation
+PASS valid menu color previews immediately
+PASS hidden color drafts retained
+PASS resize retains drafts by color family
+PASS resize does not remap palette values
+PASS menu palette preserves opacity and widget settings
+PASS themed workspace remains non-pausing
+PASS reset colors recovers invalid input
+PASS reset colors preserves other appearance
+PASS full menu reset restores defaults
+PASS Background opens a seeded picker
+PASS Panels opens a seeded picker
+PASS Buttons opens a seeded picker
+PASS Hover opens a seeded picker
+PASS Selection opens a seeded picker
+PASS Highlights opens a seeded picker
+PASS Text opens a seeded picker
+PASS Secondary text opens a seeded picker
+PASS Borders opens a seeded picker
+PASS Scrollbars opens a seeded picker
+PASS picker controls fit screen
+PASS picker hex previews menu color
+PASS hue strip selects green
+PASS SV square selects expected RGB
+PASS dragging outside picker clamps to black
+PASS focused arrows adjust picker
+PASS invalid picker hex blocks Apply
+PASS picker Cancel restores menu color
+PASS picker recovers invalid parent hex
+PASS picker preserves panel opacity
+PASS widget picker previews independently
+PASS picker survives hide and reopen
+PASS widget picker Apply keeps RGB
+PASS Escape cancels widget picker preview
+PASS seam check uses a contrasting image behind opaque panels
+PASS framebuffer has no exposed image at list perimeters or horizontal scrollbar strip
+PASS full backup route opens
+PASS full backup replacement requires review
+PASS full backup exports on worker
+PASS full backup import shows reviewed replacement
+PASS full backup includes physical AFMR shortcuts
+PASS Back cancels full backup import
+RESULT passed=83 failed=0

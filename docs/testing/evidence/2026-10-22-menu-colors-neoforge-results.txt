@@ -1,0 +1,30 @@
+PASS Menu color editor opens
+PASS Color fields fit the screen
+PASS Invalid RGB blocks navigation
+PASS Valid RGB previews immediately
+PASS All menu color families are editable
+PASS Invalid RGB blocks page change
+PASS Hidden color draft retained
+PASS Resize retains drafts by color family
+PASS Resize does not remap palette values
+PASS Custom background RGB and opacity render
+PASS Custom panel RGB and opacity render
+PASS Custom button color renders
+PASS Custom text remains opaque
+PASS Color editor does not pause gameplay
+PASS Custom background RGB and opacity render
+PASS Custom panel RGB and opacity render
+PASS Custom button color renders
+PASS Custom text remains opaque
+PASS Custom selected tab color renders
+PASS Custom highlight stays opaque
+PASS Color editor does not pause gameplay
+PASS Custom background RGB and opacity render
+PASS Custom panel RGB and opacity render
+PASS Custom button color renders
+PASS Custom text remains opaque
+PASS Color editor does not pause gameplay
+PASS Reset colors recovers invalid input
+PASS Reset colors preserves opacity image and widget settings
+PASS Full menu reset restores palette and opacity
+COMPLETE: 29 passed / 0 failed

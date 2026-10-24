@@ -1,0 +1,17 @@
+PASS Actual game restart activates world-linked profile | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS World link survived shutdown | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Playlist volume survives game restart | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Profile timing survives game restart | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Session queue pause and override clear after restart | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Listening history survives actual game shutdown | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Repaired paths survive restart | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Other profile retains imported setups | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Shared setup locations survive restart | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Persistent history visible in native screen | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 0 Restart native decoder
+PASS Repaired library plays after full restart | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=13, state=4114, offset=0.2700036, gain=0.37, error=0]
+PASS History Clear resets live native screen | source=null phase=SILENCE audio=Sample[sequence=1, source=13, state=4114, offset=0.2700036, gain=0.37, error=0]
+PASS Shutdown saves Default transition before closing writer | source=null phase=SILENCE audio=Sample[sequence=1, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Late logout and screen saves do not reopen closed runtime | source=null phase=SILENCE audio=Sample[sequence=1, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Final writer flush preserves profile | source=null phase=SILENCE audio=Sample[sequence=1, source=0, state=0, offset=0.0, gain=0.0, error=0]
+COMPLETE: 15 passed / 0 failed

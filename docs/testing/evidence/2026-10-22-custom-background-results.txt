@@ -1,0 +1,10 @@
+Custom menu background checks — 2026-10-22
+Version retained: 0.6
+NeoForge 26.3: 676 tests, 0 failures/errors/skips
+Fabric 1.20.1: 676 tests, 0 failures/errors/skips
+NeoForge Java 25 native image probe: 5 passed, 0 failed
+Fabric Java 17 native image probe: 5 passed, 0 failed
+Each native probe: generated 4096x1024 PNG -> 2048x512 managed copy; 100 native stream decode/close cycles; released pixels and stable scratch usage.
+Selected generated source unchanged; managed copy reload succeeded.
+No game window or personal-file writes.
+Real UI/GPU/blur pixel checks remain deferred; see DEFERRED-TESTING.md.

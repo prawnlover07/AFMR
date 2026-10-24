@@ -1,0 +1,13 @@
+Windowless Minecraft 1.20.1 native-image probe, Java 17.0.15
+Generated PNG bytes=225230; initial native scratch bytes=65536
+PASS detailed 256px artwork exceeds the default native scratch stack
+PASS old byte-array image API reproduces the reported exact failure
+PASS failed byte-array decode restores its scratch frame
+PASS 1000 large stream decodes succeed with stable scratch usage and released pixels
+PASS 100 invalid-image failures leave scratch usage unchanged
+PASS reported crash track supplies processed artwork
+Reported crash-track PNG bytes=139885
+PASS reported crash-track artwork reproduces the old failure
+PASS stream loader decodes reported crash-track artwork
+PASS real artwork leaves scratch usage unchanged
+COMPLETE: 9 passed / 0 failed; no game window or personal-file writes.

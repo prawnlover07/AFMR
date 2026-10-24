@@ -1,0 +1,120 @@
+PASS Fresh isolated profile starts on Default | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 0 Folder scan
+PASS Generated folder imports two tracks | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS New workspace navigation remains accessible | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Automatic-off playlist accepts override | source=null phase=SILENCE audio=Sample[sequence=0, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 1 Native initial playback
+PASS Imported WAV opens a real native channel | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.35000464, gain=0.2, error=0]
+PASS Volume opens dedicated page | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.35000464, gain=0.2, error=0]
+PASS Slider sets 50 percent | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.35000464, gain=0.2, error=0]
+STEP 2 Observe half gain
+PASS Playlist volume halves native gain | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.59002113, gain=0.1, error=0]
+PASS Live volume preserves channel and song | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.59002113, gain=0.1, error=0]
+STEP 3 Observe muted gain
+PASS Zero playlist volume mutes real channel | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.33003095, gain=0.0, error=0]
+PASS Volume reset restores setting | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.33003095, gain=0.0, error=0]
+STEP 4 Observe reset gain
+PASS Volume reset restores native gain | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=1, source=5, state=4114, offset=0.080040924, gain=0.2, error=0]
+STEP 5 Preview native playback
+PASS Library preview uses normal volume | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.48000637, gain=0.2, error=0]
+STEP 6 Queue from workspace
+PASS Workspace queues assigned song | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+PASS Queue page opens | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+PASS Queue row Up preserves request identity | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+PASS Queue row Down restores order | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+PASS Remove only chosen request | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+PASS Clear queue leaves playing song | source=null phase=PLAYING audio=Sample[sequence=2, source=4, state=4114, offset=0.7500099, gain=0.2, error=0]
+STEP 7 Queue normal silence
+PASS Queue observes normal three-second silence | source=null phase=SILENCE audio=Sample[sequence=2, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 8 Queued short song starts
+PASS Queued short song starts from automatic-off manual playlist | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=3, source=21, state=4114, offset=0.20000266, gain=0.1010108, error=0]
+PASS History records queue source | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=3, source=21, state=4114, offset=0.20000266, gain=0.1010108, error=0]
+STEP 9 Next queued song after natural end
+PASS Queue drains FIFO after natural completion | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4114, offset=0.090001196, gain=0.03344967, error=0]
+PASS Natural queued starts each create history entry | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4114, offset=0.090001196, gain=0.03344967, error=0]
+STEP 10 Queued native pause
+PASS Queued music pauses native source | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4115, offset=0.14000186, gain=0.0666326, error=0]
+STEP 11 Queued pause position
+PASS Queued paused position stays fixed | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4115, offset=0.14000186, gain=0.0666326, error=0]
+STEP 12 Queue resume
+PASS Queued resume advances same native source | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4114, offset=0.59000784, gain=0.2, error=0]
+PASS Pause and resume do not duplicate history | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=4, source=24, state=4114, offset=0.59000784, gain=0.2, error=0]
+STEP 13 New override playback
+PASS New override retains waiting queue | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=5, source=9, state=4114, offset=0.19000253, gain=0.0239594, error=0]
+STEP 14 Queue resumes over held override
+PASS Queue resumes with retained override | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+PASS Disabled song cannot queue | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+PASS History UI opens with real starts | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+PASS History re-queues song | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+PASS History destination selector opens | source=custom:62a0e4fc-c1e3-4aaa-bdf3-e185889e840a phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+PASS History replay keeps pending queue | source=null phase=PLAYING audio=Sample[sequence=6, source=9, state=4114, offset=0.44000584, gain=0.2, error=0]
+STEP 15 Profiles UI copy
+PASS Profiles menu opens | source=null phase=PLAYING audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Default cannot be deleted | source=null phase=PLAYING audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Copy remains inactive until Use now | source=null phase=PLAYING audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Link current binds exact world | source=null phase=PLAYING audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Linked worlds menu lists binding | source=null phase=PLAYING audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Use now selects copied profile | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Profile switch clears queue pause and override | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Copied playlist owns independent settings | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Shared music survives profile switch | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Default volume and timing stay independent | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+PASS Copied settings return on activation | source=null phase=SILENCE audio=Sample[sequence=7, source=26, state=4114, offset=0.980013, gain=0.2, error=0]
+STEP 16 Import owns originating profile
+STEP 17 Originating-profile import completion
+PASS Import finishes in originating profile | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Import does not assign other profile | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 18 Move generated folder
+STEP 19 Missing source diagnostics
+PASS Rescan reports moved root and songs | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Repair menu displays missing sources | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 20 Repair preview
+PASS Folder preview finds exact relative paths | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Repair preview opens automatically | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Preview has not mutated library paths | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Cancel preserves missing original references | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 21 Apply moved folder
+PASS Apply reconnects same track identity | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Folder link follows new root | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Inactive profile retains repaired assignments | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 22 Repaired source health
+PASS Repair follow-up clears missing report | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 23 Rescan repaired root
+PASS Rescan preserves repaired IDs without duplicates | source=null phase=SILENCE audio=Sample[sequence=7, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 24 Repaired native playback
+PASS Repaired song plays through native decoder | source=custom:18c89c85-15a2-4e6c-b926-8f2da999053b phase=PLAYING audio=Sample[sequence=8, source=6, state=4114, offset=0.44000584, gain=0.05, error=0]
+STEP 25 Rename stopped generated song
+STEP 26 Renamed song detection
+PASS Renamed song remains individual missing item | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 27 Renamed song repair preview
+PASS Individual repair opens a new preview | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 28 Renamed song repaired
+PASS Individual repair keeps assignments and clears report | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Folder and individual repair preserve generated audio bytes | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 29 Export portable setups
+PASS Sharing selection menu opens | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Empty export is disabled | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 30 Export written
+PASS Shared file omits music and private world identifiers | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 31 Sharing review
+PASS Imported setup opens preview before mutation | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Location import enabled inside world | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Cancel clears pending import | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 32 Review same file again
+PASS Priority can change to top | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Import creates new ordered playlist copies | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Imported playlist retains flags and volume | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Imported location binds to current world and retains radius | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Imported playlists carry no song assignments | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Import returns to fresh selected workspace | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 33 Invalid import rejected
+PASS Malformed setup leaves no pending import | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+PASS Wrong export extension produces actionable message | source=null phase=SILENCE audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 34 Prepare restart
+PASS Restart fixture has queue and pause to clear | source=null phase=PLAYING audio=Sample[sequence=8, source=0, state=0, offset=0.0, gain=0.0, error=0]
+STEP 35 Shutdown flush
+PASS History has real native starts before shutdown | source=null phase=PLAYING audio=Sample[sequence=9, source=21, state=4115, offset=0.0, gain=0.0, error=0]
+PASS Shutdown saves Default transition before closing writer | source=null phase=SILENCE audio=Sample[sequence=9, source=21, state=4115, offset=0.0, gain=0.0, error=0]
+PASS Late logout and screen saves do not reopen closed runtime | source=null phase=SILENCE audio=Sample[sequence=9, source=21, state=4115, offset=0.0, gain=0.0, error=0]
+PASS Final writer flush preserves profile | source=null phase=SILENCE audio=Sample[sequence=9, source=21, state=4115, offset=0.0, gain=0.0, error=0]
+COMPLETE: 83 passed / 0 failed

@@ -1,6 +1,10 @@
 package dev.animal.afmr.ui;
 
+import dev.animal.afmr.core.MenuColor;
+
 import dev.animal.afmr.ClientRuntime;
+import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.components.Tooltip;
 import dev.animal.afmr.core.Library.*;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -11,20 +15,24 @@ public final class OverridesScreen extends MusicScreen {
     private final int slot;
     private String selected,query="",feedback="";
     private DenseList<Playlist> list;
-    private Button one,held;
+    private FlatButton one,held;
     public OverridesScreen(Screen parent,ClientRuntime runtime,int slot,String selected){
         super(slot<0?"Playlist overrides":"Assign override slot "+(slot+1),parent,runtime);this.slot=slot;this.selected=selected;
     }
     @Override protected void init(){
         super.init();int third=(contentWidth-8)/3;
         list=addRenderableWidget(new DenseList<>(left,73,contentWidth,Math.max(28,height-153),
-            (g,p,x,y,w,hover)->{if(p.id.equals(selected)||hover)g.fill(x,y,x+w,y+14,0xFF35594E);
-                g.text(font,fit(p.name+(p.manualOnly?" [manual]":"")+(p.enabled?"":" [auto off]"),w-8),x+4,y+3,0xFFD9E8E0);},
+            (g,p,x,y,w,hover)->{if(p.id.equals(selected)||hover)g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
+                g.text(font,fit(p.name+(p.manualOnly?" [manual]":"")+(p.enabled?"":" [auto off]"),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));},
             (p,e,twice)->{selected=p.id;updateButtons();},p->p.name));
         edit(query,"Find a playlist",left,47,contentWidth-124,value->{query=value;filter();});
         button(slot<0?"Keybind slots...":"Back to slots",left+contentWidth-118,47,118,()->{if(slot<0)minecraft.gui.setScreen(new OverrideBindingsScreen(this,runtime));else onClose();});
         one=button(slot<0?"Play one song":"Bind: one song",left,height-55,third,()->choose(OverrideMode.ONE_SONG));
         held=button(slot<0?"Until released":"Bind: until released",left+third+4,height-55,third,()->choose(OverrideMode.UNTIL_RELEASED));
+        var playOneSongHelpText=Component.translatable("afmr.copy.overrides.play_one_song");
+        if(!playOneSongHelpText.getString().isBlank())one.setTooltip(Tooltip.create(playOneSongHelpText));
+        var untilReleasedHelpText=Component.translatable("afmr.copy.overrides.until_released");
+        if(!untilReleasedHelpText.getString().isBlank())held.setTooltip(Tooltip.create(untilReleasedHelpText));
         button(slot<0?"Automatic":"Clear binding",left+2*(third+4),height-55,third,()->{
             if(slot<0){runtime.returnAutomatic();feedback="Automatic selection restored.";}
             else{runtime.library().settings.overrideSlots[slot].playlistId="";runtime.save();onClose();}
@@ -38,8 +46,7 @@ public final class OverridesScreen extends MusicScreen {
         else if(runtime.overridePlaylist(selected,mode))onClose();else feedback=runtime.status();
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        String text=feedback.isBlank()?(slot<0?"Overrides work with automatic off; disabled songs stay excluded.":"Assign a playlist/mode; bind its key in Minecraft Controls."):feedback;
-        g.text(font,fit(text,contentWidth),left,height-74,0xFF8FA7A0);
-        if(slot<0){var p=runtime.library().playlist(runtime.engine().overrideId());g.text(font,fit(p==null?"Mode: automatic":"Override: "+p.name+" / "+runtime.engine().overrideMode(),contentWidth-112),left,height-23,0xFF8DE0BE);}
+        if(!feedback.isBlank())g.text(font,fit(feedback,contentWidth),left,height-74,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0));
+        if(slot<0){var p=runtime.library().playlist(runtime.engine().overrideId());g.text(font,fit(p==null?"Mode: automatic":"Override: "+p.name+" / "+runtime.engine().overrideMode(),contentWidth-112),left,height-23,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));}
     }
 }

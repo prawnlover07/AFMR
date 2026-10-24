@@ -14,7 +14,7 @@ class CustomPlaylistsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(String dimension,int time,double y,boolean covered,double depth,double temperature){
-        return new Context(dimension,"minecraft:plains",false,false,time,false,false,covered,3,"world",0,y,0,depth,temperature,false);
+        return new Context(dimension,"minecraft:plains",false,false,time,covered,3,"world",0,y,0,depth,temperature,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
     }
     private Context outside(){return context("minecraft:overworld",18000,80,false,0,0.8);}
     @Test void unsetConditionsAllowAnyEnvironment(){assertTrue(new PlaylistConditions().matches(outside(),settings));}
@@ -58,26 +58,26 @@ class CustomPlaylistsTest {
         h.world="another-world";assertFalse(c.matches(outside(),settings));h.world="world";h.configured=false;assertFalse(c.matches(outside(),settings));
     }
     @Test void coverRequiresSolidCoverAndItsOwnDepthIndependentlyOfUndergroundY(){
-        var c=new PlaylistConditions();c.cover=State.YES;c.minCoverDepth=5;settings.undergroundMaxY=-40;
+        var c=new PlaylistConditions();c.cover=State.YES;c.minCoverDepth=5;
         assertTrue(c.matches(context("d",0,200,true,5,0),settings));
         assertFalse(c.matches(context("d",0,200,true,4.9,0),settings));assertFalse(c.matches(context("d",0,-50,false,100,0),settings));
         c.cover=State.NO;assertTrue(c.matches(outside(),settings));assertFalse(c.matches(context("d",0,200,true,5,0),settings));
     }
     @Test void waterLightAndCombatFiltersComposeAndRespectGlobalCombatSwitch(){
         var c=new PlaylistConditions();c.combat=State.YES;c.water=State.YES;c.lightEnabled=true;c.minLight=0;c.maxLight=4;
-        var busy=new Context("d","b",true,true,0,false,false,true,4,"world",0,0,0,8,0.8,false);
+        var busy=new Context("d","b",true,true,0,true,4,"world",0,0,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
         assertTrue(c.matches(busy,settings));c.maxLight=3;assertFalse(c.matches(busy,settings));c.maxLight=4;
         settings.combatEnabled=false;assertFalse(c.matches(busy,settings));c.combat=State.NO;assertTrue(c.matches(busy,settings));
         c.water=State.NO;assertFalse(c.matches(busy,settings));
     }
     @Test void creationPreservesDefaultsAndStartsAboveBroadAmbientFallbacks(){
         Library lib=Library.defaults();var p=lib.createPlaylist("  Snowy nights  ");
-        assertEquals("Snowy nights",p.name);assertTrue(p.custom());assertFalse(p.includeVanilla);assertTrue(p.tracks.isEmpty());
+        assertEquals("Snowy nights",p.name);assertEquals("Any environment",p.conditions.summary());assertFalse(p.includeVanilla);assertTrue(p.tracks.isEmpty());
         assertTrue(lib.playlists.indexOf(p)>lib.playlists.indexOf(lib.playlist("underground")));
         assertTrue(lib.playlists.indexOf(p)<lib.playlists.indexOf(lib.playlist("night_outside")));
         assertThrows(IllegalArgumentException.class,()->lib.createPlaylist("   "));
         assertThrows(IllegalArgumentException.class,()->lib.createPlaylist("x".repeat(81)));
-        assertEquals(6,lib.playlists.stream().filter(q->!q.custom()).count());
+        assertEquals(7,lib.playlists.size());
     }
     @Test void rankingChangesPlaybackAndDisabledOrEmptyCustomPlaylistsFallThrough(){
         Library lib=Library.defaults();var p=lib.createPlaylist("Custom");Track a=new Track("a","file","A",false),b=new Track("b","file","B",false);lib.tracks.addAll(List.of(a,b));
@@ -90,7 +90,7 @@ class CustomPlaylistsTest {
     @Test void deletingCustomPlaylistKeepsMusicDefaultsAndOtherAssignments(){
         Library lib=Library.defaults();var p=lib.createPlaylist("Delete me");var t=new Track("a","file","A",false);lib.tracks.add(t);p.tracks.put(t.id,true);
         lib.playlist("home").tracks.put(t.id,false);lib.folders.add(new Folder("folder",p.id));
-        assertFalse(lib.removePlaylist("combat"));assertFalse(lib.removePlaylist("missing"));assertTrue(lib.removePlaylist(p.id));
+        assertFalse(lib.removePlaylist("missing"));assertTrue(lib.removePlaylist(p.id));
         assertEquals(6,lib.playlists.size());assertSame(t,lib.tracks.getFirst());assertEquals(Boolean.FALSE,lib.playlist("home").tracks.get(t.id));
         assertEquals("library",lib.folders.getFirst().playlistId);assertFalse(lib.movePlaylist("missing",0));
     }

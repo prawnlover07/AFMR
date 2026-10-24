@@ -1,10 +1,18 @@
-# AFMR 0.5.2 manual checks
+# AFMR manual checks
+
+Current build: **1.0**. New widget, native Music Frequency, normalization and
+condition-feature checks are listed in [DEFERRED-TESTING.md](DEFERRED-TESTING.md).
+The sections below retain the earlier release checklists.
 
 **October 21 update:** The user authorized deeper testing. Native/UI checks have now been performed; see the [session report](docs/testing/2026-10-21.md) and updated `DEFERRED-TESTING.md`. The checklist and release-time deferral notes below were originally written before that session.
 
 User follow-up on 0.5.0: most manual checks worked to expectations. A focused list of complex interactions for a later requested test session is kept in `DEFERRED-TESTING.md`; exact individual cases from the user's testing have not been itemized.
 
 Replace the previous AFMR JAR, restart Minecraft, and press **M**. Existing music and settings should remain.
+
+For 0.5.6, press M again to hide the menu, then reopen and confirm your page,
+playlist, filters, selections and scroll positions remain. M should type normally
+inside text fields. See [deferred testing](DEFERRED-TESTING.md) for the full input checklist.
 
 ## Next and pause controls (0.5.2)
 

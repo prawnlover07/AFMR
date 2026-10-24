@@ -10,14 +10,14 @@ class PlaybackOverridesTest {
     private PlaybackEngineTest.FakeAudio audio;
     private PlaybackEngine engine;
     private Playlist manual;
-    private Context context(boolean day,boolean busy,boolean dead){return new Context("minecraft:overworld","minecraft:plains",busy,false,day?6000:18000,false,false,false,15,"world",0,80,0,0,0.8,dead);}
+    private Context context(boolean day,boolean busy,boolean dead){return new Context("minecraft:overworld","minecraft:plains",busy,false,day?6000:18000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);}
     private void tick(double t,boolean day){engine.tick(t,lib,context(day,false,false),Set.of());}
     private void force(double time,Playlist p,OverrideMode mode){assertTrue(engine.overridePlaylist(p.id,mode,time,lib,Set.of()));}
     @BeforeEach void setup(){
         lib=Library.defaults();audio=new PlaybackEngineTest.FakeAudio();engine=new PlaybackEngine(audio,new Random(5));manual=lib.createPlaylist("Manual");manual.manualOnly=true;
         for(var p:List.of(manual,lib.playlist("combat"),lib.playlist("day_outside"),lib.playlist("night_outside")))for(int i=0;i<2;i++){
             var t=new Track(p.id+"-"+i,"file",p.name+" "+i,false);lib.tracks.add(t);p.tracks.put(t.id,true);}
-        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeSeconds=2;lib.settings.bufferSeconds=3;
+        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=2;lib.settings.bufferSeconds=3;
         tick(0,true);tick(10,true);tick(12,true);assertEquals("day_outside",engine.sourcePlaylistId());
     }
     @Test void oneSongFromSilenceStartsWithoutWaitingForGapOrBuffer(){
@@ -44,8 +44,8 @@ class PlaybackOverridesTest {
         audio.current=null;tick(21,false);tick(31,false);assertEquals(manual.id,engine.sourcePlaylistId());assertNotEquals(first.id,engine.current().id);assertNotNull(engine.overrideId());
     }
     @Test void oneSongSkipReturnsToAutomaticButHeldSkipStaysHeld(){
-        force(13,manual,OverrideMode.ONE_SONG);tick(15,true);engine.skip(16,lib.settings);assertNull(engine.overrideId());tick(26,true);assertEquals("day_outside",engine.sourcePlaylistId());
-        force(27,manual,OverrideMode.UNTIL_RELEASED);tick(29,true);engine.skip(30,lib.settings);assertEquals(manual.id,engine.overrideId());tick(40,true);assertEquals(manual.id,engine.sourcePlaylistId());
+        force(13,manual,OverrideMode.ONE_SONG);tick(15,true);engine.skip(16,lib);assertNull(engine.overrideId());tick(26,true);assertEquals("day_outside",engine.sourcePlaylistId());
+        force(27,manual,OverrideMode.UNTIL_RELEASED);tick(29,true);engine.skip(30,lib);assertEquals(manual.id,engine.overrideId());tick(40,true);assertEquals(manual.id,engine.sourcePlaylistId());
     }
     @Test void explicitReleaseRestoresNormalEntryAndExitRules(){
         force(13,manual,OverrideMode.UNTIL_RELEASED);tick(15,true);manual.finishCurrentSongOnExit=true;engine.returnAutomatic();tick(16,true);tick(19,true);
@@ -90,7 +90,7 @@ class PlaybackOverridesTest {
         audio.fail=null;engine.retryFailed();assertTrue(engine.error().isBlank());force(21,manual,OverrideMode.ONE_SONG);tick(23,true);assertEquals(manual.id,engine.sourcePlaylistId());
     }
     @Test void asynchronousFailureOfOneSongReturnsAutomatic(){
-        force(13,manual,OverrideMode.ONE_SONG);tick(15,true);String id=engine.current().id;engine.failed(id,"decode error",16,lib.settings);
+        force(13,manual,OverrideMode.ONE_SONG);tick(15,true);String id=engine.current().id;engine.failed(id,"decode error",16,lib);
         assertNull(engine.overrideId());tick(20,true);assertEquals("day_outside",engine.sourcePlaylistId());
     }
     @Test void previewCancelsOverrideAndThenReturnsAutomatic(){
@@ -109,7 +109,7 @@ class PlaybackOverridesTest {
         force(13,manual,OverrideMode.UNTIL_RELEASED);tick(15,true);engine.reset();assertNull(engine.overrideId());assertNull(engine.current());assertEquals("combat",lib.settings.overrideSlots[0].playlistId);
     }
     @Test void zeroGapDoesNotRestartTheCompletedOneSongOverride(){
-        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;lib.settings.bufferSeconds=0;lib.settings.fadeSeconds=0;
+        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;lib.settings.bufferSeconds=0;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;
         force(13,manual,OverrideMode.ONE_SONG);tick(13,true);audio.current=null;tick(14,true);
         assertNull(engine.overrideId());assertEquals("day_outside",engine.sourcePlaylistId());
     }

@@ -1,6 +1,289 @@
-# Validation — 0.5.2
+# AFMR validation
 
 Target: Minecraft Java 26.3, NeoForge 26.3.0.90, Java 25, Windows 11.
+
+## Private 1.0 release — October 23, 2026
+
+The final reviewed source passes **778 NeoForge / 788 Fabric automated tests**
+and **20 UI-copy compiler checks per target**. Current native checks pass:
+NeoForge **83 integration + 15 restart + 39 vanilla-server** cases; both targets
+**42 focused clipboard/UI/animated-backup + 6 actual-restart** cases; Fabric
+**83 packaged smoke** cases. The exact numbered artifacts receive a separate
+final startup check. See [the release verification](docs/testing/2026-10-23-release-1.0.md)
+for measured scope, evidence, artifact details and remaining limitations. Earlier
+sections below preserve the results at their respective development snapshots.
+
+## Copied diagnostic summary — October 23, 2026
+
+Both builds pass **747 NeoForge / 757 Fabric automated tests**, including 12 new
+diagnostic-summary cases per target. Reports preserve useful versions, live
+playback/condition state and numeric health data while omitting user names, paths,
+world/server identifiers, saved locations and raw errors. A guarded 70,000-track
+library confirms no full catalog traversal or playback mutation. Native clipboard
+and layout checks remain for the final in-game pass; no desktop interaction was
+performed. See [the report](docs/testing/2026-10-23-diagnostic-summary.md).
+
+## User-reported Homestead stability — October 23, 2026
+
+The user reports playing the Fabric build in Homestead for a few hours, with
+smooth, stable behavior and no reported crash. Memory was not monitored; the
+exact JAR, duration and exercised feature combinations were not recorded. This
+is successful manual endurance feedback, not a measured memory/VRAM result.
+Independent friend testing is planned next, followed by a final release pass and
+private distribution preparation. No 1.0 release or version bump is implied.
+
+Later October 23 plan update: Animal deferred friend testing until after the
+private 1.0 release. Finish the author-written UI text, final focused pass and
+release preparation first; see [the release checklist](docs/RELEASE-1.0-CHECKLIST.md).
+
+## Play immediately on join — October 23, 2026
+
+**Play immediately on join** passes **718 NeoForge / 728 Fabric automated tests**,
+plus **10 NeoForge / 14 Fabric focused native checks**. Actual joins use the bound
+profile and skip a 600-second gap / 60-second buffer. The Timing layout was checked
+and screenshots inspected. See [the join report](docs/testing/2026-10-23-play-on-join.md).
+
+## Singleplayer-only labels — October 23, 2026
+
+Both maintained builds pass **702 NeoForge / 712 Fabric tests** for the option,
+title, status and hover-text update. Structures is visibly singleplayer only;
+combat qualifies only its mob-target retention. This was source/build validation,
+with no fresh native session. See [the report](docs/testing/2026-10-23-singleplayer-labels.md).
+
+## Full configuration transfer and list seams — October 23, 2026
+
+Full configuration transfer and list seam fixes pass **702 automated NeoForge**
+and **712 Fabric tests**, zero failures. Native export/review and restart checks,
+transfers in both directions between the maintained builds, 16 NeoForge seam
+cases and the 83-check packaged Fabric run pass. See the [backup report](docs/testing/2026-10-23-full-backup.md)
+and [seam report](docs/testing/2026-10-22-menu-seams.md).
+
+## Visual color pickers — October 22, 2026
+
+NeoForge passes **691 automated tests** and **25 focused native picker checks**;
+Fabric passes **701 automated tests** and **75 packaged smoke checks** (24 new
+picker assertions). All eleven editable colors open correctly seeded pickers.
+Pointer/keyboard changes, presets/hex synchronization, clamping, invalid input,
+Apply/Cancel/Escape, live setting previews, style gating and hide/reopen passed.
+Screenshots of the menu and widget pickers were inspected on both targets. See
+[the report](docs/testing/2026-10-22-color-pickers.md) for scope and limits.
+
+## Fabric cover fix — October 22, 2026
+
+The Fabric 1.20.1 build passes **694 automated tests**, zero failures/errors.
+Ten new tests reproduce client-initialized heightmaps with actual Minecraft block
+sections and cover roof/leaf/water behavior, cache invalidation and Dark exploration
+priority at night. The remapped 0.6 JAR is rebuilt. No new desktop/native gameplay
+run was performed; see [the report](docs/testing/2026-10-22-fabric-cover.md).
+
+## Menu colors — October 22, 2026
+
+NeoForge 26.3 passes **684 automated tests** and Fabric 1.20.1 passes **694**.
+The packaged builds pass **29 focused NeoForge menu-color checks** and **51 Fabric
+smoke checks** (eleven color/reflow assertions), zero failures.
+Live previews, invalid drafts,
+hidden-page retention, reset recovery and appearance independence passed. NeoForge
+render-state checks verify custom background/panel/button RGB with 50% opacity,
+opaque text/highlights and selected-tab colors. Screenshots from both builds were
+inspected. Screen-height reflow also preserves drafts by color family. See
+[the report](docs/testing/2026-10-22-menu-colors.md) for exact scope.
+
+## Combined Unreleased validation — October 22, 2026
+
+**639 automated tests** and **409 live/helper checks** pass, including 83 integration,
+12 actual restart, 15 fresh-install, 179 workspace, 81 playback and 39 vanilla-server
+checks. Actual Explorer Save/Open/cancellation were checked separately.
+The session found and corrected a shutdown save-order defect and excessive
+third-party WAV metadata logging. See [the combined report](docs/testing/2026-10-22-release-validation.md)
+for coverage, subsequent runs and remaining limits. Earlier feature reports below
+preserve their original scope and are supplemented by that report.
+
+## Unreleased playlist sharing — October 22, 2026
+
+The shared source passes **639 automated tests**, including 23 new `.afmrp`
+round-trip, privacy, condition/flag retention, ordering, profiles and parser/storage
+checks. Core capture/apply prohibit reads of a 70,000-track catalog. Native file
+dialogs, UI and live world-binding checks remain deferred. No desktop interaction
+or personal music/foobar mutation occurred. See
+[the report](docs/testing/2026-10-22-playlist-presets.md).
+
+## Unreleased library repair — October 22, 2026
+
+The shared source passes **616 automated tests**, including 27 new source-health,
+repair, merge, persistence and indexed-library cases. Generated music fixtures
+remain byte-identical. Native Explorer input, toast/layout, real disk permissions
+and audio lifecycle checks are deferred. No desktop interaction or personal-file
+mutation was performed. See [the report](docs/testing/2026-10-22-library-repair.md).
+
+## Unreleased playlist volume and profiles — October 22, 2026
+
+The shared source passes **589 automated tests**, including 41 new gain, profile
+ownership, persistence and 70k indexed-library checks. Native UI/audio and actual
+world/server switching remain deferred. No desktop interaction was performed.
+See [the report](docs/testing/2026-10-22-volume-profiles.md).
+
+## Unreleased queue and listening history — October 22, 2026
+
+The shared source passes **548 automated tests**, including 39 focused queue,
+history, persistence and indexed-library checks. Compilation and scheduler/storage
+verification do not establish native UI/audio behavior. See
+[the report](docs/testing/2026-10-22-queue-history.md) and
+[deferred checks](DEFERRED-TESTING.md). No desktop interaction was performed for this feature.
+
+## Unreleased song columns — October 22, 2026
+
+The current 0.6 development build passes **509 automated tests** and **179 isolated
+in-game assertions**, zero failures. New checks cover imported tags in all four
+supported formats, numeric sorting, owned saved preferences, table geometry and
+actual native chooser/scroll/assignment controls. Native UI checks use generated
+fixture tracks with supplied metadata; file-tag parsing is checked separately.
+See [the report](docs/testing/2026-10-22-song-columns.md).
+
+## Unreleased fades and jukebox — October 22, 2026
+
+The current 0.6 development build passes **491 automated tests** and **162 isolated
+in-game checks**, zero failures. The latter include independent timing fields and
+actual jukebox insertion/removal for all three policies, overlapping records and
+muted Records volume. They check the native audio pause request and playback
+identity, without measuring sample offsets or subjective sound quality. See
+[the report](docs/testing/2026-10-22-fades-jukebox.md) and
+[remaining cases](DEFERRED-TESTING.md).
+
+## Unreleased combat targeting — October 22, 2026
+
+The current 0.6 source builds and passes **468 automated tests**, including 18 new
+combat-target retention checks. No native gameplay/UI/audio checks were performed
+for this change. Live mob targeting and server lifecycle checks remain deferred;
+see [the report](docs/testing/2026-10-22-combat-targeting.md).
+
+## 0.6 — October 22, 2026
+
+The combined build passed **450 automated tests** and the packaged JAR passed
+**135 isolated in-game checks**, zero failures. Gamemode switching, Play on trigger
+fades/no entry silence, Time fitting with missing WAV duration discovery, no-fit
+priority/silence and existing workspace/display regressions were checked. See
+[the combined report](docs/testing/2026-10-22-release-0.6.md) for exact scope.
+
+## Pre-release combat, PvP and health — October 21, 2026
+
+The shared source passes **370 automated tests**, including 26 focused timer,
+health/PvP predicate, storage, Inspector and scheduler checks. The test-only native
+helper compiles with the changed combat API; Minecraft has not been launched for
+these changes. See [the report](docs/testing/2026-10-21-combat-health.md) for exact
+scope, source-attribution limits and pending native checks. Version stayed 0.5.7
+during that concurrent development run.
+
+## 0.5.7 — October 21, 2026
+
+The playlist-workspace overhaul builds and passes **331 automated tests** (329
+existing regressions and two layout checks). A separate test-only mod drives actual
+Minecraft screens with synthetic SDL mouse events in `testing/native/run/workspace`:
+**48 checks passed, zero failed**. Coverage includes lower-left library assignment,
+bulk changes/removal, folder assignment, independent entry/exit, priority, transport,
+overrides with Automatic off, primary navigation, invalid/retained drafts, all eight
+override slots, native key-binding access, import destinations, normalization-screen
+access, inspector/details and create/delete. Renderer screenshots were inspected.
+
+These checks do not establish physical key/repeat behavior, Explorer dialogs, all
+resize/GUI-scale combinations or complete native audio behavior. The existing
+playback tests remain green; the new helper confirms a generated song starts with
+the expected source but does not remeasure OpenAL gain/offset. See
+[the detailed report](docs/testing/2026-10-21-workspace.md) and
+[deferred testing](DEFERRED-TESTING.md).
+
+## 0.5.6 — October 21, 2026
+
+The menu-toggle update compiles and passes **329 regression tests** with no
+failures or errors. `build` and `sourceZip` pass. The numbered JAR and source
+archive are rebuilt for 0.5.6. The source archive was inspected: no excluded
+Git/cache/archive/game paths, personal library snapshots, playlists or logs were found.
+
+M now hides AFMR pages outside text entry; reopening retains widgets and editor
+state. Resizing preserves draft fields and bounded list offsets. No new automated
+UI tests were added, and the regression suite does not validate physical input,
+screen focus or retained live widgets. In-game toggle/reopen, key-repeat, rebinding,
+resize and disconnect checks remain in [deferred testing](DEFERRED-TESTING.md).
+
+## 0.5.5 — October 21, 2026
+
+The AFMR appearance/layout update passes **329 regression tests**. Updated metadata tests
+require song information without the removed heading. Saved-snapshot checks cover
+RGB color, opacity and word-wrap mode independently of visibility, other widget preferences and
+playback-timing reset. A new bounds check covers transparent/opaque endpoints,
+out-of-range RGB/opacity, non-finite opacity fallback and valid fractional opacity.
+Four wrapping tests cover whole-word boundaries, whitespace, oversized words,
+Unicode code points, preservation of word order across many widths and increased
+height without increased width.
+The default appearance is black at 92% opacity. Java/NeoForge compilation and
+`build` pass; the numbered JAR and source ZIP are rebuilt for 0.5.5.
+
+No in-game rendering/input checks were performed for this update. The Appearance
+tab, presets, validation/reset, opacity composition and removal of the accent bar
+and heading, and single-line/word-wrap layouts have an isolated-profile checklist
+in [deferred testing](DEFERRED-TESTING.md).
+
+## 0.5.4 — October 21, 2026
+
+The Hybrid toast/custom widget update passes **324 regression tests**. Ten new
+checks cover metadata selection and omission, literal/translated title inputs,
+source labels, independent saved snapshot preferences, invalid numeric size values,
+bounded layout with all row/icon combinations, reclaimed icon space, and scrolling
+range/endpoint timing. Java/NeoForge compilation, `build` and `sourceZip` pass.
+The source ZIP was inspected: no excluded Git/cache/archive/game paths, personal
+library snapshots, music playlists or logs were present; the new sources/tests and
+updated guides are included.
+
+The Hybrid renderer uses Minecraft's existing frame/music-note sprites. Native
+visual layout, animated clipping, artwork lifecycle and settings input were not
+tested in-game for this update. The isolated-profile cases are recorded in
+[deferred testing](DEFERRED-TESTING.md); earlier native results below retain their
+original scope.
+
+## 0.5.3 — October 21, 2026
+
+The current build collects the changes since baseline 0.5.2, including selectable
+native/AFMR widgets and native Music Frequency presets. Its **314 regression tests**
+pass. See the [music settings report](docs/testing/2026-10-21-music-settings.md) and
+[remaining native checks](DEFERRED-TESTING.md). Historical test counts below record
+the earlier stages and do not imply live validation of every new feature.
+
+## Continue Playing on Match - October 21, 2026 (unreleased)
+
+The current source passes **309 regression tests**, including **23 new checks**
+for Continue Playing on Match. These cover uninterrupted shared-track scheduling
+and gain, normal post-song silence, later matching/nonmatching selections, original
+source ownership, entry/exit protection, disabled assignments, library identity
+versus equal titles, automatic vanilla membership, both override modes and their
+priority, override release, skip/Next, combat death Cut, Inspector explanations,
+owned snapshots/saved settings, and indexed matching with 70,000 unrelated tracks.
+The timing-reset check also verifies that this independent switch is preserved.
+
+Java/NeoForge compilation, `build`, and `sourceZip` pass. The source archive was
+inspected for excluded workspace/cache/game data and includes the feature source
+and user guide; its small decoder fixtures under `src/test/resources/audio` are
+intentional. No desktop interaction or live profile/music changes were performed.
+These scheduler/storage checks do not establish native playback continuity or
+UI layout/input; those cases remain in [deferred testing](DEFERRED-TESTING.md).
+
+## Vanilla multiplayer - October 21, 2026
+
+The current packaged build passed **27 native multiplayer checks** against an
+unmodified vanilla 26.3 dedicated server, with AFMR installed only on the client.
+Local/vanilla streaming, pause position, overrides, synchronized environment rules,
+Home, Nether/End, server damage/death/respawn and reconnect pass. Logout now clears
+playback and cached context immediately. The scanner waits online and finishes
+after disconnect; active-gameplay scanning remains disabled by the user's performance
+preference. The build passes **253 regression tests**. See the
+[report and raw evidence](docs/testing/2026-10-21-multiplayer.md) for exact scope,
+fixture corrections, tested JAR checksum, and repeat instructions.
+
+## Unreleased loudness scanner
+
+The current build passes 253 regression tests, including 26 new loudness checks.
+Independent FFmpeg comparisons, source-preservation checks, component timing and
+limits are recorded in the [scanner report](docs/testing/2026-10-21-loudness.md).
+The new scanner's native/UI verification remains deferred; the earlier 0.5.2 native
+session below does not validate this feature.
 
 ## Later native/UI session - October 21, 2026
 

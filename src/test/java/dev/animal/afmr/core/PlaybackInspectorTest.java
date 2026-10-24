@@ -9,7 +9,7 @@ class PlaybackInspectorTest {
     private final Library lib=Library.defaults();
     private final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
     private final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
-    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:forest",false,false,day?6000:18000,false,false,false,15,"world",0,80,0,0,0.8,dead);}
+    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:forest",false,false,day?6000:18000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);}
     private void song(Playlist p,String id){lib.tracks.add(new Track(id,"file",id,false));p.tracks.put(id,true);}
     private PlaybackInspector.Entry row(String id,Context c){return PlaybackInspector.inspect(lib,c,Set.of(),engine).stream().filter(e->e.id().equals(id)).findFirst().orElseThrow();}
     @Test void disabledManualOnlyAndUnmatchedStatesHaveSeparateExplanations(){
@@ -29,21 +29,21 @@ class PlaybackInspectorTest {
     }
     @Test void waitingExplainsBufferSilenceRespawnAndNoSongs(){
         song(lib.playlist("day_outside"),"day");lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.bufferSeconds=3;
-        engine.tick(0,lib,context(true,false),Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),1).contains("Context buffer"));
-        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),4).contains("Silent gap"));assertTrue(PlaybackInspector.waiting(engine,lib,context(true,true),4).contains("respawn"));
-        engine.tick(4,lib,context(false,false),Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),8).contains("No available playlist"));
+        engine.tick(0,lib,context(true,false),Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),1).contains("Context buffer"));
+        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),4).contains("Silent gap"));assertTrue(PlaybackInspector.waiting(engine,lib,context(true,true),Set.of(),4).contains("respawn"));
+        engine.tick(4,lib,context(false,false),Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),8).contains("No available playlist"));
     }
     @Test void retainedSongsExplainExitAndEntryProtection(){
         var day=lib.playlist("day_outside");var night=lib.playlist("night_outside");song(day,"day");song(night,"night");lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;day.finishCurrentSongOnExit=true;
         engine.tick(0,lib,context(true,false),Set.of());engine.tick(1,lib,context(false,false),Set.of());
-        assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),1).contains("exit setting"));day.finishCurrentSongOnExit=false;night.finishCurrentSong=true;
-        assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),1).contains("entry setting"));
+        assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),1).contains("exit setting"));day.finishCurrentSongOnExit=false;night.finishCurrentSong=true;
+        assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),1).contains("entry setting"));
     }
     @Test void inspectorKeepsAutomaticWinnerVisibleDuringAnOverride(){
         var day=lib.playlist("day_outside");song(day,"day");var manual=lib.createPlaylist("Manual");manual.manualOnly=true;song(manual,"manual");
         assertTrue(engine.overridePlaylist(manual.id,OverrideMode.ONE_SONG,0,lib,Set.of()));engine.tick(0,lib,context(true,false),Set.of());
         assertEquals("day_outside",engine.automaticSelected().id);assertTrue(row(manual.id,context(true,false)).status().startsWith("OVERRIDE"));
-        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),0).contains("One-song override"));
+        assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),0).contains("One-song override"));
     }
     @Test void offPlaylistCanBeTheOverrideWhileInspectorExplainsItsAutomaticExclusion(){
         song(lib.playlist("day_outside"),"day");var p=lib.playlist("combat");song(p,"fight");p.enabled=false;
@@ -52,9 +52,9 @@ class PlaybackInspectorTest {
         assertEquals("OVERRIDE / Automatic selection disabled",row(p.id,context(true,false)).status());assertFalse(p.enabled);
     }
     @Test void previewAndFadingAreReported(){
-        var day=lib.playlist("day_outside");song(day,"day");engine.preview(lib.track("day"),0);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),0).contains("Manual preview"));
-        var combat=lib.playlist("combat");song(combat,"fight");lib.settings.fadeSeconds=2;
-        engine.overridePlaylist(combat.id,OverrideMode.UNTIL_RELEASED,1,lib,Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),1).contains("Combat; no gap"));
+        var day=lib.playlist("day_outside");song(day,"day");engine.preview(lib.track("day"),0);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),0).contains("Manual preview"));
+        var combat=lib.playlist("combat");song(combat,"fight");lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=2;
+        engine.overridePlaylist(combat.id,OverrideMode.UNTIL_RELEASED,1,lib,Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),1).contains("Combat; no gap"));
     }
     @Test void songDetailsCountDisabledMissingFailedAndAutomaticVanilla(){
         var p=lib.playlist("day_outside");song(p,"ok");song(p,"disabled");p.tracks.put("disabled",false);song(p,"failed");p.tracks.put("missing",true);

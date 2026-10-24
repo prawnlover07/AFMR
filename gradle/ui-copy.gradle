@@ -1,0 +1,196 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+/** Build-time prose compiler. Minecraft's language system owns all runtime text. */
+class AfmrUiCopy {
+    static final String KEY = /afmr\.copy\.[a-z0-9_]+(?:\.[a-z0-9_]+)+/
+    static final String SLOT = '%[1-9][0-9]*\\$s'
+    static final Map<String, Set<String>> TARGETS = [
+        'Both targets': ['neoforge', 'fabric'] as Set,
+        'NeoForge 26.3 only': ['neoforge'] as Set,
+        'Fabric 1.20.1 only': ['fabric'] as Set
+    ]
+
+    static void fail(String message) { throw new GradleException("UI-COPY.md: $message") }
+
+    static List<String> slots(String text) { (text =~ SLOT).collect { it.toString() }.sort() }
+
+    static Map<String, Map> parse(String markdown) {
+        Map<String, Map> entries = new LinkedHashMap<>()
+        List<String> block = []
+        int firstLine = 0
+        markdown.readLines().eachWithIndex { String line, int index ->
+            if (line.startsWith('## ' ) || line.startsWith('### ')) {
+                if (firstLine) readEntry(entries, block, firstLine)
+                block = []
+                firstLine = line.startsWith('### ') ? index + 1 : 0
+            } else if (firstLine) block.add(line)
+        }
+        if (firstLine) readEntry(entries, block, firstLine)
+        if (entries.isEmpty()) fail('no copy entries found')
+        return entries
+    }
+
+    private static void readEntry(Map entries, List<String> lines, int lineNumber) {
+        String location = "entry at line $lineNumber"
+        int marker = lines.indexOf('**Text to edit:**')
+        if (marker < 0 || lines.count('**Text to edit:**') != 1)
+            fail("$location needs exactly one **Text to edit:** marker")
+        Map<String, String> fields = [:]
+        lines.take(marker).findAll { !it.isBlank() }.each { String line ->
+            def match = line =~ /^> (ID|Targets|Where|Placeholders|Reference behavior): (.+)$/
+            if (!match.matches()) fail("$location has invalid metadata: $line")
+            if (fields.put(match[0][1], match[0][2]) != null) fail("$location repeats ${match[0][1]}")
+        }
+        ['ID', 'Targets', 'Where', 'Placeholders', 'Reference behavior'].each {
+            if (!fields.containsKey(it)) fail("$location is missing $it")
+        }
+        String key = fields.ID
+        if (!(key ==~ KEY)) fail("$location has invalid ID $key")
+        if (entries.containsKey(key)) fail("duplicate ID $key at line $lineNumber")
+        if (!TARGETS.containsKey(fields.Targets)) fail("$key has unknown Targets: ${fields.Targets}")
+        // Soft line breaks fold into spaces; blank lines remain paragraph breaks.
+        String text = lines.drop(marker + 1).join('\n').trim().split(/\n\s*\n/)
+            .collect { it.trim().replaceAll(/\s*\n\s*/, ' ') }.join('\n\n')
+        if (text.contains('**Text to edit:**') || text.contains('> ID:')) fail("$key has misplaced entry metadata")
+        List<String> expected = slots(fields.Placeholders)
+        // An explicitly cleared paragraph disables its explanatory text, including templates.
+        if (!text.isBlank() && slots(text) != expected) fail("$key must keep placeholders $expected exactly once each")
+        if ((text =~ /%(?:[0-9]+\$[^s\s]|[sd]|[0-9]+\$(?!s))/).find())
+            fail("$key has a malformed placeholder; use the listed %1\$s form")
+        entries[key] = [text: text, targets: TARGETS[fields.Targets], placeholders: expected]
+    }
+
+    static Map<String, String> language(Map<String, Map> entries, String target, Map utility, Map<String, String> sources) {
+        if (!(target in ['neoforge', 'fabric'])) fail("unknown build target $target")
+        Set<String> used = new TreeSet<>()
+        sources.each { path, source ->
+            def matches = source =~ /"(afmr\.copy\.[a-z0-9_.]+)"/
+            matches.each { match ->
+                String key = match[1]
+                if (!entries.containsKey(key)) fail("missing entry $key used by $path")
+                if (!entries[key].targets.contains(target)) fail("$key is unavailable for $target ($path)")
+                used.add(key)
+            }
+        }
+        Set<String> expected = entries.findAll { key, value -> value.targets.contains(target) }.keySet()
+        def unused = expected - used
+        if (!unused.isEmpty()) fail("unused entries for $target: $unused")
+        Map<String, String> result = new LinkedHashMap<>()
+        utility.each { key, value ->
+            if (!(key instanceof String) || !(value instanceof String) || key.startsWith('afmr.copy.'))
+                fail('utility language entries must be strings outside afmr.copy')
+            result[key] = value
+        }
+        expected.each { String key ->
+            // Authors type ordinary %, while Minecraft's formatter requires %%.
+            result[key] = entries[key].text.replaceAll('%(?![1-9][0-9]*\\$s)', '%%')
+        }
+        return result
+    }
+}
+
+def copyDocument = new File(uiCopyRoot, 'docs/UI-COPY.md')
+def utilityLanguage = new File(uiCopyRoot, 'copy/utility-en_us.json')
+def compilerScript = new File(uiCopyRoot, 'gradle/ui-copy.gradle')
+def copySources = fileTree('src/main/java/dev/animal/afmr/ui') { include '**/*.java' }
+def compileCopy = {
+    def entries = AfmrUiCopy.parse(copyDocument.getText('UTF-8'))
+    def sources = copySources.files.sort().collectEntries { [(it.name): it.getText('UTF-8')] }
+    def utility = new JsonSlurper().parse(utilityLanguage, 'UTF-8')
+    AfmrUiCopy.language(entries, uiCopyTarget, utility, sources)
+}
+
+tasks.register('validateUiCopy') {
+    group = 'verification'
+    description = 'Validate author-written UI copy, target references and placeholders.'
+    inputs.files(copyDocument, utilityLanguage, compilerScript, copySources)
+    doLast {
+        def language = compileCopy()
+        logger.lifecycle("Validated ${language.keySet().count { it.startsWith('afmr.copy.') }} UI passages for $uiCopyTarget")
+    }
+}
+
+def generatedCopy = tasks.register('generateUiCopy') {
+    group = 'build'
+    description = 'Compile UI-COPY.md into the packaged English language resource.'
+    inputs.files(copyDocument, utilityLanguage, compilerScript, copySources)
+    inputs.property('target', uiCopyTarget)
+    def destination = layout.buildDirectory.dir('generated/uiCopy')
+    outputs.dir(destination)
+    doLast {
+        def language = compileCopy()
+        def output = destination.get().file('assets/afmr/lang/en_us.json').asFile
+        output.parentFile.mkdirs()
+        output.setText(JsonOutput.prettyPrint(JsonOutput.toJson(language)) + '\n', 'UTF-8')
+    }
+}
+sourceSets.main.resources.srcDir(generatedCopy)
+
+tasks.register('testUiCopy') {
+    group = 'verification'
+    description = 'Exercise Markdown parsing, validation and native language escaping.'
+    doLast {
+        def entry = { String text, String slots = 'None', String targets = 'Both targets' ->
+            """### Test passage
+
+> ID: afmr.copy.test.passage
+> Targets: $targets
+> Where: Test tooltip
+> Placeholders: $slots
+> Reference behavior: Original behavior.
+
+**Text to edit:**
+
+$text
+"""
+        }
+        int checks = 0
+        def rejects = { String expected, Closure action ->
+            boolean rejected = false
+            try { action() } catch (GradleException error) {
+                assert error.message.contains(expected): error.message
+                rejected = true
+            }
+            assert rejected: "Expected rejection containing: $expected"
+            checks++
+        }
+        def prose = AfmrUiCopy.parse(entry('A "quote", an apostrophe\'s, café and 100%.\nWrapped line.\n\nSecond paragraph.'))
+        assert prose['afmr.copy.test.passage'].text == 'A "quote", an apostrophe\'s, café and 100%. Wrapped line.\n\nSecond paragraph.'
+        checks++
+        def source = ['Test.java': 'Component.translatable("afmr.copy.test.passage")']
+        def lang = AfmrUiCopy.language(prose, 'neoforge', ['key.afmr.open': 'Open/close music library'], source)
+        assert lang['afmr.copy.test.passage'].contains('100%%')
+        assert lang['key.afmr.open'] == 'Open/close music library'
+        assert new JsonSlurper().parseText(JsonOutput.toJson(lang)) == lang
+        checks++
+        def dynamic = AfmrUiCopy.parse(entry('%2$s, then %1$s at 50%.', '%1$s = name; %2$s = state'))
+        assert AfmrUiCopy.language(dynamic, 'fabric', [:], source)['afmr.copy.test.passage'] == '%2$s, then %1$s at 50%%.'
+        checks++
+        rejects('duplicate ID') { AfmrUiCopy.parse(entry('One.') + entry('Two.')) }
+        def cleared = AfmrUiCopy.parse(entry(' \n\n '))
+        assert cleared['afmr.copy.test.passage'].text == ''
+        assert AfmrUiCopy.language(cleared, 'fabric', [:], source)['afmr.copy.test.passage'] == ''
+        checks++
+        assert AfmrUiCopy.parse(entry('', '%1$s = name'))['afmr.copy.test.passage'].text == ''
+        checks++
+        rejects('no copy entries') { AfmrUiCopy.parse('# Empty document') }
+        rejects('missing Where') { AfmrUiCopy.parse(entry('Text.').replace('> Where: Test tooltip\n', '')) }
+        rejects('invalid metadata') { AfmrUiCopy.parse(entry('Text.').replace('> ID:', '> Identifier:')) }
+        rejects('unknown Targets') { AfmrUiCopy.parse(entry('Text.', 'None', 'Other')) }
+        rejects('exactly one') { AfmrUiCopy.parse(entry('Text.').replace('**Text to edit:**', '**Replacement:**')) }
+        rejects('keep placeholders') { AfmrUiCopy.parse(entry('No argument.', '%1$s = name')) }
+        rejects('keep placeholders') { AfmrUiCopy.parse(entry('%1$s repeated %1$s.', '%1$s = name')) }
+        rejects('keep placeholders') { AfmrUiCopy.parse(entry('%2$s.', '%1$s = name')) }
+        rejects('malformed placeholder') { AfmrUiCopy.parse(entry('%s and %1$d.')) }
+        rejects('missing entry') { AfmrUiCopy.language(prose, 'fabric', [:], ['Missing.java':'"afmr.copy.test.missing"']) }
+        rejects('unused entries') { AfmrUiCopy.language(prose, 'fabric', [:], [:]) }
+        def restricted = AfmrUiCopy.parse(entry('Only Fabric.', 'None', 'Fabric 1.20.1 only'))
+        rejects('unavailable for neoforge') { AfmrUiCopy.language(restricted, 'neoforge', [:], source) }
+        assert AfmrUiCopy.language(restricted, 'neoforge', [:], [:]).isEmpty()
+        checks++
+        rejects('utility language') { AfmrUiCopy.language(prose, 'fabric', ['afmr.copy.bad':'bad'], source) }
+        logger.lifecycle("UI copy compiler: $checks checks passed")
+    }
+}
+tasks.named('check') { dependsOn 'validateUiCopy', 'testUiCopy' }

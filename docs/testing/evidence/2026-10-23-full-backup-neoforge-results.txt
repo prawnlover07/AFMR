@@ -1,0 +1,11 @@
+PASS Full backup has a separate compact route
+PASS Replacement requires a reviewed import
+PASS Full archive exported on worker
+PASS Export includes complete keys and profiles
+PASS Import validates without replacing live settings
+PASS Review unlocks Apply
+PASS Review controls fit viewport
+PASS Back cancels uncommitted import
+PASS Apply queues restore without changing current session
+PASS Repeated apply disabled
+COMPLETE: 10 passed / 0 failed

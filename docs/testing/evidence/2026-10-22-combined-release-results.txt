@@ -1,0 +1,434 @@
+Combined Unreleased validation, October 22, 2026
+Runtime version: 0.6
+Automated regression suite: 639 passed, 0 failures/errors/skips.
+Native helper cases below use isolated profiles and generated audio.
+Only case names are retained; ignored raw logs contain native observations.
+
+== Integration ==
+PASS Fresh isolated profile starts on Default
+PASS Generated folder imports two tracks
+PASS New workspace navigation remains accessible
+PASS Automatic-off playlist accepts override
+PASS Imported WAV opens a real native channel
+PASS Volume opens dedicated page
+PASS Slider sets 50 percent
+PASS Playlist volume halves native gain
+PASS Live volume preserves channel and song
+PASS Zero playlist volume mutes real channel
+PASS Volume reset restores setting
+PASS Volume reset restores native gain
+PASS Library preview uses normal volume
+PASS Workspace queues assigned song
+PASS Queue page opens
+PASS Queue row Up preserves request identity
+PASS Queue row Down restores order
+PASS Remove only chosen request
+PASS Clear queue leaves playing song
+PASS Queue observes normal three-second silence
+PASS Queued short song starts from automatic-off manual playlist
+PASS History records queue source
+PASS Queue drains FIFO after natural completion
+PASS Natural queued starts each create history entry
+PASS Queued music pauses native source
+PASS Queued paused position stays fixed
+PASS Queued resume advances same native source
+PASS Pause and resume do not duplicate history
+PASS New override retains waiting queue
+PASS Queue resumes with retained override
+PASS Disabled song cannot queue
+PASS History UI opens with real starts
+PASS History re-queues song
+PASS History destination selector opens
+PASS History replay keeps pending queue
+PASS Profiles menu opens
+PASS Default cannot be deleted
+PASS Copy remains inactive until Use now
+PASS Link current binds exact world
+PASS Linked worlds menu lists binding
+PASS Use now selects copied profile
+PASS Profile switch clears queue pause and override
+PASS Copied playlist owns independent settings
+PASS Shared music survives profile switch
+PASS Default volume and timing stay independent
+PASS Copied settings return on activation
+PASS Import finishes in originating profile
+PASS Import does not assign other profile
+PASS Rescan reports moved root and songs
+PASS Repair menu displays missing sources
+PASS Folder preview finds exact relative paths
+PASS Repair preview opens automatically
+PASS Preview has not mutated library paths
+PASS Cancel preserves missing original references
+PASS Apply reconnects same track identity
+PASS Folder link follows new root
+PASS Inactive profile retains repaired assignments
+PASS Repair follow-up clears missing report
+PASS Rescan preserves repaired IDs without duplicates
+PASS Repaired song plays through native decoder
+PASS Renamed song remains individual missing item
+PASS Individual repair opens a new preview
+PASS Individual repair keeps assignments and clears report
+PASS Folder and individual repair preserve generated audio bytes
+PASS Sharing selection menu opens
+PASS Empty export is disabled
+PASS Shared file omits music and private world identifiers
+PASS Imported setup opens preview before mutation
+PASS Location import enabled inside world
+PASS Cancel clears pending import
+PASS Priority can change to top
+PASS Import creates new ordered playlist copies
+PASS Imported playlist retains flags and volume
+PASS Imported location binds to current world and retains radius
+PASS Imported playlists carry no song assignments
+PASS Import returns to fresh selected workspace
+PASS Malformed setup leaves no pending import
+PASS Wrong export extension produces actionable message
+PASS Restart fixture has queue and pause to clear
+PASS History has real native starts before shutdown
+PASS Shutdown saves Default transition before closing writer
+PASS Late logout and screen saves do not reopen closed runtime
+PASS Final writer flush preserves bound profile
+COMPLETE: 83 passed / 0 failed
+
+== Actual process restart ==
+PASS Actual game restart activates world-linked profile
+PASS World link survived shutdown
+PASS Playlist volume survives game restart
+PASS Profile timing survives game restart
+PASS Session queue pause and override clear after restart
+PASS Listening history survives actual game shutdown
+PASS Repaired paths survive restart
+PASS Other profile retains imported setups
+PASS Shared setup locations survive restart
+PASS Persistent history visible in native screen
+PASS Repaired library plays after full restart
+PASS History Clear resets live native screen
+COMPLETE: 12 passed / 0 failed
+
+== Fresh installation ==
+PASS Fresh installation loads successfully without AFMR config
+PASS Fresh installation seeds exactly six templates
+PASS Fresh default template priority
+PASS Fresh template Minecraft switches and volumes use intended defaults
+PASS Fresh timing uses Minecraft-like ten to twenty minutes
+PASS Fresh fades and buffer add no extra delay
+PASS Fresh now-playing uses Minecraft style
+PASS Fresh library has no local imports or folder links
+PASS Fresh history and queue are empty
+PASS Fresh setup uses unlinked Default profile
+PASS Fresh Next and Pause keys are unbound
+PASS Fresh vanilla soundtrack plays through actual native channel
+PASS Shutdown saves Default transition before closing writer
+PASS Late logout and screen saves do not reopen closed runtime
+PASS Final writer flush preserves profile
+COMPLETE: 15 passed / 0 failed
+
+== Workspace ==
+PASS Generated audio fixture exists
+PASS Six direct navigation controls
+PASS Library below priority
+PASS Scaled workspace tooltip fixture
+PASS tooltip-right-edge rendered
+PASS tooltip-right-edge within screen
+PASS tooltip-bottom-edge rendered
+PASS tooltip-bottom-edge within screen
+PASS tooltip-timing-field rendered
+PASS tooltip-timing-field within screen
+PASS Disabled preview fixture
+PASS tooltip-disabled-control rendered
+PASS tooltip-disabled-control within screen
+PASS Double click assigns a library song
+PASS Selected song assigned on same screen
+PASS Bulk disable
+PASS Bulk enable
+PASS Entry independent
+PASS Exit independent
+PASS Priority top
+PASS Priority down
+PASS Priority last
+PASS Held override with Automatic off
+PASS Generated fixture actually starts
+PASS Pause control
+PASS Next keeps held override
+PASS Resume control
+PASS Release override
+PASS One-song override
+PASS Timing direct navigation
+PASS Invalid timing blocks navigation
+PASS Hide settings
+PASS Draft page retained
+PASS Invalid draft retained
+PASS Timing saved on navigation
+PASS Display direct navigation
+PASS Display style changes
+PASS Size controls remain
+PASS All metadata switches remain
+PASS Keys direct navigation
+PASS Physical key bindings reachable
+PASS All eight override slots reachable
+PASS Unified import dialog
+PASS Files/folders can import without assignment
+PASS Custom condition editor reachable
+PASS Match all/any reachable
+PASS Remove keeps library file
+PASS Whole-folder assignment
+PASS Normalization progress reachable
+PASS Normalization report/cancel retained
+PASS Inspector direct navigation
+PASS Retry failed retained
+PASS Inspector details retained
+PASS Create in workspace
+PASS Delete custom playlist
+PASS Library search preserved
+PASS Workspace instance retained
+PASS Two library and song viewports remain
+PASS Default name is editable
+PASS Default groups reachable
+PASS Dimension branch editable
+PASS Clone selected and independent
+PASS Clone keeps nested branch
+PASS Autoplay tap does not change conditions
+PASS Hold warning replaces label
+PASS Short hold cancels
+PASS Moving outside cancels hold
+PASS Still unchanged before one second
+PASS Completed hold replaces conditions
+PASS Autoplay enables only this playlist
+PASS Autoplay keeps assignments and original template
+PASS Navigation cancels an armed hold
+PASS Artwork fixture loaded
+PASS Silent gap clears current track and cover
+PASS Preview selection is retained
+PASS No-cover song does not inherit artwork
+PASS Selected preview still works
+PASS Corner selector exposes all corners and default
+PASS Native toast corner uses screen anchors
+PASS Native popup captured outside the pause menu
+PASS Menu appearance is independent of widget style
+PASS Slider previews immediately
+PASS Menu blur toggle
+PASS Settings at 50% background alpha
+PASS Settings at 50% text stays opaque
+PASS Settings at 50% native blur
+PASS Settings at 50% does not pause gameplay
+PASS Settings with blur background alpha
+PASS Settings with blur text stays opaque
+PASS Settings with blur native blur
+PASS Settings with blur does not pause gameplay
+PASS Settings at 0% background alpha
+PASS Settings at 0% text stays opaque
+PASS Settings at 0% native blur
+PASS Settings at 0% does not pause gameplay
+PASS Workspace at 0% background alpha
+PASS Workspace at 0% text stays opaque
+PASS Workspace at 0% native blur
+PASS Workspace at 0% does not pause gameplay
+PASS Workspace at 100% background alpha
+PASS Workspace at 100% text stays opaque
+PASS Workspace at 100% native blur
+PASS Workspace at 100% does not pause gameplay
+PASS Menu defaults restored
+PASS Widget opacity unchanged
+PASS Gamemode editor reachable
+PASS All four gamemodes visible
+PASS Gamemode draft survives hide/reopen
+PASS Multiple gamemode choices saved
+PASS Server Survival observed
+PASS Survival selects fallback
+PASS Server Creative observed
+PASS Creative starts gamemode playlist
+PASS Server Adventure observed
+PASS Adventure returns to fallback
+PASS Server Spectator observed
+PASS Spectator starts gamemode playlist
+PASS Filter off keeps choices and matches Survival
+PASS Enabled empty selection falls through
+PASS Saved empty selection reopens
+PASS Play on trigger toggle saves
+PASS Trigger toggle keeps finish controls independent
+PASS Trigger source starts before time window
+PASS Trigger starts normal fade before global buffer
+PASS Outgoing source remains during trigger fade
+PASS Triggered song starts without ten-second silence
+PASS Native trigger audio starts without error
+PASS Matching ticks do not restart triggered song
+PASS Manual skip still uses normal silence
+PASS Time-window fit saves through editor
+PASS Missing generated WAV duration is cached
+PASS Fitting generated WAV starts automatically
+PASS No fitting song keeps playlist priority
+PASS No fitting song remains silent
+PASS Wider window resumes a fitting song
+PASS Independent fade fields are present
+PASS Out-of-range fade blocks navigation
+PASS Both fade drafts survive hide/reopen
+PASS Distinct fades save independently
+PASS Jukebox selector exposes off and three behaviors
+PASS RESUME starts generated AFMR fixture
+PASS RESUME detects actual jukebox playback
+PASS RESUME requests native audio pause after fading
+PASS RESUME retains or ends the song correctly
+PASS RESUME detects jukebox stop
+PASS Resume retains the same playback sequence
+PASS AFTER_SILENCE starts generated AFMR fixture
+PASS AFTER_SILENCE detects actual jukebox playback
+PASS AFTER_SILENCE requests native audio pause after fading
+PASS AFTER_SILENCE retains or ends the song correctly
+PASS AFTER_SILENCE detects jukebox stop
+PASS After-silence mode starts a full gap after the record
+PASS IMMEDIATE starts generated AFMR fixture
+PASS IMMEDIATE detects actual jukebox playback
+PASS IMMEDIATE requests native audio pause after fading
+PASS IMMEDIATE retains or ends the song correctly
+PASS IMMEDIATE detects jukebox stop
+PASS Immediate mode starts a new song without buffer/gap
+PASS Overlapping jukeboxes hold AFMR
+PASS One remaining jukebox keeps AFMR held
+PASS Last jukebox stopping releases AFMR
+PASS Muted records do not suppress AFMR
+PASS Columns chooser opens
+PASS Title column stays enabled
+PASS All additional columns can be enabled
+PASS Column controls fit the screen
+PASS Hidden column choices retained
+PASS Columns return to workspace
+PASS Extra columns retain readable widths
+PASS Metadata cells show album artist and ReplayGain
+PASS Track number sorts numerically
+PASS Track number reverse sorting
+PASS Scrolled header chooses correct sort column
+PASS On switch stays pinned during horizontal scrolling
+PASS Horizontal scrollbar drags to final column
+PASS Scrolled row selection preserves assignment
+PASS Column choices apply across playlists
+PASS Default columns restored
+PASS Reducing columns removes horizontal overflow
+COMPLETE: 179 passed / 0 failed
+
+== Native playback ==
+PASS packaged mixins + local audio start
+PASS day outside without biome constraint
+PASS native channel paused
+PASS native playback position stays fixed
+PASS Minecraft global resume preserves AFMR pause
+PASS native resume advances same source
+PASS pause before delayed stream startup
+PASS delayed start never advances while paused
+PASS Next queues without starting during pause
+PASS queued Next resumes automatic choice
+PASS silent countdown frozen
+PASS Next bypasses long gap
+PASS held override plays Automatic-off playlist
+PASS Next retains held override and avoids repeat
+PASS Next retains one-song override
+PASS one-song natural completion returns to automatic
+PASS shuffle unique entry 1
+PASS shuffle boundary repeat guard 1
+PASS shuffle unique entry 2
+PASS shuffle boundary repeat guard 2
+PASS shuffle unique entry 3
+PASS shuffle boundary repeat guard 3
+PASS shuffle unique entry 4
+PASS shuffle boundary repeat guard 4
+PASS shuffle unique entry 5
+PASS shuffle boundary repeat guard 5
+PASS shuffle unique entry 6
+PASS shuffle boundary repeat guard 6
+PASS shuffle unique entry 7
+PASS shuffle boundary repeat guard 7
+PASS shuffle unique entry 8
+PASS shuffle boundary repeat guard 8
+PASS outdoor night selects Night outside
+PASS enclosed dark area selects Dark exploration
+PASS lit enclosed area below Y cutoff selects Underground
+PASS Y cutoff requires BOTH cover and elevation
+PASS captured Home takes priority
+PASS attack trigger enters Combat
+PASS forced Combat works with global trigger disabled
+PASS Nether toggle applies throughout dimension
+PASS Nether toggle off excludes Dark exploration
+PASS End toggle applies throughout dimension
+PASS End toggle off excludes Dark exploration
+PASS combined custom biome/time/dimension/Y/temperature/cover matches
+PASS single failed custom condition falls through
+PASS combat death CUT while paused stops native channel
+PASS vanilla streamed music pauses
+PASS vanilla position retained
+PASS vanilla resumes on same source
+PASS sound reload clears explicit pause
+PASS entry/exit protection combination 0
+PASS entry/exit protection combination 1
+PASS entry/exit protection combination 2
+PASS entry/exit protection combination 3
+PASS A retained through B to C keeps original source
+PASS returning to retained source avoids restart
+PASS native fade-in gain and position frozen
+PASS native fade-in continues without jumping to full gain
+PASS native fade-out gain and position frozen
+PASS native fade-out continues at held gain
+PASS non-music audio continues during AFMR pause
+PASS combat death begins configured native fade immediately
+PASS combat death fade stops and blocks new dead-player music
+PASS death fade requested while paused retains native paused source
+PASS death fade completes after explicit resume
+PASS combat death Finish retains the playing song
+PASS override request while paused does not start it
+PASS queued override starts after resume
+PASS all-disabled override target refused
+PASS emptied held override releases
+PASS deleted override target releases
+PASS packaged native decoder test.mp3
+PASS packaged native decoder test.flac
+PASS packaged native decoder test.ogg
+PASS packaged native decoder test.wav
+PASS packaged native decoder test24.flac
+PASS packaged native decoder test24.wav
+PASS packaged native decoder testfloat.wav
+PASS async decoder error quarantines and recovers
+PASS Retry failed clears decoder quarantine
+PASS 70k-library native selection remains indexed
+COMPLETE: 81 passed / 0 failed. Native UI checks remain separate.
+
+== Vanilla multiplayer and linked profiles ==
+PASS joined remote vanilla server without integrated server
+PASS unlinked vanilla server selects Default profile
+PASS local music and day outside on vanilla server
+PASS Next changes local song
+PASS manual music pause while server continues
+PASS native position retained online
+PASS night selection updates while music paused
+PASS night music resumes online
+PASS Automatic-off held override online
+PASS normalization waits without decoding during multiplayer
+PASS synchronized cover and darkness
+PASS synchronized light and Underground
+PASS Home captures server address and location
+PASS synced biome temperature time dimension Y custom rule
+PASS underwater state synchronized
+PASS Nether dimension music online
+PASS End dimension music online
+PASS environmental server damage does not trigger Combat
+PASS broad damage option triggers Combat
+PASS combat quiet period expires online
+PASS client attack observation triggers Combat
+PASS server death cuts Combat and blocks new music
+PASS respawn clears combat and resumes playback
+PASS vanilla resource audio streams online
+PASS paused override ready for disconnect
+PASS binding an inactive server profile leaves current setup running
+PASS disconnect immediately clears playback pause and override
+PASS disconnect immediately clears world context
+PASS reconnect restores server context and automatic playback
+PASS actual server reconnect selects linked profile
+PASS linked server setup restores independent playlist volume
+PASS waiting normalization finishes after disconnect
+PASS server dimension change keeps linked profile
+PASS returning server dimension keeps linked profile
+PASS unlink affects next join without switching current setup
+PASS server logout returns to Default profile
+PASS unlinked server reconnect falls back to Default
+PASS server address identity ignores display name
+PASS Default volume remains independent after server reconnect
+COMPLETE: 39 passed / 0 failed
+
+TOTAL: 409 native/helper checks passed; 0 failed.

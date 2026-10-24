@@ -1,0 +1,116 @@
+plugins {
+    id 'fabric-loom' version '1.14.10'
+    id 'java-library'
+}
+version = mod_version
+group = 'dev.animal.afmr'
+base { archivesName = 'animals-final-music-replacer-fabric-1.20.1' }
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:1.20.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.92.12+1.20.1'
+    ['com.googlecode.soundlibs:mp3spi:1.9.5.4',
+     'com.googlecode.soundlibs:vorbisspi:1.0.3.3',
+     'com.googlecode.soundlibs:jlayer:1.0.1.4',
+     'com.googlecode.soundlibs:jorbis:0.0.17.4',
+     'com.googlecode.soundlibs:tritonus-share:0.3.7.4',
+     'org.jflac:jflac-codec:1.5.2',
+     'net.jthink:jaudiotagger:3.0.1'].each { coordinate ->
+        implementation coordinate
+        include coordinate
+    }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    ['imageio-webp','imageio-core','imageio-metadata'].each {
+        implementation "com.twelvemonkeys.imageio:${it}:3.15.3"
+        include "com.twelvemonkeys.imageio:${it}:3.15.3"
+    }
+    ['common-lang','common-io','common-image'].each {
+        implementation "com.twelvemonkeys.common:${it}:3.15.3"
+        include "com.twelvemonkeys.common:${it}:3.15.3"
+    }
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.10'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+tasks.withType(JavaCompile).configureEach { options.release = 17; options.encoding = 'UTF-8'; options.compilerArgs += ['-Xmaxerrs', '300'] }
+compileTestJava { options.release = 25 }
+test { useJUnitPlatform() }
+// The standalone source ZIP carries these shared authoring inputs at its root.
+ext.uiCopyRoot = file('docs/UI-COPY.md').isFile() ? projectDir : file('../..')
+ext.uiCopyTarget = 'fabric'
+apply from: new File(uiCopyRoot, 'gradle/ui-copy.gradle')
+processResources { from('LICENSE', 'THIRD_PARTY.md', 'THIRD_PARTY_NOTICES.txt', 'TEMPLATE_LICENSE.txt', 'TWELVEMONKEYS_LICENSE.txt', 'LGPL-2.0.txt', 'LGPL-2.1.txt') }
+loom { runs { client { runDir 'run'; vmArg '-Xmx2G' } } }
+if (project.hasProperty('smoke')) {
+    sourceSets {
+        smoke {
+            compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+            if (project.hasProperty('packagedSmoke')) {
+                runtimeClasspath = output + (sourceSets.main.runtimeClasspath - sourceSets.main.output).filter {
+                    !(it.name ==~ /(?:mp3spi|vorbisspi|jlayer|jorbis|tritonus-share|jflac-codec|jaudiotagger|imageio-webp|imageio-core|imageio-metadata|common-lang|common-io|common-image)-.*/)
+                }
+            } else {
+                runtimeClasspath = output + sourceSets.main.runtimeClasspath
+            }
+        }
+    }
+    loom {
+        mods {
+            if (!project.hasProperty('packagedSmoke')) afmr { sourceSet sourceSets.main }
+            afmr_smoke { sourceSet sourceSets.smoke }
+        }
+        runs {
+            client {
+                source sourceSets.smoke
+                runDir 'run-smoke'
+                programArg '--username'
+                programArg 'AFMRSmoke'
+                vmArg '-Dafmr.smoke=true'
+                if (project.hasProperty('finalReview')) vmArg '-Dafmr.smoke.finalReview=true'
+                if (project.hasProperty('reviewRestart')) vmArg '-Dafmr.smoke.reviewRestart=true'
+                if (project.hasProperty('playOnJoin')) vmArg '-Dafmr.smoke.playOnJoin=true'
+                if (project.hasProperty('backgroundImages')) vmArg '-Dafmr.smoke.backgroundImages=true'
+                if (project.hasProperty('playlistSilence')) vmArg '-Dafmr.smoke.playlistSilence=true'
+                if (project.hasProperty('widgetSettings')) vmArg '-Dafmr.smoke.widgetSettings=true'
+                if (project.hasProperty('backupRestart')) vmArg '-Dafmr.smoke.backupRestart=true'
+            }
+        }
+    }
+    tasks.named('runClient') { dependsOn tasks.named('smokeClasses') }
+    tasks.register('artworkMemoryProbe', JavaExec) {
+        dependsOn tasks.named('smokeClasses')
+        classpath = sourceSets.smoke.runtimeClasspath
+        mainClass = 'dev.animal.afmr.smoke.ArtworkMemoryProbe'
+        jvmArgs '-Djava.awt.headless=true'
+        if (project.hasProperty('artworkJava')) executable project.property('artworkJava')
+        if (project.hasProperty('artworkPathFile')) args project.property('artworkPathFile')
+    }
+    tasks.register('menuBackgroundProbe', JavaExec) {
+        dependsOn tasks.named('smokeClasses')
+        classpath = sourceSets.smoke.runtimeClasspath
+        mainClass = 'dev.animal.afmr.smoke.MenuBackgroundProbe'
+        jvmArgs '-Djava.awt.headless=true'
+        if (project.hasProperty('artworkJava')) executable project.property('artworkJava')
+    }
+    if (project.hasProperty('packagedSmoke')) {
+        tasks.register('installSmokeJar', Copy) {
+            dependsOn remapJar
+            from remapJar.archiveFile
+            into layout.projectDirectory.dir('run-smoke/mods')
+        }
+        tasks.named('runClient') { dependsOn tasks.named('installSmokeJar') }
+    }
+}
+tasks.register('sourceZip', Zip) {
+    archiveFileName = "animals-final-music-replacer-fabric-1.20.1-${project.version}-source.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(projectDir) { exclude '.gradle/**', 'build/**', 'run*/**', '**/logs/**', '**/*.log', '**/*.afmrb', '**/restore-previous/**' }
+    if (uiCopyRoot != projectDir) {
+        from(new File(uiCopyRoot, 'docs/UI-COPY.md')) { into 'docs' }
+        from(new File(uiCopyRoot, 'gradle/ui-copy.gradle')) { into 'gradle' }
+        from(new File(uiCopyRoot, 'copy/utility-en_us.json')) { into 'copy' }
+    }
+}

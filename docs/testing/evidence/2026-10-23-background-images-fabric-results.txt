@@ -1,0 +1,20 @@
+Fabric 1.20.1 disposable smoke run
+PASS runtime initializes
+PASS 1.20.1 vanilla catalog indexed
+PASS workspace opens at title screen
+PASS packaged WebP imports through actual menu worker
+PASS static WebP uploads one texture
+PASS fast import refreshes enabled and remove controls
+PASS animated GIF uploads all four composited textures
+PASS native textures preserve transparency and colored patches
+PASS animation clock uses frame timing
+PASS full backup exports animation bytes
+PASS resource invalidation releases every frame
+PASS managed animation reloads after invalidation
+PASS disable releases animation textures
+PASS re-enable loads retained animation
+PASS static replacement releases old animation
+PASS static replacement removes owned GIF
+PASS remove clears both owned files and selection
+PASS original WebP and GIF remain intact
+RESULT passed=18 failed=0

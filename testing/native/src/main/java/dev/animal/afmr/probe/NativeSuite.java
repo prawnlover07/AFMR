@@ -63,7 +63,7 @@ public final class NativeSuite {
         nativeState=new NativeState(0,0,0,0,0,"",0);
     }
     @SubscribeEvent public static void tick(ClientTickEvent.Post ignored){
-        if(finished)return;
+        if(finished||Boolean.getBoolean("afmr.probe.multiplayer")||Boolean.getBoolean("afmr.probe.workspace")||Boolean.getBoolean("afmr.probe.integration")||Boolean.getBoolean("afmr.probe.performance"))return;
         mc=Minecraft.getInstance();
         if(mc.player==null||mc.level==null)return;
         try{
@@ -73,7 +73,8 @@ public final class NativeSuite {
             if(++step>=steps.size()){
                 finished=true;rt.save();
                 log("COMPLETE: "+passed+" passed / "+failed+" failed. Native UI checks remain separate.");
-                Files.writeString(result.resolveSibling("complete.txt"),passed+" passed / "+failed+" failed\n");return;
+                Files.writeString(result.resolveSibling("complete.txt"),passed+" passed / "+failed+" failed\n");
+                if(Boolean.getBoolean("afmr.probe.autoExit"))mc.stop();return;
             }
             Step s=steps.get(step);wait=s.waitTicks;
             try{s.action.run();}catch(Throwable ex){failed++;log("FAIL step "+step+": "+ex);Afmr.LOG.error("Probe step failure",ex);}
@@ -92,8 +93,8 @@ public final class NativeSuite {
     private static Track track(String id,String name,String file){
         Track t=new Track(id,file,name,false);lib.tracks.add(t);return t;
     }
-    private static void command(String text){
-        var server=mc.getSingleplayerServer();if(server==null)throw new IllegalStateException("Only isolated singleplayer supported");
+    static void command(String text){
+        var server=Minecraft.getInstance().getSingleplayerServer();if(server==null)throw new IllegalStateException("Only isolated singleplayer supported");
         server.execute(()->{
             var player=server.getPlayerList().getPlayers().getFirst();
             server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withEntity(player).withSuppressedOutput(),text);
@@ -102,12 +103,12 @@ public final class NativeSuite {
     private static void start()throws Exception{
         rt=ClientRuntime.get();lib=rt.library();engine=rt.engine();
         result=Path.of(Boolean.getBoolean("afmr.probe.keysOnly")?"../results/persistence-results.txt":"../results/native-results.txt").toAbsolutePath();Files.createDirectories(result.getParent());Files.writeString(result,"");
-        log("AFMR 0.5.2 packaged JAR native integration. Generated fixtures / copied world only.");
+        log("Packaged AFMR JAR native integration. Generated fixtures / copied world only.");
         var ui=lib.playlists.stream().filter(p->p.name.equals("UI Test Playlist")).findFirst().orElse(null);
         if(ui!=null){
             check("UI priority and captured biome survive restart",lib.playlists.getFirst()==ui&&ui.conditions.biomeEnabled&&ui.conditions.biomes.contains("minecraft:dappled_forest"));
             check("independent entry/exit switches survive restart",ui.finishCurrentSong&&ui.finishCurrentSongOnExit);
-            check("restored Minecraft timing persists",lib.settings.silenceMinSeconds==600&&lib.settings.silenceMaxSeconds==1200&&lib.settings.fadeSeconds==0&&lib.settings.bufferSeconds==0);
+            check("restored Minecraft timing persists",lib.settings.silenceMinSeconds==600&&lib.settings.silenceMaxSeconds==1200&&lib.settings.fadeInSeconds==0&&lib.settings.bufferSeconds==0);
             check("5000-file library scan persists",lib.tracks.stream().filter(t->t.path.replace('\\','/').contains("/scan-fixtures/")).count()==5000);
             check("explicit pause is cleared by restart",!engine.paused());
             var keys=Arrays.asList(mc.options.keyMappings);
@@ -116,7 +117,7 @@ public final class NativeSuite {
         if(Boolean.getBoolean("afmr.probe.keysOnly")){
             check("persistence fixture present",ui!=null);finished=true;log("PERSISTENCE COMPLETE: "+passed+" passed / "+failed+" failed.");return;
         }
-        lib.tracks.removeIf(t->!t.vanilla);lib.playlists.removeIf(Playlist::custom);
+        lib.tracks.removeIf(t->!t.vanilla);lib.playlists=new ArrayList<>(dev.animal.afmr.core.PlaylistTemplates.create());
         for(var p:lib.playlists){p.includeVanilla=false;p.enabled=true;p.manualOnly=false;p.tracks.clear();p.finishCurrentSong=false;p.finishCurrentSongOnExit=false;}
         String longFile=Path.of("../fixtures/long.wav").toAbsolutePath().toString();
         String shortFile=Path.of("../fixtures/short.wav").toAbsolutePath().toString();
@@ -128,13 +129,13 @@ public final class NativeSuite {
         for(int i=0;i<4;i++)manual.tracks.put("file:probe"+i,true);
         var shortList=lib.createPlaylist("Short one-shot");shortList.id="custom:short";shortList.manualOnly=true;shortList.tracks.put("file:short",true);
         lib.rebuildTrackIndex();
-        lib.settings.silenceMinSeconds=1;lib.settings.silenceMaxSeconds=1;lib.settings.fadeSeconds=0.3;lib.settings.bufferSeconds=0.3;
+        lib.settings.silenceMinSeconds=1;lib.settings.silenceMaxSeconds=1;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0.3;lib.settings.bufferSeconds=0.3;
         command("execute in minecraft:overworld run tp @s 2.5 90 2.5");command("gamemode creative @s");command("time set 6000");command("time pause");command("weather clear");
         engine.reset();rt.save();
 
         add(60,()->rt.nextSong());
         add(0,()->check("packaged mixins + local audio start",engine.current()!=null&&nativeState.state==AL10.AL_PLAYING&&nativeState.error==0));
-        add(0,()->check("day outside without biome constraint",rt.context().day()&&!rt.context().underground()&&"day_outside".equals(engine.sourcePlaylistId())));
+        add(0,()->check("day outside without biome constraint",rt.context().day()&&!lib.playlist("underground").conditions.matches(rt.context(),lib.settings)&&"day_outside".equals(engine.sourcePlaylistId())));
         add(20,()->{oldTrack=current();rt.togglePause();});
         add(60,()->{frozen=nativeState;check("native channel paused",engine.paused()&&frozen.state==AL10.AL_PAUSED);});
         add(0,()->check("native playback position stays fixed",nativeState.source==frozen.source&&Math.abs(nativeState.offset-frozen.offset)<0.002&&oldTrack.equals(current())));
@@ -162,7 +163,7 @@ public final class NativeSuite {
         add(0,()->check("Next retains one-song override",!oldTrack.equals(current())&&engine.overrideMode()==OverrideMode.ONE_SONG));
         add(80,()->rt.overridePlaylist("custom:short",OverrideMode.ONE_SONG));
         add(0,()->check("one-song natural completion returns to automatic",engine.overrideId()==null&&"day_outside".equals(engine.selected().id)));
-        add(20,()->{lib.settings.fadeSeconds=0;lib.settings.bufferSeconds=0;rt.returnAutomatic();engine.reset();cycle.clear();rt.nextSong();});
+        add(20,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;lib.settings.bufferSeconds=0;rt.returnAutomatic();engine.reset();cycle.clear();rt.nextSong();});
         for(int i=0;i<8;i++){
             final int index=i;
             add(0,()->{if(index==4)cycle.clear();check("shuffle unique entry "+(index+1),cycle.add(current()));});
@@ -176,22 +177,22 @@ public final class NativeSuite {
         });
         add(0,()->check("enclosed dark area selects Dark exploration",rt.context().covered()&&rt.context().lightLevel()<=4&&"dark_exploration".equals(engine.sourcePlaylistId())));
         add(60,()->{command("setblock 3 42 3 minecraft:glowstone");});
-        add(0,()->check("lit enclosed area below Y cutoff selects Underground",rt.context().covered()&&rt.context().underground()&&rt.context().lightLevel()>4&&"underground".equals(engine.sourcePlaylistId())));
-        add(30,()->lib.settings.undergroundMaxY=40);
-        add(0,()->check("Y cutoff requires BOTH cover and elevation",rt.context().covered()&&!rt.context().underground()&&"night_outside".equals(engine.sourcePlaylistId())));
-        add(30,()->{lib.settings.undergroundMaxY=64;rt.captureHome();});
-        add(0,()->check("captured Home takes priority",rt.context().atHome()&&"home".equals(engine.sourcePlaylistId())));
-        add(30,()->{lib.home.configured=false;lib.settings.combatQuietSeconds=3;rt.attack();});
+        add(0,()->check("lit enclosed area below Y cutoff selects Underground",rt.context().covered()&&lib.playlist("underground").conditions.matches(rt.context(),lib.settings)&&rt.context().lightLevel()>4&&"underground".equals(engine.sourcePlaylistId())));
+        add(30,()->{lib.playlist("underground").conditions.maxY=40;lib.playlist("night_outside").conditions.groups.getFirst().maxY=40;lib.playlist("day_outside").conditions.groups.getFirst().maxY=40;});
+        add(0,()->check("Y cutoff requires BOTH cover and elevation",rt.context().covered()&&!lib.playlist("underground").conditions.matches(rt.context(),lib.settings)&&"night_outside".equals(engine.sourcePlaylistId())));
+        add(30,()->{lib.playlist("underground").conditions.maxY=64;lib.playlist("night_outside").conditions.groups.getFirst().maxY=64;lib.playlist("day_outside").conditions.groups.getFirst().maxY=64;lib.playlist("home").autoplayHere(rt.context());});
+        add(0,()->check("captured Home takes priority",lib.playlist("home").conditions.matches(rt.context(),lib.settings)&&"home".equals(engine.sourcePlaylistId())));
+        add(30,()->{lib.playlist("home").conditions.area.configured=false;lib.settings.combatQuietSeconds=3;rt.attack(new net.minecraft.world.entity.monster.zombie.Zombie(net.minecraft.world.entity.EntityTypes.ZOMBIE,mc.level));});
         add(0,()->check("attack trigger enters Combat",rt.context().combat()&&"combat".equals(engine.sourcePlaylistId())));
         add(100,()->{lib.settings.combatEnabled=false;rt.overridePlaylist("combat",OverrideMode.UNTIL_RELEASED);});
         add(0,()->check("forced Combat works with global trigger disabled",!rt.context().combat()&&"combat".equals(engine.sourcePlaylistId())&&"combat".equals(engine.overrideId())));
-        add(80,()->{rt.returnAutomatic();lib.settings.darkInNether=true;command("execute in minecraft:the_nether run tp @s 2.5 200 2.5");});
+        add(80,()->{rt.returnAutomatic();lib.playlist("dark_exploration").conditions.groups.get(1).enabled=true;command("execute in minecraft:the_nether run tp @s 2.5 200 2.5");});
         add(0,()->check("Nether toggle applies throughout dimension","minecraft:the_nether".equals(rt.context().dimension())&&"dark_exploration".equals(engine.sourcePlaylistId())));
-        add(40,()->lib.settings.darkInNether=false);
+        add(40,()->lib.playlist("dark_exploration").conditions.groups.get(1).enabled=false);
         add(0,()->check("Nether toggle off excludes Dark exploration",!"dark_exploration".equals(engine.sourcePlaylistId())));
-        add(100,()->{lib.settings.darkInEnd=true;command("execute in minecraft:the_end run tp @s 0.5 100 0.5");});
+        add(100,()->{lib.playlist("dark_exploration").conditions.groups.get(2).enabled=true;command("execute in minecraft:the_end run tp @s 0.5 100 0.5");});
         add(0,()->check("End toggle applies throughout dimension","minecraft:the_end".equals(rt.context().dimension())&&"dark_exploration".equals(engine.sourcePlaylistId())));
-        add(40,()->lib.settings.darkInEnd=false);
+        add(40,()->lib.playlist("dark_exploration").conditions.groups.get(2).enabled=false);
         add(0,()->check("End toggle off excludes Dark exploration",!"dark_exploration".equals(engine.sourcePlaylistId())));
         add(80,()->{command("execute in minecraft:overworld run tp @s 2.5 90 2.5");command("time set 6000");});
         add(20,()->{
@@ -204,7 +205,7 @@ public final class NativeSuite {
         add(0,()->check("combined custom biome/time/dimension/Y/temperature/cover matches","custom:manual".equals(engine.sourcePlaylistId())));
         add(20,()->lib.playlist("custom:manual").conditions.minY=lib.playlist("custom:manual").conditions.maxY+1);
         add(0,()->check("single failed custom condition falls through",!"custom:manual".equals(engine.sourcePlaylistId())));
-        add(40,()->{lib.playlist("custom:manual").enabled=false;lib.settings.fadeSeconds=1;lib.settings.combatDeathMusic=DeathMusic.CUT;rt.overridePlaylist("combat",OverrideMode.UNTIL_RELEASED);});
+        add(40,()->{lib.playlist("custom:manual").enabled=false;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=1;lib.settings.combatDeathMusic=DeathMusic.CUT;rt.overridePlaylist("combat",OverrideMode.UNTIL_RELEASED);});
         add(40,()->{rt.togglePause();command("kill @s");});
         add(0,()->check("combat death CUT while paused stops native channel",rt.context().dead()&&engine.paused()&&engine.current()==null&&nativeState.source==0));
         add(20,()->{rt.togglePause();rt.returnAutomatic();mc.player.respawn();});
@@ -219,16 +220,16 @@ public final class NativeSuite {
         add(0,()->check("vanilla resumes on same source",nativeState.state==AL10.AL_PLAYING&&nativeState.source==frozen.source));
         add(50,()->{rt.togglePause();mc.getSoundManager().reload();});
         add(0,()->check("sound reload clears explicit pause",!engine.paused()));
-        add(20,()->{lib.settings.fadeSeconds=0.5;lib.settings.bufferSeconds=0.5;lib.settings.combatEnabled=true;rt.nextSong();rt.save();});
+        add(20,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0.5;lib.settings.bufferSeconds=0.5;lib.settings.combatEnabled=true;rt.nextSong();rt.save();});
         moreCases();
     }
 
     private static void moreCases(){
-        add(20,()->{command("execute in minecraft:overworld run tp @s 2.5 90 2.5");command("time set 6000");lib.home.configured=false;lib.settings.combatEnabled=false;});
+        add(20,()->{command("execute in minecraft:overworld run tp @s 2.5 90 2.5");command("time set 6000");lib.playlist("home").conditions.area.configured=false;lib.settings.combatEnabled=false;});
         for(int combination=0;combination<4;combination++){
             final int flags=combination;
             add(20,()->{
-                lib.settings.fadeSeconds=0.2;lib.settings.bufferSeconds=0;command("time set 6000");
+                lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0.2;lib.settings.bufferSeconds=0;command("time set 6000");
                 lib.playlist("day_outside").finishCurrentSongOnExit=(flags&1)!=0;
                 lib.playlist("night_outside").finishCurrentSong=(flags&2)!=0;
                 engine.reset();
@@ -245,21 +246,21 @@ public final class NativeSuite {
         add(0,()->check("returning to retained source avoids restart",oldTrack.equals(current())&&"day_outside".equals(engine.sourcePlaylistId())&&engine.phase()==PlaybackEngine.Phase.PLAYING));
         add(20,()->{
             for(var p:lib.playlists){p.finishCurrentSong=false;p.finishCurrentSongOnExit=false;}
-            lib.settings.fadeSeconds=4;rt.preview(lib.track("file:probe0"));
+            lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=4;rt.preview(lib.track("file:probe0"));
         });
         add(20,()->{rt.togglePause();});
         add(40,()->{frozenGain=nativeState.gain;frozen=nativeState;});
         add(0,()->check("native fade-in gain and position frozen",nativeState.state==AL10.AL_PAUSED&&Math.abs(nativeState.gain-frozenGain)<0.002&&Math.abs(nativeState.offset-frozen.offset)<0.002));
         add(10,()->rt.togglePause());
         add(0,()->check("native fade-in continues without jumping to full gain",nativeState.gain>frozenGain&&nativeState.gain<0.9));
-        add(20,()->{lib.settings.fadeSeconds=0;engine.reset();rt.nextSong();});
-        add(20,()->{lib.settings.fadeSeconds=4;command("time set 18000");});
+        add(20,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;engine.reset();rt.nextSong();});
+        add(20,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=4;command("time set 18000");});
         add(20,()->rt.togglePause());
         add(40,()->{frozenGain=nativeState.gain;frozen=nativeState;});
         add(0,()->check("native fade-out gain and position frozen",engine.phase()==PlaybackEngine.Phase.FADING&&nativeState.state==AL10.AL_PAUSED&&Math.abs(nativeState.gain-frozenGain)<0.002&&Math.abs(nativeState.offset-frozen.offset)<0.002));
         add(10,()->rt.togglePause());
         add(0,()->check("native fade-out continues at held gain",nativeState.gain<frozenGain&&nativeState.gain>0));
-        add(40,()->{lib.settings.fadeSeconds=0;engine.reset();rt.nextSong();});
+        add(40,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;engine.reset();rt.nextSong();});
         add(20,()->{
             rt.togglePause();
             otherSound=new net.minecraft.client.resources.sounds.SimpleSoundInstance(net.minecraft.sounds.SoundEvents.AMBIENT_CAVE.value().location(),net.minecraft.sounds.SoundSource.AMBIENT,0.01f,1,SoundInstance.createUnseededRandom(),true,0,SoundInstance.Attenuation.NONE,0,0,0,true);
@@ -289,7 +290,7 @@ public final class NativeSuite {
         add(30,()->{oldTrack=current();command("kill @s");});
         add(0,()->check("combat death Finish retains the playing song",rt.context().dead()&&oldTrack.equals(current())&&engine.finishingAfterDeath()&&nativeState.state==AL10.AL_PLAYING));
         add(30,()->{rt.returnAutomatic();mc.player.respawn();});
-        add(20,()->{lib.settings.fadeSeconds=0;lib.settings.combatDeathMusic=DeathMusic.FADE;command("time set 6000");rt.nextSong();});
+        add(20,()->{lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;lib.settings.combatDeathMusic=DeathMusic.FADE;command("time set 6000");rt.nextSong();});
         add(20,()->{rt.togglePause();rt.overridePlaylist("custom:manual",OverrideMode.ONE_SONG);});
         add(0,()->check("override request while paused does not start it",engine.paused()&&nativeState.state==AL10.AL_PAUSED));
         add(20,()->rt.togglePause());
@@ -333,6 +334,6 @@ public final class NativeSuite {
             check("70k-library native selection remains indexed",times[1900]<5_000_000&&engine.current()!=null);
             lib.tracks.removeIf(t->t.id.startsWith("file:unused"));lib.rebuildTrackIndex();
         });
-        add(20,()->{lib.settings.combatEnabled=true;lib.settings.silenceMinSeconds=1;lib.settings.silenceMaxSeconds=1;lib.settings.fadeSeconds=0.5;lib.settings.bufferSeconds=0.5;rt.returnAutomatic();rt.nextSong();rt.save();});
+        add(20,()->{lib.settings.combatEnabled=true;lib.settings.silenceMinSeconds=1;lib.settings.silenceMaxSeconds=1;lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0.5;lib.settings.bufferSeconds=0.5;rt.returnAutomatic();rt.nextSong();rt.save();});
     }
 }
