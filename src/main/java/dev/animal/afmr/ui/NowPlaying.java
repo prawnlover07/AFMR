@@ -26,7 +26,7 @@ public final class NowPlaying {
     private boolean enabled,nativeShown;
     private String nativeSongName;
     private Component nativeSongText=Component.empty();
-    private double started;
+    private double shownAt=Double.NaN;
     private long generation;
     private boolean hasCover;
     private boolean coverLoading;
@@ -39,7 +39,7 @@ public final class NowPlaying {
         if(current!=track||sequence!=playbackSequence||style!=settings.nowPlayingStyle||enabled!=settings.nowPlaying){
             clear();track=current;playbackSequence=sequence;style=settings.nowPlayingStyle;enabled=settings.nowPlaying;
             if(track==null||!enabled)return;
-            started=runtime.now();
+            shownAt=Double.NaN;
             Component title=title(track);
             if(style==NowPlayingStyle.MINECRAFT){
                 nativeSongName=track.vanilla?Identifier.parse(track.path).toShortLanguageKey()
@@ -52,7 +52,9 @@ public final class NowPlaying {
                 if(settings.widgetArtwork&&!track.vanilla){pendingCover=current;loadCover();}
             }
         }
-        if(nativeSongName!=null&&!nativeShown&&!runtime.engine().paused()
+        if(track!=null&&enabled&&Double.isNaN(shownAt)&&!runtime.engine().paused()
+            &&runtime.engine().trackElapsed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
+        if(nativeSongName!=null&&!nativeShown&&!Double.isNaN(shownAt)&&!runtime.engine().paused()
             &&mc.options.getFinalSoundSourceVolume(SoundSource.MUSIC)>0){
             mc.gui.toastManager().showNowPlayingToast();nativeShown=true;
         }
@@ -87,14 +89,15 @@ public final class NowPlaying {
     }
     public String nativeSongName(){
         var settings=runtime.library().settings;
-        return settings.nowPlaying&&settings.nowPlayingStyle==NowPlayingStyle.MINECRAFT&&runtime.engine().current()==track?nativeSongName:null;
+        return settings.nowPlaying&&settings.nowPlayingStyle==NowPlayingStyle.MINECRAFT&&runtime.engine().current()==track&&!Double.isNaN(shownAt)?nativeSongName:null;
     }
     public Component nativeSongText(){return nativeSongName()==null?Component.empty():nativeSongText;}
     public void draw(GuiGraphicsExtractor g){
         var settings=runtime.library().settings;
         if(track==null||!settings.nowPlaying||settings.nowPlayingStyle==NowPlayingStyle.MINECRAFT
             ||runtime.engine().current()!=track||mc.gui.hud.isHidden()||mc.level==null)return;
-        double age=runtime.now()-started,duration=settings.popupSeconds;
+        double age=runtime.now()-shownAt,duration=settings.popupSeconds;
+        if(Double.isNaN(age)||age<0)return;
         if(age>=duration)return;
         float alpha=(float)Math.min(1,Math.min(age/0.6,(duration-age)/0.8));if(alpha<=0.02)return;
         boolean hybrid=settings.nowPlayingStyle==NowPlayingStyle.HYBRID;

@@ -1,5 +1,35 @@
 # Deferred features
 
+## 1.0.1: song groups and player themes
+
+Implemented on both maintained targets; verification/release status is in the
+current changelog and test report. Accepted decisions on October 23:
+
+- Songs before silence has a global default and per-playlist override. Default one;
+  switches start a fresh group. Only naturally completed scheduled/held-override
+  tracks continue a group; Skip/Next, errors, previews and queues retain their
+  explicit behavior. Count is 1-1000, kept with playback profiles.
+- Add playing to playlist adds an assignment without removing the original or
+  moving files. Captures the song when the destination picker opens and preserves
+  an existing disabled assignment. Available in the workspace and Inspector.
+- Now-playing delay is shared appearance, 0-60 seconds (default zero). Count only
+  actual unpaused audio playback; keep the full ordinary display duration after
+  appearing. All supported styles, including native toast metadata, obey it.
+- Each playlist retains its Fisher–Yates cursor across switches. Avoid its own
+  last drawn song at a new cycle even after another playlist played. State remains
+  session-only and resets with the existing world/profile/resource lifecycle.
+- Nearby player is an ordinary nested condition. Enter a name or pick an online
+  profile, retaining a known UUID. Radius 1-1024 blocks (default 32); match only
+  live, client-tracked players in the current dimension, excluding yourself.
+  Existing entry/exit controls govern transitions. No server mod or remote lookup.
+  Optional observation is cached at four updates/second and cleared on logout;
+  no position snapshots are built when no enabled condition needs them.
+- Playlist exports/full backups retain selected player names and UUIDs as settings;
+  copied diagnostics omit those identities. Importers can reselect a player.
+
+Game-launch shuffle persistence, separate queue grouping policy, remote player
+tracking and network lookup are outside this update.
+
 ## Private 1.0 release
 
 The [release checklist](docs/RELEASE-1.0-CHECKLIST.md) records the October 23 plan.

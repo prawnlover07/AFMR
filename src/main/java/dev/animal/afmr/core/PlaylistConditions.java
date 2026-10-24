@@ -23,7 +23,7 @@ public final class PlaylistConditions {
         public String label(){return label;}
     }
     public enum Failure {
-        NONE, LOCATION, DIMENSION, BIOME, STRUCTURE_DATA, STRUCTURE, TIME, ELEVATION, TEMPERATURE, LIGHT, COVER, COMBAT, WATER, WEATHER, HEALTH, HELD_ITEM, GAME_MODE, NO_CONDITIONS_MATCH, GROUP, NEGATED, DISABLED;
+        NONE, NEARBY_PLAYER, LOCATION, DIMENSION, BIOME, STRUCTURE_DATA, STRUCTURE, TIME, ELEVATION, TEMPERATURE, LIGHT, COVER, COMBAT, WATER, WEATHER, HEALTH, HELD_ITEM, GAME_MODE, NO_CONDITIONS_MATCH, GROUP, NEGATED, DISABLED;
         private final int bit=1<<ordinal();
     }
     private static final Failure[] FAILURES=Failure.values();
@@ -35,6 +35,9 @@ public final class PlaylistConditions {
     public Weather weather=Weather.ANY_WEATHER;
     public boolean areaEnabled,dimensionEnabled,timeEnabled,elevationEnabled,temperatureEnabled,lightEnabled,biomeEnabled;
     public boolean fitSongsToTimeWindow;
+    public boolean nearbyPlayerEnabled;
+    public String nearbyPlayerName="",nearbyPlayerUuid="";
+    public double nearbyPlayerRadius=32;
     public Set<String> biomes=new LinkedHashSet<>();
     public boolean heldItemEnabled;
     public Set<String> heldItems=new LinkedHashSet<>();
@@ -64,6 +67,8 @@ public final class PlaylistConditions {
         if(!enabled)return Failure.DISABLED;
         // Track the filters checked and failed without allocating per-filter objects or arrays.
         int checked=0,failed=0,unknown=0;
+        if(nearbyPlayerEnabled){checked|=Failure.NEARBY_PLAYER.bit;
+            if(!c.nearbyPlayers().matches(nearbyPlayerUuid,nearbyPlayerName,nearbyPlayerRadius))failed|=Failure.NEARBY_PLAYER.bit;}
         if(areaEnabled){checked|=Failure.LOCATION.bit;if(!area.contains(c))failed|=Failure.LOCATION.bit;}
         if(dimensionEnabled){checked|=Failure.DIMENSION.bit;if(!dimension.equals(c.dimension()))failed|=Failure.DIMENSION.bit;}
         if(biomeEnabled){checked|=Failure.BIOME.bit;if(!biomes.contains(c.biome()))failed|=Failure.BIOME.bit;}
@@ -162,6 +167,12 @@ public final class PlaylistConditions {
         for(var group:groups)if(group.enabled&&(!matchAny||group.matches(c,settings))&&group.combatDriven(c,settings))return true;
         return false;
     }
+    public boolean needsNearbyPlayers(){
+        if(!enabled)return false;
+        if(nearbyPlayerEnabled)return true;
+        for(var group:groups)if(group.needsNearbyPlayers())return true;
+        return false;
+    }
     public int structureSearchRadius(){
         if(!enabled)return -1;
         int radius=structureEnabled?(int)Math.ceil(structureRadius):-1;
@@ -170,6 +181,7 @@ public final class PlaylistConditions {
     public int nodeCount(){int count=1;for(var group:groups)count+=group.nodeCount();return count;}
     public String summary(){
         var parts=new ArrayList<String>();
+        if(nearbyPlayerEnabled)parts.add("nearby player within "+nearbyPlayerRadius+" blocks");
         if(areaEnabled)parts.add("location");if(dimensionEnabled)parts.add(dimension);
         if(biomeEnabled)parts.add("biomes: "+biomes.size()+" selected");
         if(structureEnabled)parts.add("structures: "+structures.size()+" selected, radius "+structureRadius);
@@ -189,6 +201,11 @@ public final class PlaylistConditions {
         return (enabled?"":"Off / ")+(negated?"NOT ("+result+")":result);
     }
     public void normalize(){
+        if(nearbyPlayerName==null)nearbyPlayerName="";
+        if(nearbyPlayerUuid==null)nearbyPlayerUuid="";
+        nearbyPlayerName=nearbyPlayerName.strip();nearbyPlayerUuid=nearbyPlayerUuid.strip();
+        if(!Double.isFinite(nearbyPlayerRadius))nearbyPlayerRadius=32;
+        nearbyPlayerRadius=Math.max(1,Math.min(1024,nearbyPlayerRadius));
         normalize(0,new int[1]);
     }
     private void normalize(int depth,int[] nodes){
@@ -225,7 +242,8 @@ public final class PlaylistConditions {
         if(!Double.isFinite(area.radius))area.radius=64;area.radius=Math.clamp(area.radius,1,100000);
     }
     public PlaylistConditions copy(){
-        var c=new PlaylistConditions();c.areaEnabled=areaEnabled;c.dimensionEnabled=dimensionEnabled;c.timeEnabled=timeEnabled;
+        var c=new PlaylistConditions();c.nearbyPlayerEnabled=nearbyPlayerEnabled;c.nearbyPlayerName=nearbyPlayerName;
+        c.nearbyPlayerUuid=nearbyPlayerUuid;c.nearbyPlayerRadius=nearbyPlayerRadius;c.areaEnabled=areaEnabled;c.dimensionEnabled=dimensionEnabled;c.timeEnabled=timeEnabled;
         c.fitSongsToTimeWindow=fitSongsToTimeWindow;
         c.enabled=enabled;c.negated=negated;c.label=label;
         for(var group:groups)c.groups.add(group.copy());

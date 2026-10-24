@@ -1,6 +1,6 @@
 # AFMR for Fabric 1.20.1
 
-This is the actively maintained Fabric 1.20.1 backport of AFMR 1.0.
+This is the actively maintained Fabric 1.20.1 backport of AFMR 1.0.1.
 The repository's
 root `src/` remains the separate NeoForge 26.3 implementation. Edit this port's
 sources directly when changing 1.20.1 behavior; it has no runtime compatibility
@@ -17,7 +17,7 @@ excluded. Both switches start off. See the root [user guide](../../docs/USER-GUI
 
 Use a **Minecraft Java 1.20.1** instance with **Fabric Loader 0.19.5 or newer**, a
 matching **Fabric API for 1.20.1**, and **Java 17 or newer**. Put
-`animals-final-music-replacer-fabric-1.20.1-1.0.jar` from `build/libs/` in that
+`animals-final-music-replacer-fabric-1.20.1-1.0.1.jar` from `build/libs/` in that
 instance's `mods` folder. The audio decoders are included in the JAR.
 
 Press **M** to open the music workspace. Import files or folders with **Add music**;

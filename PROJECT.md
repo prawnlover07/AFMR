@@ -3,7 +3,7 @@
 AFMR is a client-side Minecraft soundtrack mod. It combines local music and vanilla
 tracks, selects playlists from the player's situation, and provides manual controls.
 
-Current build: **1.0**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
+Current build: **1.0.1**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
 The imported validated Git baseline remains **0.5.2**.
 The owner/author is **animal**. This folder is the source of truth for development.
 
@@ -11,7 +11,7 @@ An independently buildable **Fabric 1.20.1 / Java 17** backport is maintained in
 [`ports/fabric-1.20.1`](ports/fabric-1.20.1/README.md). It retains AFMR's playback
 and library features with the AFMR card as its sole now-playing style, without
 newer vanilla music-toast/frequency integration or menu blur. Its validation is
-separate from the NeoForge results below; both maintained builds are version 1.0.
+separate from the NeoForge results below; both maintained builds are version 1.0.1.
 
 Keep the version unchanged while any development tasks are in progress, including
 concurrent chats. Increment it once for the combined update only after all
@@ -22,6 +22,22 @@ The [user guide](docs/USER-GUIDE.md) explains current controls and workflows. Th
 keep the documentation current alongside code changes.
 
 ## Accepted product decisions
+
+- 1.0.1 adds song groups (global/default 1 plus per-playlist override, 1-1000),
+  current-song assignment copying, delayed now-playing (shared 0-60s/default 0),
+  per-playlist return-to-shuffle repeat protection, and a nearby-player condition.
+  Switching playlists resets group progress. Only natural scheduled/held-override
+  completions continue a group; queues/previews and manual Skip/Next retain their
+  normal policies and reset groups. Notification delay counts actual unpaused
+  audio time and does not shorten visible duration. Nearby player uses a selected
+  online UUID when known, otherwise an entered name, and a 1-1024 block sphere
+  (default 32) over live client-tracked players in the same dimension, excluding
+  self. It follows existing finish/fade controls and nested conditions/priority.
+  Profiles/copies/sharing/backups preserve new configuration. Player names/UUIDs
+  intentionally travel in playlist files but never in diagnostic summaries.
+  Retain source assignments and existing disabled destination entries when adding
+  a playing track. No game-launch shuffle persistence or remote player lookup.
+
 
 - AFMR's own code and documentation are MIT licensed, copyright 2026 animal.
   Include `LICENSE` in source and runtime distributions on both targets. Preserve

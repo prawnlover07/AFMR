@@ -28,7 +28,7 @@ public final class LibraryScreen extends Screen {
     private DenseList<Playlist> priorities;
     private final Map<String,Integer> ranks=new HashMap<>();
     private final EnumMap<WorkspacePage,MusicScreen> pages=new EnumMap<>(WorkspacePage.class);
-    private FlatButton pause,volumeButton,silenceButton,repairButton;
+    private FlatButton addPlaying,pause,volumeButton,silenceButton,repairButton;
     private dev.animal.afmr.library.LibraryHealth.Report repairReport;
     private AutoplayHereButton autoplayHere;
     private String conditionSummary="";
@@ -144,6 +144,9 @@ public final class LibraryScreen extends Screen {
         buildRules();
         int transportX=vw/2-105,transportY=layout.footerY()+15;
         pause=flat(runtime.engine().paused()?"Resume":"Pause",transportX,transportY,66,22,runtime::togglePause);
+        addPlaying=flat("Add playing to playlist",transportX,transportY+26,228,22,()->{
+            var track=runtime.engine().current();if(track!=null)minecraft.setScreen(new TrackPlaylistScreen(this,runtime,track.id,track.title));
+        });addPlaying.active=runtime.engine().current()!=null;
         var pauseAndResumeHelpText=Component.translatable("afmr.copy.library.pause_and_resume");
         if(!pauseAndResumeHelpText.getString().isBlank())pause.setTooltip(Tooltip.create(pauseAndResumeHelpText));
         var nextHelpControl=flat("Next",transportX+72,transportY,62,22,runtime::nextSong);
@@ -349,7 +352,7 @@ public final class LibraryScreen extends Screen {
         if(autoplayHere!=null)autoplayHere.tick();
         if(songRevision!=runtime.catalogRevision()||wasScanning!=runtime.scanning()){songRevision=runtime.catalogRevision();wasScanning=runtime.scanning();refresh();}
         art.track(runtime.engine().current());
-        if(pause!=null)pause.setMessage(Component.literal(runtime.engine().paused()?"Resume":"Pause"));
+        if(pause!=null){addPlaying.active=runtime.engine().current()!=null;pause.setMessage(Component.literal(runtime.engine().paused()?"Resume":"Pause"));}
     }
     private void updateRepairButton(){
         int missing=repairReport==null?0:repairReport.issues().size();

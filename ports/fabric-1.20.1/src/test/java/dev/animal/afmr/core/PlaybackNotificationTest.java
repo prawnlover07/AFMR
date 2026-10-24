@@ -11,7 +11,7 @@ class PlaybackNotificationTest {
     private final Track track=new Track("a","file","A",false);
     private final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
     private final PlaybackEngine engine=new PlaybackEngine(audio,new Random(7));
-    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
 
     private void tick(double now){engine.tick(now,library,outside,Set.of());}
     private void prepare(){
@@ -32,7 +32,8 @@ class PlaybackNotificationTest {
     @Test void failedStartDoesNotNotify(){
         var broken=new PlaybackEngine(new PlaybackEngine.Audio(){
             public void start(Track track)throws Exception{throw new Exception("fixture failure");}
-            public boolean playing(){return false;}
+            public boolean started(){return playing();}
+        public boolean playing(){return false;}
             public void gain(float gain){}
             public void stop(){}
             public void setPaused(boolean paused){}

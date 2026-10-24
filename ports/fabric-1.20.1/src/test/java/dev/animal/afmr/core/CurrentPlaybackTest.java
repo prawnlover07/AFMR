@@ -11,7 +11,7 @@ class CurrentPlaybackTest {
     private final PlaybackEngine engine = new PlaybackEngine(audio, new Random(7));
     private final Track song = new Track("song", "song", "A song", false);
     private Context context(String biome, String dimension, boolean day, boolean underground, boolean combat) {
-        return new Context(dimension,biome,combat,true,(day?6000:18000),underground,15,"world",0,(underground?64:100),0,(underground?8:0),0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        return new Context(dimension,biome,combat,true,(day?6000:18000),underground,15,"world",0,(underground?64:100),0,(underground?8:0),0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private Context outside() { return context("minecraft:forest", "minecraft:overworld", true, false, false); }
     private void setup() {

@@ -40,6 +40,7 @@ public final class GameAudio implements PlaybackEngine.Audio {
     @Override public boolean playing() {
         return sound != null && (warmup-- > 0 || minecraft.getSoundManager().isActive(sound));
     }
+    @Override public boolean started(){return sound!=null&&sound.started();}
     @Override public void gain(float gain) { this.gain = gain; if (sound != null) sound.gain(gain); }
     @Override public void setPaused(boolean value){paused=value;if(sound!=null)sound.setPaused(value);}
     @Override public void stop() {

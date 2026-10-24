@@ -9,7 +9,9 @@ import net.minecraft.util.valueproviders.ConstantFloat;
 
 /** A directly resolved, streaming music sound, retaining Minecraft's volume and device handling. */
 public final class MusicSound extends AbstractTickableSoundInstance {
-    private volatile boolean paused;
+    private volatile boolean paused,started;
+    public boolean started(){return started;}
+    public void markStarted(){started=true;}
     public MusicSound(Identifier file) {
         super(SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("afmr", "playback")),
             SoundSource.MUSIC, RandomSource.create());

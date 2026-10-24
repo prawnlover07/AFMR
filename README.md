@@ -1,4 +1,4 @@
-# animal's final music replacer — 1.0
+# animal's final music replacer — 1.0.1
 
 AFMR is a client-side custom soundtrack mod for **Minecraft Java 26.3**,
 **NeoForge 26.3.0.90+**, and **Java 25**. It combines local music and Minecraft's
@@ -9,7 +9,12 @@ See the [multiplayer guide](docs/USER-GUIDE.md#multiplayer) for behavior and sco
 
 ## Start here
 
-Version **1.0** is the first private release for friends, with contextual playlists,
+Version **1.0.1** adds song groups before silence, current-song assignment,
+notification delay, shuffle return protection and nearby-player themes. See the
+[update notes](CHANGELOG.md#101--october-23-2026) and
+[feature checks](docs/testing/2026-10-23-features-1.0.1.md).
+
+Version **1.0** was the first private release for friends, with contextual playlists,
 profiles, queue/history, moved-library repair, playlist sharing, full backups,
 custom backgrounds and Animal's reviewed UI text on both maintained targets.
 See the [release notes](CHANGELOG.md#10--october-23-2026).
@@ -24,7 +29,7 @@ See the [release notes](CHANGELOG.md#10--october-23-2026).
   commands, source packaging, and repository workflow.
 
 To install or upgrade, close Minecraft and put
-`animals-final-music-replacer-1.0.jar` in the instance's `mods` folder, replacing
+`animals-final-music-replacer-1.0.1.jar` in the instance's `mods` folder, replacing
 any older AFMR JAR. Keep one version installed. Launch, join a world, and press **M**,
 or open AFMR's Config button from the Mods menu.
 

@@ -32,6 +32,7 @@ public final class Library {
 
     public static final class Settings {
         public OverrideBinding[] overrideSlots=defaultOverrideSlots();
+        public int songsBeforeSilence = 1;
         public double silenceMinSeconds = 600;
         public double silenceMaxSeconds = 1200;
         public double fadeInSeconds = 0,fadeOutSeconds = 0;
@@ -66,12 +67,13 @@ public final class Library {
         public boolean widgetWrap = false;
         public boolean replayGainEnabled = true;
         public Set<SongColumn> songColumns=SongColumn.defaults();
-        public double popupSeconds = 7;
+        public double popupSeconds = 7, popupDelaySeconds = 0;
         /** Normal GAME/CREATIVE music delays in Minecraft 26.3, without AFMR's extra transitions. */
         public void restoreMinecraftPlaybackDefaults() {
-            silenceMinSeconds=600;silenceMaxSeconds=1200;fadeInSeconds=fadeOutSeconds=0;bufferSeconds=0;
+            silenceMinSeconds=600;silenceMaxSeconds=1200;fadeInSeconds=fadeOutSeconds=0;bufferSeconds=0;songsBeforeSilence=1;
         }
         public void normalizePlayback(){
+            songsBeforeSilence=Math.max(1,Math.min(1000,songsBeforeSilence));
             silenceMinSeconds=bounded(silenceMinSeconds,0,86400,600);
             silenceMaxSeconds=bounded(silenceMaxSeconds,silenceMinSeconds,86400,1200);
             fadeInSeconds=bounded(fadeInSeconds,0,60,0);fadeOutSeconds=bounded(fadeOutSeconds,0,60,0);
@@ -158,6 +160,8 @@ public final class Library {
         public boolean playOnTrigger = false;
         /** Override the global gap for this playlist, including initial automatic selection. */
         public boolean customSilence = false;
+        public boolean customSongCount = false;
+        public int songsBeforeSilence = 1;
         public double silenceMinSeconds = 600, silenceMaxSeconds = 1200;
         public boolean includeVanilla = true;
         /** Linear playlist gain; independent of the fade envelope and ReplayGain. */
@@ -191,7 +195,7 @@ public final class Library {
                           boolean covered, int lightLevel,
                           String world, double x, double y, double z,double coverDepth,double biomeTemperature,boolean dead,
                           StructureContext structures,boolean raining,boolean thundering,Precipitation precipitation,
-                          double healthHearts,boolean playerCombat,String mainHandItem,String offHandItem,GameMode gameMode,boolean jukeboxPlaying) {
+                          double healthHearts,boolean playerCombat,String mainHandItem,String offHandItem,GameMode gameMode,boolean jukeboxPlaying,NearbyPlayers nearbyPlayers) {
         public boolean day(){return Math.floorMod(timeOfDay,24000)<12000;}
     }
 
@@ -306,6 +310,7 @@ public final class Library {
     public Library snapshot() {
         Library copy = new Library(); copy.schemaVersion = schemaVersion;
         Settings s = copy.settings;
+        s.songsBeforeSilence=settings.songsBeforeSilence;s.popupDelaySeconds=settings.popupDelaySeconds;
         s.silenceMinSeconds=settings.silenceMinSeconds;s.silenceMaxSeconds=settings.silenceMaxSeconds;
         s.fadeInSeconds=settings.fadeInSeconds;s.fadeOutSeconds=settings.fadeOutSeconds;s.bufferSeconds=settings.bufferSeconds;s.combatQuietSeconds=settings.combatQuietSeconds;
         s.jukeboxMode=settings.jukeboxMode;
@@ -344,6 +349,7 @@ public final class Library {
         next.manualOnly=p.manualOnly;
         next.finishCurrentSong=p.finishCurrentSong;next.finishCurrentSongOnExit=p.finishCurrentSongOnExit;
         next.playOnTrigger=p.playOnTrigger;
+        next.customSongCount=p.customSongCount;next.songsBeforeSilence=p.songsBeforeSilence;
         next.customSilence=p.customSilence;next.silenceMinSeconds=p.silenceMinSeconds;next.silenceMaxSeconds=p.silenceMaxSeconds;
         next.volume=p.volume;
         next.includeVanilla=p.includeVanilla;next.conditions=p.conditions.copy();
@@ -358,6 +364,7 @@ public final class Library {
             if(b.playlistId==null)b.playlistId="";if(b.mode==null)b.mode=OverrideMode.ONE_SONG;
         }
         settings.normalizePlayback();
+        settings.popupDelaySeconds=bounded(settings.popupDelaySeconds,0,60,0);
         settings.popupSeconds = bounded(settings.popupSeconds, 1, 60, 7);
         settings.widgetScale = bounded(settings.widgetScale, 0.5, 2, 1);
         settings.widgetWidth = Math.clamp(settings.widgetWidth, 140, 600);
@@ -383,6 +390,7 @@ public final class Library {
     static void normalizePlaylist(Playlist p){
         if(p==null||p.id==null||p.name==null||p.tracks==null)throw new IllegalArgumentException("Invalid playlist");
         if(p.conditions==null)p.conditions=new PlaylistConditions();p.conditions.normalize();
+        p.songsBeforeSilence=Math.max(1,Math.min(1000,p.songsBeforeSilence));
         p.volume=bounded(p.volume,0,1,1);
         p.silenceMinSeconds=bounded(p.silenceMinSeconds,0,86400,600);
         p.silenceMaxSeconds=bounded(p.silenceMaxSeconds,p.silenceMinSeconds,86400,1200);

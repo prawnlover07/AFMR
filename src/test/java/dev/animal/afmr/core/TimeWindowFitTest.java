@@ -14,7 +14,7 @@ class TimeWindowFitTest {
     private final Settings settings=new Settings();
     private Context context(int time){
         return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private PlaylistConditions window(int start,int end){
         var c=new PlaylistConditions();c.timeEnabled=true;c.fitSongsToTimeWindow=true;c.startTime=start;c.endTime=end;return c;

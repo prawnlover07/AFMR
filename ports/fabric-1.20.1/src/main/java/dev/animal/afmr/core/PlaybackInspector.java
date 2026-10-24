@@ -23,6 +23,7 @@ public final class PlaybackInspector {
             details.add("Condition matching: "+(p.conditions.matchAny?"any enabled filter":"all enabled filters"));
             details.add("Finish on entry: "+p.finishCurrentSong+"; on exit: "+p.finishCurrentSongOnExit);
             details.add("Play on trigger: "+p.playOnTrigger);
+            details.add("Songs before silence: "+PlaybackEngine.songsBeforeSilence(p,lib.settings)+(p.customSongCount?" (custom)":" (global)"));
             details.add("Silence: "+(p.customSilence?"custom "+p.silenceMinSeconds+"-"+p.silenceMaxSeconds:"default "+lib.settings.silenceMinSeconds+"-"+lib.settings.silenceMaxSeconds)+" seconds");
             details.add("Biome: "+c.biome());details.add("Dimension: "+c.dimension());
             details.add("Time: "+c.timeOfDay()+"; block Y: "+(int)Math.floor(c.y()));
@@ -36,6 +37,7 @@ public final class PlaybackInspector {
             details.add("Gamemode: "+(c.gameMode()==null?"unavailable":c.gameMode().label()));
             details.add("Position: "+String.format(Locale.ROOT,"%.1f, %.1f, %.1f",c.x(),c.y(),c.z()));
             if(p.conditions.areaEnabled){var a=p.conditions.area;details.add("Area configured: "+a.configured+"; radius: "+a.radius);details.add("Area dimension: "+a.dimension);details.add("Area world matches: "+a.world.equals(c.world()));}
+            if(p.conditions.nearbyPlayerEnabled)details.add("Nearby player: "+p.conditions.nearbyPlayerName+"; radius: "+p.conditions.nearbyPlayerRadius+"; matches: "+c.nearbyPlayers().matches(p.conditions.nearbyPlayerUuid,p.conditions.nearbyPlayerName,p.conditions.nearbyPlayerRadius));
             if(p.conditions.biomeEnabled)for(String id:p.conditions.biomes)details.add("Allowed biome: "+id);
             if(p.conditions.heldItemEnabled)details.add("Held items ("+p.conditions.heldItemHand.label()+"): "+String.join(", ",p.conditions.heldItems));
             if(p.conditions.structureEnabled){

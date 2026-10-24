@@ -120,6 +120,7 @@ public final class PlaylistPresets {
             throw new IllegalArgumentException("Incomplete or oversized AFMR playlist file");
         for(var p:data.playlists){
             if(p==null||p.name==null||p.name.isBlank()||p.name.length()>80||p.name.codePoints().anyMatch(Character::isISOControl)||p.conditions==null||p.tracks==null||!Double.isFinite(p.volume)||p.volume<0||p.volume>1
+                ||p.songsBeforeSilence<1||p.songsBeforeSilence>1000
                 ||!Double.isFinite(p.silenceMinSeconds)||!Double.isFinite(p.silenceMaxSeconds)||p.silenceMinSeconds<0||p.silenceMaxSeconds<p.silenceMinSeconds||p.silenceMaxSeconds>86400)
                 throw new IllegalArgumentException("Invalid playlist settings");
             validateConditions(p.conditions,0,new int[1]);
@@ -134,7 +135,11 @@ public final class PlaylistPresets {
             ||c.biomes==null||c.structures==null||c.heldItems==null||c.dimension==null||c.area.dimension==null||c.area.world==null)
             throw new IllegalArgumentException("Invalid condition group");
         if(c.gameModes.stream().anyMatch(Objects::isNull))throw new IllegalArgumentException("Unsupported gamemode condition");
-        if(!Double.isFinite(c.area.x)||!Double.isFinite(c.area.y)||!Double.isFinite(c.area.z)||!Double.isFinite(c.area.radius)
+        if(!Double.isFinite(c.nearbyPlayerRadius)||c.nearbyPlayerRadius<1||c.nearbyPlayerRadius>1024
+            ||c.nearbyPlayerName==null||c.nearbyPlayerUuid==null
+            ||!c.nearbyPlayerName.isEmpty()&&!dev.animal.afmr.core.NearbyPlayers.validName(c.nearbyPlayerName)
+            ||!c.nearbyPlayerUuid.isEmpty()&&!dev.animal.afmr.core.NearbyPlayers.validUuid(c.nearbyPlayerUuid)
+            ||!Double.isFinite(c.area.x)||!Double.isFinite(c.area.y)||!Double.isFinite(c.area.z)||!Double.isFinite(c.area.radius)
             ||!Double.isFinite(c.minTemperature)||!Double.isFinite(c.maxTemperature)||!Double.isFinite(c.minCoverDepth)||!Double.isFinite(c.structureRadius)||!Double.isFinite(c.healthThreshold))
             throw new IllegalArgumentException("Invalid condition number");
         for(var child:c.groups)validateConditions(child,depth+1,count);

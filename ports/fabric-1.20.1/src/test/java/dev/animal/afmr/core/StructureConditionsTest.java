@@ -15,7 +15,7 @@ class StructureConditionsTest {
     private final StructureContext.Bounds modded=new StructureContext.Bounds("example:castle",100,60,100,120,90,120);
     private final StructureContext observed=new StructureContext(true,List.of(village,modded));
     private Context context(double x,double y,double z,StructureContext structures){
-        return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",x,y,z,0,0.8,false,structures,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",x,y,z,0,0.8,false,structures,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private PlaylistConditions villages(){
         var c=new PlaylistConditions();c.structureEnabled=true;c.structures.add(village.id());return c;

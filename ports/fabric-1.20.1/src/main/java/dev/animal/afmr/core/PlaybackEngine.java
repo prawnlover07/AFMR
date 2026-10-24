@@ -9,6 +9,7 @@ public final class PlaybackEngine {
     public interface Audio {
         void start(Track track) throws Exception;
         boolean playing();
+        boolean started();
         void gain(float gain);
         void stop();
         void setPaused(boolean paused);
@@ -28,6 +29,9 @@ public final class PlaybackEngine {
     private Track current;
     private Playlist playingSource;
     private long playbackSequence;
+    private double trackStarted;
+    private String groupPlaylistId;
+    private int groupStarted;
     private boolean previewing,joinPending;
     private boolean queuedPlaying,queueWaitingForOverride;
     private final PlaybackQueue queue=new PlaybackQueue();
@@ -72,7 +76,7 @@ public final class PlaybackEngine {
         if(previousSelection!=selected){waitingForTimeFit=false;durationNeeded=null;}
         if(context.dead()&&!wasDead&&playingCombat&&!previewing&&current!=null){
             switch(lib.settings.combatDeathMusic){
-                case CUT -> {audio.stop();enterSilence(now,lib);}
+                case CUT -> {audio.stop();enterSilence(now,lib,false);}
                 case FADE -> {phase=Phase.FADING;fadeStarted=now;fadeFrom=currentGain;fadeDuration=lib.settings.combatDeathFadeSeconds;}
                 case KEEP_PLAYING -> {if(phase==Phase.FADING)fadeInStarted=now-lib.settings.fadeInSeconds*currentGain;phase=Phase.PLAYING;finishAfterDeath=true;}
             }
@@ -80,6 +84,7 @@ public final class PlaybackEngine {
         wasDead=context.dead();
         if(updateJukebox(wallNow,lib,context.jukeboxPlaying()))return;
         now=playbackTime(wallNow);
+        if(current!=null&&Double.isNaN(trackStarted)&&audio.started())trackStarted=now;
         if(paused)return;
         String selectedId = selected == null ? null : selected.id;
         if (!Objects.equals(selectedId, candidateId)) {
@@ -97,7 +102,7 @@ public final class PlaybackEngine {
         }
         boolean accepted = triggerBufferBypass||now-candidateSince>=lib.settings.bufferSeconds;
         if (accepted && !Objects.equals(activeId, candidateId)) {
-            activeId = candidateId;
+            activeId = candidateId;groupPlaylistId=null;groupStarted=0;
             if (phase == Phase.PLAYING && !previewing && !queuedPlaying && !finishAfterDeath && !Objects.equals(playingPlaylistId,candidateId)) {
                 // A retained song still belongs to the playlist that started it, even after several transitions.
                 Playlist outgoing=lib.playlist(playingPlaylistId);
@@ -108,12 +113,12 @@ public final class PlaybackEngine {
                 }
             }
         }
-        if (phase != Phase.SILENCE && !audio.playing()) enterSilence(now, lib);
+        if (phase != Phase.SILENCE && !audio.playing()) enterSilence(now, lib,true);
         if (phase == Phase.FADING) {
             double fraction = fadeDuration == 0 ? 1 : (now - fadeStarted) / fadeDuration;
             currentGain = (float) (fadeFrom * (1 - Math.max( 0,Math.min(fraction, 1))));
             audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
-            if (fraction >= 1) { audio.stop(); enterSilence(now, lib); }
+            if (fraction >= 1) { audio.stop(); enterSilence(now, lib,false); }
         } else if (phase == Phase.PLAYING) {
             currentGain = lib.settings.fadeInSeconds == 0 ? 1 : (float) Math.max( 0,Math.min((now - fadeInStarted) / lib.settings.fadeInSeconds, 1));
             audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
@@ -189,6 +194,11 @@ public final class PlaybackEngine {
     private void startTrack(Track track,Playlist source,Origin origin,String reason,boolean combat,double now)throws Exception{
         joinPending=false;audio.gain(0);audio.start(track);
         silenceStarted=Double.NaN;silenceUntil=Double.NaN;
+        if(source!=null&&(origin==Origin.AUTOMATIC||origin==Origin.OVERRIDE)){
+            if(!Objects.equals(groupPlaylistId,source.id)){groupPlaylistId=source.id;groupStarted=0;}
+            groupStarted++;
+        }else{groupPlaylistId=null;groupStarted=0;}
+        trackStarted=audio.started()?now:Double.NaN;
         current=track;playbackSequence++;previousTrack=track.id;phase=Phase.PLAYING;
         playingPlaylistId=source==null?null:source.id;playingCombat=combat;finishAfterDeath=false;
         playingSource=source;
@@ -219,14 +229,18 @@ public final class PlaybackEngine {
     public boolean queuedPlaying(){return queuedPlaying;}
     public boolean queueWaitingForOverride(){return queueWaitingForOverride&&!queue.empty();}
 
-    private void enterSilence(double now, Library lib) {
+    private void enterSilence(double now, Library lib,boolean natural) {
+        boolean consecutive=natural&&phase==Phase.PLAYING&&!previewing&&!queuedPlaying&&!finishAfterDeath
+            &&playingSource!=null&&playingSource==selected&&Objects.equals(groupPlaylistId,playingSource.id)
+            &&!queueReady()&&overrideMode!=OverrideMode.ONE_SONG&&groupStarted<songsBeforeSilence(playingSource,lib.settings);
+        if(!consecutive){groupPlaylistId=null;groupStarted=0;}
         playingSource=null;
         waitingForTimeFit=false;durationNeeded=null;
         if(overrideMode==OverrideMode.ONE_SONG&&overrideStarted){
             clearOverride();selected=automaticSelected;candidateId=selected==null?null:selected.id;activeId=candidateId;candidateSince=now;
         }
         phase = Phase.SILENCE; current = null; previewing = false;queuedPlaying=false;playingPlaylistId=null;playingCombat=false;finishAfterDeath=false; currentGain = 0;
-        if(immediateNext||triggerPending){silenceUntil=now;silenceStarted=Double.NaN;}
+        if(consecutive||immediateNext||triggerPending){silenceUntil=now;silenceStarted=Double.NaN;}
         else scheduleSilence(now,lib);
         immediateNext=false;triggerPending=false;
     }
@@ -251,7 +265,7 @@ public final class PlaybackEngine {
         silenceMinimum=min;silenceMaximum=max;
         silenceUntil=silenceStarted+min+random.nextDouble()*(max-min);
     }
-    public void skip(double now, Library lib) { joinPending=false;triggerPending=false;audio.stop();enterSilence(playbackTime(now),lib); }
+    public void skip(double now, Library lib) { joinPending=false;triggerPending=false;audio.stop();enterSilence(playbackTime(now),lib,false); }
     public void playNow(double now) { if (phase == Phase.SILENCE){silenceUntil=playbackTime(now);silenceStarted=Double.NaN;} }
     /** Explicit global frequency changes restart only gaps which use global timing. */
     public void rescheduleSilence(double now,Library lib){
@@ -267,7 +281,7 @@ public final class PlaybackEngine {
         if(overrideId!=null&&(forced==null||!lib.hasPlayable(forced,vanilla,failed)))clearOverride();
         automaticSelected=lib.selectPlayable(context,vanilla,failed);Playlist target=overrideId==null?automaticSelected:forced;
         if(target==null&&!queueReady())return false;
-        joinPending=false;now=playbackTime(now);overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;audio.stop();enterSilence(now,lib);
+        joinPending=false;now=playbackTime(now);overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;audio.stop();enterSilence(now,lib,false);
         selected=target;candidateId=target==null?null:target.id;activeId=candidateId;candidateSince=now-lib.settings.bufferSeconds;return true;
     }
     private boolean updateJukebox(double wallNow,Library lib,boolean playing){
@@ -277,7 +291,7 @@ public final class PlaybackEngine {
         if(!playing||mode==JukeboxMode.OFF){
             if(jukeboxPhase==JukeboxPhase.NONE)return false;
             var endingMode=jukeboxMode;
-            if(endingMode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib);}
+            if(endingMode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib,false);}
             boolean wasPaused=paused||jukeboxHeld;jukeboxHeld=false;updatePauseState(wasPaused,wallNow);
             now=playbackTime(wallNow);
             if(endingMode==JukeboxMode.RESUME&&current!=null){
@@ -297,14 +311,14 @@ public final class PlaybackEngine {
         }
         jukeboxMode=mode;
         if(jukeboxPhase==JukeboxPhase.HELD){
-            if(mode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib);}
+            if(mode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib,false);}
             return true;
         }
-        if(current!=null&&!audio.playing())enterSilence(now,lib);
+        if(current!=null&&!audio.playing())enterSilence(now,lib,false);
         double fraction=settings.fadeOutSeconds==0?1:(now-jukeboxFadeStarted)/settings.fadeOutSeconds;
         currentGain=jukeboxFadeFrom*(float)(1-Math.max(0,Math.min(fraction,1)));audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
         if(current==null||fraction>=1){
-            if(mode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib);}
+            if(mode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib,false);}
             boolean wasPaused=paused||jukeboxHeld;jukeboxHeld=true;updatePauseState(wasPaused,wallNow);
             jukeboxPhase=JukeboxPhase.HELD;
         }
@@ -318,7 +332,7 @@ public final class PlaybackEngine {
         boolean pause=paused||jukeboxHeld;if(wasPaused==pause)return;
         if(pause)pausedAt=now;
         else{
-            double elapsed=Math.max(0,now-pausedAt);candidateSince+=elapsed;fadeStarted+=elapsed;fadeInStarted+=elapsed;
+            double elapsed=Math.max(0,now-pausedAt);trackStarted+=elapsed;candidateSince+=elapsed;fadeStarted+=elapsed;fadeInStarted+=elapsed;
             jukeboxFadeStarted+=elapsed;
             if(!Double.isNaN(silenceUntil))silenceUntil+=elapsed;
             if(!Double.isNaN(silenceStarted))silenceStarted+=elapsed;
@@ -329,7 +343,7 @@ public final class PlaybackEngine {
     /** An explicit request bypasses conditions, finish toggles, context buffer and the initial silent gap. */
     public boolean overridePlaylist(String id,OverrideMode mode,double now,Library lib,Set<String> vanilla){
         Playlist p=lib.playlist(id);if(mode==null||p==null||!lib.hasPlayable(p,vanilla,failed))return false;
-        joinPending=false;now=playbackTime(now);
+        joinPending=false;now=playbackTime(now);groupPlaylistId=null;groupStarted=0;
         waitingForTimeFit=false;durationNeeded=null;
         overrideId=id;overrideMode=mode;overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;previewing=false;finishAfterDeath=false;
         queueWaitingForOverride=true;
@@ -357,9 +371,12 @@ public final class PlaybackEngine {
     public boolean previewing() { return previewing; }
     /** Distinguishes new starts of the same track; pause/resume and retained songs keep their identity. */
     public long playbackSequence(){return playbackSequence;}
+    public double trackElapsed(double now){return current==null||Double.isNaN(trackStarted)?0:Math.max(0,playbackTime(now)-trackStarted);}
+    public int groupStarted(){return groupStarted;}
+    public static int songsBeforeSilence(Playlist p,Settings s){return p!=null&&p.customSongCount?p.songsBeforeSilence:s.songsBeforeSilence;}
     public boolean paused(){return paused;}
     public void reset() {
-        joinPending=false;playingSource=null;silenceSource=null;
+        joinPending=false;playingSource=null;silenceSource=null;groupPlaylistId=null;groupStarted=0;
         queue.clear();queueMessage="";queuedPlaying=queueWaitingForOverride=false;
         triggerPending=triggerBufferBypass=false;
         jukeboxPhase=JukeboxPhase.NONE;jukeboxHeld=false;jukeboxMode=JukeboxMode.OFF;
@@ -381,7 +398,7 @@ public final class PlaybackEngine {
     public void failed(String trackId, String message, double now, Library lib) {
         now=playbackTime(now);
         if (current != null && current.id.equals(trackId)) {
-            failed.add(trackId); error = message; audio.stop(); enterSilence(now, lib);
+            failed.add(trackId); error = message; audio.stop(); enterSilence(now, lib,false);
             silenceUntil = now + 1;silenceStarted=Double.NaN;
         }
     }

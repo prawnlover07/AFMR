@@ -23,7 +23,7 @@ public final class NowPlaying {
     private Track track;
     private long playbackSequence;
     private boolean enabled;
-    private double started;
+    private double shownAt=Double.NaN;
     private long generation;
     private boolean hasCover;
     private boolean coverLoading;
@@ -36,12 +36,14 @@ public final class NowPlaying {
         if(current!=track||sequence!=playbackSequence||enabled!=settings.nowPlaying){
             clear();track=current;playbackSequence=sequence;enabled=settings.nowPlaying;
             if(track==null||!enabled)return;
-            started=runtime.now();
+            shownAt=Double.NaN;
 
             var playlist=runtime.library().playlist(runtime.engine().sourcePlaylistId());
             widget.content(new NowPlayingInfo(track,title(track).getString(),runtime.engine().previewing()?"Preview":playlist==null?"":playlist.name,settings));
             if(settings.widgetArtwork&&!track.vanilla){pendingCover=current;loadCover();}
         }
+        if(track!=null&&enabled&&Double.isNaN(shownAt)&&!runtime.engine().paused()
+            &&runtime.engine().trackElapsed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
     }
     static Component title(Track track){
         return Component.literal(track.title);
@@ -78,7 +80,8 @@ public final class NowPlaying {
         var settings=runtime.library().settings;
         if(track==null||!settings.nowPlaying
             ||runtime.engine().current()!=track||mc.options.hideGui||mc.level==null)return;
-        double age=runtime.now()-started,duration=settings.popupSeconds;
+        double age=runtime.now()-shownAt,duration=settings.popupSeconds;
+        if(Double.isNaN(age)||age<0)return;
         if(age>=duration)return;
         float alpha=(float)Math.min(1,Math.min(age/0.6,(duration-age)/0.8));if(alpha<=0.02)return;
         boolean bottom=settings.widgetCorner.resolved().bottom();

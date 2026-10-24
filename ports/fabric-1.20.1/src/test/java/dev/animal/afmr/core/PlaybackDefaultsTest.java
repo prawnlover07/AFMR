@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlaybackDefaultsTest {
     @TempDir Path directory;
-    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     @Test void newSettingsUseNormalMinecraftGameTiming(){
         var s=new Settings();assertEquals(600,s.silenceMinSeconds);assertEquals(1200,s.silenceMaxSeconds);assertEquals(0,s.fadeInSeconds);assertEquals(0,s.bufferSeconds);
     }

@@ -15,15 +15,18 @@ public final class PlaybackInspectorScreen extends MusicScreen {
     private List<PlaybackInspector.Entry> entries=List.of();
     private String chosen="",reason="",playing="",source="",winner="";
     private int ticks;
-    private FlatButton pause,copy;
+    private FlatButton addPlaying,pause,copy;
     private int copyFeedbackTicks;
     private List<net.minecraft.util.FormattedCharSequence> reasonTooltip=List.of();
     public PlaybackInspectorScreen(Screen parent,ClientRuntime runtime){super("Playback inspector",parent,runtime);}
     @Override protected void init(){
-        super.init();list=addRenderableWidget(new DenseList<>(left,104,contentWidth,Math.max(28,height-163),
+        super.init();list=addRenderableWidget(new DenseList<>(left,104,contentWidth,Math.max(28,height-187),
             (g,e,x,y,w,hover)->{if(e.id().equals(chosen)||hover)g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
                 g.drawString(font,fit("#"+e.rank()+" "+e.name()+" | "+e.status(),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));},
             (e,clickX,clickY,button,twice)->{chosen=e.id();if(twice)details();},PlaybackInspector.Entry::name));
+        addPlaying=button("Add playing to playlist",left,height-77,contentWidth,()->{
+            var track=runtime.engine().current();if(track!=null)minecraft.setScreen(new TrackPlaylistScreen(this,runtime,track.id,track.title));
+        });addPlaying.active=runtime.engine().current()!=null;
         int quarter=(contentWidth-12)/4;
         button("Details",left,height-53,quarter,this::details);
         button("Retry failed",left+quarter+4,height-53,quarter,()->{runtime.engine().retryFailed();refresh();});
@@ -36,7 +39,8 @@ public final class PlaybackInspectorScreen extends MusicScreen {
         button("Back",left+contentWidth-104,height-29,104,this::onClose);refresh();
     }
     private void refresh(){
-        var lib=runtime.library();var e=runtime.engine();entries=runtime.inWorld()?PlaybackInspector.inspect(lib,runtime.context(),runtime.applicableVanilla(),e):List.of();list.items(entries);
+        var lib=runtime.library();var e=runtime.engine();
+        addPlaying.active=e.current()!=null;entries=runtime.inWorld()?PlaybackInspector.inspect(lib,runtime.context(),runtime.applicableVanilla(),e):List.of();list.items(entries);
         if(lib.playlist(chosen)==null&&!entries.isEmpty()){
             chosen=lib.playlist(e.sourcePlaylistId())!=null?e.sourcePlaylistId():e.selected()!=null?e.selected().id:entries.get(0).id();
             for(var row:entries)if(row.id().equals(chosen)){list.reveal(row);break;}

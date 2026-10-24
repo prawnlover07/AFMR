@@ -14,6 +14,22 @@ for the combined update only after all in-progress tasks are complete.
 
 No changes yet.
 
+## 1.0.1 — October 23, 2026
+
+- Adds **Timing → Songs before silence**, with a per-playlist override under
+  **Playback → Silence**. Play groups back-to-back, then use the normal gap.
+  Default one preserves existing timing; switches start fresh groups.
+- Adds **Add playing to playlist** to the workspace and Inspector. Choose a
+  destination without removing the source assignment or changing files.
+- Adds **Display → Widget → Delay (s)**. Wait 0-60 seconds of actual unpaused
+  playback, then show for the ordinary full duration. Includes native toast.
+- Preserves each playlist's shuffle position on switching and prevents its last
+  song repeating immediately on return across a cycle boundary when alternatives exist.
+- Adds **Conditions → Nearby player** with name/online-player selection, stable
+  known UUID, configurable radius and normal transition settings. Uses only
+  client-visible players; no server installation or network lookup. Shared files
+  retain target identity; diagnostic summaries omit it.
+
 ## 1.0 — October 23, 2026
 
 First private release for friends, maintained for NeoForge 26.3 and Fabric 1.20.1.

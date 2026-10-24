@@ -49,7 +49,8 @@ final class PlaylistConditionsScreen extends MusicScreen {
             "Weather: "+(c.weatherEnabled?c.weather.label():"filter off"),"Groups: "+c.groups.size(),
             "Health: "+(c.healthEnabled?(c.healthComparison==PlaylistConditions.HealthComparison.BELOW?"below ":"above ")+c.healthThreshold+" hearts":"any"),
             "Held items: "+(c.heldItemEnabled?c.heldItems.size()+" selected / "+c.heldItemHand.label():"any"),
-            "Gamemode: "+(c.gameModeEnabled?c.gameModes.size()+" selected":"any")};
+            "Gamemode: "+(c.gameModeEnabled?c.gameModes.size()+" selected":"any"),
+            "Nearby player: "+(c.nearbyPlayerEnabled?c.nearbyPlayerName+" / "+c.nearbyPlayerRadius+" blocks":"off")};
         int size=Math.max(1,(height-181)/24);page=Math.max(0,Math.min(page,(labels.length-1)/size));
         for(int i=page*size;i<Math.min(labels.length,(page+1)*size);i++){int kind=i;
             var locationHelpControl=button(labels[i],left,108+(i-page*size)*24,contentWidth,()->open(kind));
@@ -69,6 +70,7 @@ final class PlaylistConditionsScreen extends MusicScreen {
                 case 13->"afmr.copy.playlistconditions.health";
                 case 14->"afmr.copy.playlistconditions.held_items";
                 case 15->"afmr.copy.playlistconditions.gamemode";
+                case 16->"afmr.copy.playlistconditions.nearby_player";
                 default->"afmr.copy.playlistconditions.nested_groups";
             });
             if(!locationHelpText.getString().isBlank())locationHelpControl.setTooltip(Tooltip.create(locationHelpText));}
@@ -98,6 +100,7 @@ final class PlaylistConditionsScreen extends MusicScreen {
             case 13->new HealthConditionScreen(this,runtime,conditions);
             case 14->new HeldItemConditionScreen(this,runtime,conditions);
             case 15->new GameModeConditionScreen(this,runtime,conditions);
+            case 16->new NearbyPlayerConditionScreen(this,runtime,conditions);
             default->null;
         };
         if(next!=null)minecraft.setScreen(next);

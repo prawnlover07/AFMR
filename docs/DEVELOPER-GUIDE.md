@@ -1,8 +1,43 @@
 # Understanding and developing AFMR
 
-For the **1.0** source, reviewed **October 23, 2026**. This guide explains how the
+For the **1.0.1** source, reviewed **October 23, 2026**. This guide explains how the
 current implementation fits together. It is not a reconstruction of development
 before Git. The imported validated baseline is tagged `v0.5.2`.
+
+## Song groups, notification delay and player themes
+
+`PlaybackEngine` owns group identity/count on the client. Only a natural PLAYING
+completion with the same source/selection can skip an ordinary gap; queues,
+previews, one-song overrides, errors, death and explicit transport reset the group.
+Accepted playlist switches start a fresh group. `Settings.songsBeforeSilence` is
+profile-owned; each playlist can independently select its own count. Normalization
+and preset import validate 1–1000. `ShuffleBag.lastDraw` supplements the existing
+per-playlist remaining order, preventing an own-last repeat across cycle boundaries.
+Existing reset lifecycle clears these bags; nothing persists across launches.
+
+`MusicSound.started` publishes one boolean from Minecraft's sound executor after
+its channel is playing. `PlaybackEngine.trackElapsed()` starts then and uses the
+existing unpaused playback clock. `NowPlaying` waits for the shared appearance
+delay, then anchors the full existing wall-clock display duration. Style refreshes
+use the song's elapsed clock rather than starting another delay. Native song
+metadata is unavailable until ready. OpenAL calls remain on the sound executor.
+
+`PlayerProximity` observes only already tracked live players, at most four times
+per second and only when an enabled condition needs it. Logout/unused detection
+clears both snapshot and world reference. Immutable `NearbyPlayers` snapshots use
+case-insensitive name/UUID lookups and squared distances; matching has no allocation
+or world queries. Known UUIDs do not fall back to names. The new `Context` component
+is supplied explicitly by every caller. Conditions retain ordinary grouping and
+priority behavior. Playlist/full configuration exports preserve identities, while
+`DiagnosticSummary` deliberately omits them.
+
+`TrackPlaylistScreen` captures the track ID at opening for both history and
+current-song assignment. `ClientRuntime.addTrackToPlaylist()` keeps existing
+destination flags using `putIfAbsent`; no forwarding screen or history adapter
+remains. New authored passages live in `UI-COPY.md`. `SongGroupsTest`,
+`PlayerThemesTest`, the backup roundtrip and diagnostics regression cover core
+semantics. Native `Feature101Suite` implementations use generated audio and a
+synthetic client-visible player; they do not prove actual server packet handling.
 
 Read the [user guide](USER-GUIDE.md) first if the playback terms are unfamiliar.
 Use [DEVELOPMENT.md](../DEVELOPMENT.md) for toolchain/build setup,
@@ -402,7 +437,7 @@ The history stores IDs/metadata, not audio or absolute source paths.
 `ListeningScreen` adds the Queue / history workspace page with revision-based,
 bounded row snapshots. Main-editor Queue uses selected table order. History replay
 uses the existing preview control; re-queue respects the original playlist when
-available, and `HistoryPlaylistScreen` adds membership without re-enabling an
+available, and `TrackPlaylistScreen` adds membership without re-enabling an
 existing disabled assignment. Missing library tracks remain readable in history.
 
 On a death edge, a combat-driven source can cut, fade with the separate death

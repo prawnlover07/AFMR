@@ -2045,3 +2045,53 @@ cuts immediately.
 
 Prevent new songs from starting until respawn. A song allowed to finish by the death
 policy can keep playing.
+
+## Update: song groups and player themes
+
+### Nearby player
+
+> ID: afmr.copy.playlistconditions.nearby_player
+> Targets: Both targets
+> Where: Conditions: nearby player — Hover text
+> Placeholders: None
+> Reference behavior: Match when the selected player is present within the chosen radius in your dimension. Uses client-visible players; no server installation or remote lookup. Excludes yourself. Ordinary entry and exit settings apply.
+
+**Text to edit:**
+
+Match when the selected player is present within the chosen radius in your dimension. Uses client-visible players; no server installation or remote lookup. Excludes yourself. Ordinary entry and exit settings apply.
+
+### Notification delay
+
+> ID: afmr.copy.nowplayingsettings.delay
+> Targets: Both targets
+> Where: Display: Widget — Hover text
+> Placeholders: None
+> Reference behavior: Wait this many seconds of unpaused playback before showing now playing. Zero shows immediately. The full display duration follows the delay; changing songs cancels a pending notification.
+
+**Text to edit:**
+
+Wait this many seconds of unpaused playback before showing now playing. Zero shows immediately. The full display duration follows the delay; changing songs cancels a pending notification.
+
+### Songs before silence
+
+> ID: afmr.copy.songcount.count
+> Targets: Both targets
+> Where: Timing / playlist silence — Hover text
+> Placeholders: None
+> Reference behavior: Play this many automatic or held-override songs back-to-back, then wait the normal silence. One preserves ordinary playback. Switching playlists, Skip/Next and manual playback start a new group. Queued songs and previews keep their normal silence.
+
+**Text to edit:**
+
+Play this many automatic or held-override songs back-to-back, then wait the normal silence. One preserves ordinary playback. Switching playlists, Skip/Next and manual playback start a new group. Queued songs and previews keep their normal silence.
+
+### Nearby player selection guidance
+
+> ID: afmr.copy.nearbyplayer.guidance
+> Targets: Both targets
+> Where: Conditions: nearby player — On-screen guidance
+> Placeholders: None
+> Reference behavior: Enter a name and radius, or choose an online player to retain their UUID. Matching uses only live players in the client's dimension and tracked entities; the local player is excluded.
+
+**Text to edit:**
+
+Enter a player name and radius in blocks, or select an online player below.

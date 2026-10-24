@@ -45,6 +45,10 @@ public abstract class SoundEngineMixin {
     private void afmr$pauseChange(boolean gamePaused,CallbackInfo ci){
         if(afmr$music==null)return;
         var handle=instanceToChannel.get(afmr$music);if(handle==null){afmr$music=null;return;}
+        // Sound-executor observation publishes only this sound object's start flag.
+        // Capturing the object prevents an old callback from marking a replacement track.
+        var music=afmr$music;
+        if(!music.started())handle.execute(channel->{if(channel.playing())music.markStarted();});
         boolean pause=afmr$music.paused();
         if(pause!=afmr$appliedPause){handle.execute(pause?Channel::pause:Channel::unpause);afmr$appliedPause=pause;}
     }

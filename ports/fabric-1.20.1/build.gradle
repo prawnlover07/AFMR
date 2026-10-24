@@ -69,6 +69,7 @@ if (project.hasProperty('smoke')) {
                 programArg '--username'
                 programArg 'AFMRSmoke'
                 vmArg '-Dafmr.smoke=true'
+                if (project.hasProperty('features101')) vmArg '-Dafmr.smoke.features101=true'
                 if (project.hasProperty('finalReview')) vmArg '-Dafmr.smoke.finalReview=true'
                 if (project.hasProperty('reviewRestart')) vmArg '-Dafmr.smoke.reviewRestart=true'
                 if (project.hasProperty('playOnJoin')) vmArg '-Dafmr.smoke.playOnJoin=true'

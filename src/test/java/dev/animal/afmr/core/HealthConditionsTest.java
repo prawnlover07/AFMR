@@ -13,7 +13,7 @@ class HealthConditionsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(double hearts,int time){
-        return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,hearts,false,"","",GameMode.SURVIVAL,false);
+        return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,hearts,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private PlaylistConditions low(){var c=new PlaylistConditions();c.healthEnabled=true;return c;}
 

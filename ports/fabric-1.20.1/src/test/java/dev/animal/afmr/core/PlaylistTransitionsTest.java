@@ -25,7 +25,7 @@ class PlaylistTransitionsTest {
             var track=new Track(p.id,"file",name,false);lib.tracks.add(track);p.tracks.put(track.id,true);return p;
         }
         void tick(double time,Playlist where){
-            var context=new Context("minecraft:overworld","test:"+where.name.toLowerCase(Locale.ROOT),false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+            var context=new Context("minecraft:overworld","test:"+where.name.toLowerCase(Locale.ROOT),false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
             engine.tick(time,lib,context,Set.of());
         }
         void enterB(){tick(14,b);tick(15.9,b);assertEquals(PlaybackEngine.Phase.PLAYING,engine.phase());tick(16,b);}

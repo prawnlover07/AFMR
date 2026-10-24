@@ -1,6 +1,6 @@
 # AFMR manual checks
 
-Current build: **1.0**. New widget, native Music Frequency, normalization and
+Current build: **1.0.1**. New widget, native Music Frequency, normalization and
 condition-feature checks are listed in [DEFERRED-TESTING.md](DEFERRED-TESTING.md).
 The sections below retain the earlier release checklists.
 

@@ -1,5 +1,22 @@
 # AFMR: remaining deeper testing
 
+## 1.0.1: song groups and player themes
+
+Both regression builds pass **804 / 814 tests**, plus 20 copy checks each.
+Focused disposable native checks pass **25 NeoForge / 22 Fabric**; see
+[the feature report](docs/testing/2026-10-23-features-1.0.1.md) for measured scope.
+
+- [ ] Real two-player vanilla-server session: online selection/UUID rename,
+  radius boundary including height, player death/respawn/logout, dimension change,
+  tracking-range loss and reconnect. The current native test injects a real
+  RemotePlayer into the client list; it does not validate network updates.
+- [ ] Longer grouped sessions with live combat/death/jukebox transitions, queued
+  controls, edited membership, profile swaps and mixed shared tracks. Pure tests
+  cover the scheduler combinations; native runs cover representative short groups.
+- [ ] Physical keyboard/narration and extreme scales for the new count/player
+  editors, delayed native/card display through device/reload changes, and exported
+  player themes applied by another person. No new long modpack soak was performed.
+
 The active private-release priorities are in
 [the 1.0 checklist](docs/RELEASE-1.0-CHECKLIST.md). On October 23, Animal deferred
 friend testing until after release; it is not a pre-release requirement. The list

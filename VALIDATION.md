@@ -2,6 +2,14 @@
 
 Target: Minecraft Java 26.3, NeoForge 26.3.0.90, Java 25, Windows 11.
 
+## 1.0.1 features — October 23, 2026
+
+Both targets pass **804 / 814 automated tests**, 20 copy compiler checks each,
+and **25 / 22 focused native checks**. Generated audio verifies grouped playback
+and notification timing; actual screens verify new controls. A synthetic tracked
+player verifies proximity selection/exit. Real two-player network testing remains
+open. See [the measured report](docs/testing/2026-10-23-features-1.0.1.md).
+
 ## Private 1.0 release — October 23, 2026
 
 The final reviewed source passes **778 NeoForge / 788 Fabric automated tests**

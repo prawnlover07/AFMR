@@ -317,3 +317,12 @@ The independent Fabric helper uses `-Psmoke -PpackagedSmoke -PfinalReview runCli
 and adds `-PreviewRestart` for the second process. Its fixture belongs in
 `ports/fabric-1.20.1/run-smoke/background-fixtures/`; it uses the disposable
 `AFMR Smoke` world and stores results/screenshots inside `run-smoke`.
+
+## Song groups and player themes
+
+After staging the current packaged AFMR JAR in the disposable workspace profile,
+run `runClient -Pworkspace -Pfeatures101` from this test project. The generated
+fixture helper checks grouped real audio, delayed notifications, assignment/count
+editors and a synthetic client-visible player. Fabric's independent equivalent is
+`-Psmoke -PpackagedSmoke -Pfeatures101 runClient` from its port project. Coordinate
+desktop use first. See the 1.0.1 feature report for results and untested network cases.

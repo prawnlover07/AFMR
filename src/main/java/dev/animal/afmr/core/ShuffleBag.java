@@ -9,6 +9,7 @@ public final class ShuffleBag {
     private final Set<String> played=new HashSet<>();
     private final List<String> order=new ArrayList<>();
     private int cursor;
+    private String lastDraw;
     public Track next(List<Track> eligible,String previous,Random random){
         if(eligible.isEmpty())return null;
         Map<String,Track> available=HashMap.newHashMap(eligible.size());for(var t:eligible)available.put(t.id,t);
@@ -21,9 +22,14 @@ public final class ShuffleBag {
             for(int i=order.size()-1;i>0;i--){int j=random.nextInt(i+1);String id=order.get(i);order.set(i,order.get(j));order.set(j,id);}
             members=new HashSet<>(available.keySet());cursor=0;
         }
-        if(order.get(cursor).equals(previous)&&cursor+1<order.size()){
-            int j=cursor+1+random.nextInt(order.size()-cursor-1);String id=order.get(cursor);order.set(cursor,order.get(j));order.set(j,id);
+        if(order.get(cursor).equals(previous)||order.get(cursor).equals(lastDraw)){
+            int candidate=-1;
+            for(int i=cursor;i<order.size();i++)if(!order.get(i).equals(lastDraw)){
+                if(candidate<0)candidate=i;
+                if(!order.get(i).equals(previous)){candidate=i;break;}
+            }
+            if(candidate>cursor){String id=order.get(cursor);order.set(cursor,order.get(candidate));order.set(candidate,id);}
         }
-        String id=order.get(cursor++);played.add(id);return available.get(id);
+        String id=order.get(cursor++);played.add(id);lastDraw=id;return available.get(id);
     }
 }

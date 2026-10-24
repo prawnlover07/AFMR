@@ -30,6 +30,10 @@ class ConfigBackupTest {
         lib.tracks.add(song);lib.playlists.getFirst().tracks.put(song.id,false);
         lib.playlists.getFirst().customSilence=true;lib.playlists.getFirst().silenceMinSeconds=lib.playlists.getFirst().silenceMaxSeconds=600;
         lib.settings.fadeInSeconds=3;lib.settings.fadeOutSeconds=5;lib.settings.playImmediatelyOnJoin=true;lib.settings.menuColors.put(MenuColor.ACCENT,0x123456);
+        lib.settings.songsBeforeSilence=3;lib.settings.popupDelaySeconds=4;
+        var theme=lib.playlists.getFirst();theme.customSongCount=true;theme.songsBeforeSilence=2;
+        theme.conditions.nearbyPlayerEnabled=true;theme.conditions.nearbyPlayerName="ThemeFriend";
+        theme.conditions.nearbyPlayerUuid="aabbccdd-1234-1234-1234-123456789abc";theme.conditions.nearbyPlayerRadius=24;
         lib.settings.overrideSlots[3].playlistId=lib.playlists.getFirst().id;
         lib.folders.add(new Library.Folder(temp.resolve("music").toString(),lib.playlists.getFirst().id));
         var profile=lib.profiles.create(lib,"Second",lib.profiles.activeId);lib.profiles.bind("server:example.invalid",profile);

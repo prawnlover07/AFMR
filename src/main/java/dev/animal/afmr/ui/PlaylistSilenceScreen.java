@@ -23,9 +23,12 @@ final class PlaylistSilenceScreen extends MusicScreen {
         });
         var customSilenceSwitchHelpText=Component.translatable("afmr.copy.playlistsilence.custom_silence_switch");
         if(!customSilenceSwitchHelpText.getString().isBlank())customSilenceSwitchHelpControl.setTooltip(Tooltip.create(customSilenceSwitchHelpText));
+        button("Songs before silence: "+(playlist.customSongCount?playlist.songsBeforeSilence:"global"),left,110,contentWidth,()->{
+            if(apply())minecraft.gui.setScreen(new SongCountScreen(this,runtime,playlist));
+        });
         int fieldX=left+contentWidth-100;
-        minimum=edit(Double.toString(playlist.silenceMinSeconds),"Min silence (sec)",fieldX,110,100,null);
-        maximum=edit(Double.toString(playlist.silenceMaxSeconds),"Max silence (sec)",fieldX,138,100,null);
+        minimum=edit(Double.toString(playlist.silenceMinSeconds),"Min silence (sec)",fieldX,138,100,null);
+        maximum=edit(Double.toString(playlist.silenceMaxSeconds),"Max silence (sec)",fieldX,166,100,null);
         var minimumSilenceHelpText=Component.translatable("afmr.copy.playlistsilence.minimum_silence");
         if(!minimumSilenceHelpText.getString().isBlank())minimum.setTooltip(Tooltip.create(minimumSilenceHelpText));
         var maximumSilenceHelpText=Component.translatable("afmr.copy.playlistsilence.maximum_silence");
@@ -43,8 +46,8 @@ final class PlaylistSilenceScreen extends MusicScreen {
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         g.text(font,fit(playlist.name,contentWidth),left,56,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        g.text(font,fit("Min silence (sec)",contentWidth-108),left,116,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.text(font,fit("Max silence (sec)",contentWidth-108),left,144,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.text(font,fit("Min silence (sec)",contentWidth-108),left,144,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.text(font,fit("Max silence (sec)",contentWidth-108),left,172,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
         if(!error.isBlank())g.text(font,fit(error,contentWidth),left,height-43,0xFFFFA0A0);
     }
 }

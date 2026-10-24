@@ -9,8 +9,8 @@ class PlaybackEngineTest {
     private final FakeAudio audio=new FakeAudio();
     private PlaybackEngine engine;
     private Library library;
-    private final Context forest=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
-    private final Context desert=new Context("minecraft:overworld","minecraft:desert",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+    private final Context forest=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+    private final Context desert=new Context("minecraft:overworld","minecraft:desert",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     private Playlist general,forestPlaylist,desertPlaylist;
     private Track a,b,c;
     @BeforeEach void setup(){
@@ -58,7 +58,7 @@ class PlaybackEngineTest {
     }
     @Test void priorityAndCombatToggle(){
         Playlist combat=library.playlist("combat");combat.includeVanilla=false;combat.tracks.put(a.id,true);
-        Context busy=new Context("minecraft:overworld","minecraft:forest",true,true,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        Context busy=new Context("minecraft:overworld","minecraft:forest",true,true,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
         assertEquals(combat,library.selectPlayable(busy,Set.of(),Set.of()));
         library.settings.combatEnabled=false;
         assertEquals(forestPlaylist,library.selectPlayable(busy,Set.of(),Set.of()));
@@ -99,7 +99,7 @@ class PlaybackEngineTest {
     }
     @Test void dayNightAndDimensionRules(){
         var night=library.playlist("night");night.enabled=true;night.tracks.put(a.id,true);
-        Context context=new Context("minecraft:the_nether","minecraft:nether_wastes",false,false,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        Context context=new Context("minecraft:the_nether","minecraft:nether_wastes",false,false,18000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
         assertEquals(night,library.select(context));night.enabled=false;
         var dimension=new Playlist("nether","Nether");dimension.conditions.dimensionEnabled=true;dimension.conditions.dimension="minecraft:the_nether";dimension.tracks.put(c.id,true);
         library.playlists.add(0,dimension);assertEquals(dimension,library.select(context));
@@ -107,6 +107,7 @@ class PlaybackEngineTest {
     static class FakeAudio implements PlaybackEngine.Audio{
         Track current;float gain;String fail;boolean paused;
         public void start(Track t)throws Exception{if(t.id.equals(fail))throw new Exception("bad audio");current=t;}
+        public boolean started(){return playing();}
         public boolean playing(){return current!=null;}
         public void gain(float value){gain=value;}
         public void stop(){current=null;}

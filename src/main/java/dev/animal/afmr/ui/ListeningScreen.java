@@ -41,7 +41,7 @@ final class ListeningScreen extends MusicScreen {
             first=button("Play now",left,height-101,thirdWidth,this::replay);
             second=button("Queue",left+thirdWidth+4,height-101,thirdWidth,this::enqueueHistory);
             third=button("Add to playlist",left+2*(thirdWidth+4),height-101,thirdWidth,()->{
-                var row=selected();if(row!=null)minecraft.gui.setScreen(new HistoryPlaylistScreen(this,runtime,row.played()));
+                var row=selected();if(row!=null)minecraft.gui.setScreen(new TrackPlaylistScreen(this,runtime,row.played().trackId(),row.played().title()));
             });
             fourth=button("Clear history",left,height-77,contentWidth,()->{runtime.clearHistory();chosen=-1;refresh();});
             var historyPlayNowHelpText=Component.translatable("afmr.copy.listening.history_play_now");

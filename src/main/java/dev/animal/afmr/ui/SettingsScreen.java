@@ -40,6 +40,7 @@ final class SettingsScreen extends MusicScreen {
         var jukeboxPolicyHelpControl=button("Jukebox: "+s.jukeboxMode.label(),x,130,half,()->flip(()->s.jukeboxMode=JukeboxMode.values()[(s.jukeboxMode.ordinal()+1)%JukeboxMode.values().length]));
         var jukeboxPolicyHelpText=Component.translatable("afmr.copy.settings.jukebox_policy");
         if(!jukeboxPolicyHelpText.getString().isBlank())jukeboxPolicyHelpControl.setTooltip(Tooltip.create(jukeboxPolicyHelpText));
+        button("Songs before silence: "+s.songsBeforeSilence,x,156,half,()->{if(apply())minecraft.gui.setScreen(new SongCountScreen(this,runtime,null));});
         int combatWidth=Math.min(150,contentWidth/3),backWidth=Math.min(130,contentWidth/4);
         var combatSettingsHelpControl=button("Combat settings",left,height-29,combatWidth,()->{if(apply())minecraft.gui.setScreen(new CombatSettingsScreen(this,runtime));});
         var combatSettingsHelpText=Component.translatable("afmr.copy.settings.combat_settings");

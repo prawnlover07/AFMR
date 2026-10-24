@@ -229,7 +229,7 @@ public final class IntegrationSuite {
             manual.tracks.put(trackB,false);check("Disabled song cannot queue",!rt.queueTrack(trackB,manual.id));manual.tracks.put(trackB,true);
             click("History");check("History UI opens with real starts",screen("ListeningScreen")&&(boolean)field(mc.gui.screen(),"showHistory"));
             row("list",0);click(widgets().stream().filter(w->w.getMessage().getString().equals("Queue")).toList().getLast());check("History re-queues song",rt.engine().queue().size()==1);
-            click("Add to playlist");check("History destination selector opens",screen("HistoryPlaylistScreen"));mc.gui.screen().onClose();
+            click("Add to playlist");check("History destination selector opens",screen("TrackPlaylistScreen"));mc.gui.screen().onClose();
             row("list",0);click("Play now");check("History replay keeps pending queue",rt.engine().queue().size()==1);shot("history");
         });
     }

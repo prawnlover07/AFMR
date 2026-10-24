@@ -18,7 +18,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 final class NowPlayingSettingsScreen extends MusicScreen {
-    private EditBox duration,scale,widgetWidth,backgroundColor,opacity;
+    private EditBox delay,duration,scale,widgetWidth,backgroundColor,opacity;
     private String error="";
     private int page,scroll,rows,totalRows;
     private static final int TOP=79,ROW=24;
@@ -31,7 +31,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
 
     @Override protected void init(){
         super.init();var s=runtime.library().settings;
-        duration=scale=widgetWidth=backgroundColor=opacity=null;controls.clear();labels.clear();
+        delay=duration=scale=widgetWidth=backgroundColor=opacity=null;controls.clear();labels.clear();
         int half=(contentWidth-6)/2;
         button("Widget",left,47,half,()->{if(apply()){page=0;rebuildWidgets();}}).active=page!=0;
         button("Menus",left+half+6,47,half,()->{if(apply()){page=1;rebuildWidgets();}}).active=page!=1;
@@ -73,6 +73,9 @@ final class NowPlayingSettingsScreen extends MusicScreen {
         var widgetCornerHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_corner.fabric");
         if(!widgetCornerHelpText.getString().isBlank())widgetCornerHelpControl.setTooltip(Tooltip.create(widgetCornerHelpText));
         row++;
+        delay=number("Delay (s)",Double.toString(s.popupDelaySeconds),"Delay seconds",left,TOP+row++*ROW,body);
+        var delayHelp=Component.translatable("afmr.copy.nowplayingsettings.delay");
+        if(!delayHelp.getString().isBlank())delay.setTooltip(Tooltip.create(delayHelp));
         duration=number("Duration (s)",Double.toString(s.popupSeconds),"Popup seconds",left,TOP+row*ROW,half);
         var widgetDurationHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_duration.fabric");
         if(!widgetDurationHelpText.getString().isBlank())duration.setTooltip(Tooltip.create(widgetDurationHelpText));
@@ -162,6 +165,8 @@ final class NowPlayingSettingsScreen extends MusicScreen {
     private boolean apply(){
         var s=runtime.library().settings;
         try{
+            double delaySeconds=delay==null?s.popupDelaySeconds:Double.parseDouble(delay.getValue());
+            if(!Double.isFinite(delaySeconds)||delaySeconds<0||delaySeconds>60){error="Notification delay: 0-60 seconds.";return false;}
             double seconds=duration==null?s.popupSeconds:Double.parseDouble(duration.getValue());
             double percent=scale==null?s.widgetScale*100:Double.parseDouble(scale.getValue());
             int width=widgetWidth==null?s.widgetWidth:Integer.parseInt(widgetWidth.getValue());
@@ -176,9 +181,9 @@ final class NowPlayingSettingsScreen extends MusicScreen {
                 if(!hex.matches("[0-9a-fA-F]{6}")){error="Background color: six hex digits, e.g. #000000.";return false;}
                 rgb=Integer.parseInt(hex,16);
             }
-            boolean changed=s.popupSeconds!=seconds||s.widgetScale!=percent/100||s.widgetWidth!=width
+            boolean changed=s.popupDelaySeconds!=delaySeconds||s.popupSeconds!=seconds||s.widgetScale!=percent/100||s.widgetWidth!=width
                 ||s.widgetBackgroundColor!=rgb||s.widgetBackgroundOpacity!=backgroundOpacity/100;
-            s.popupSeconds=seconds;s.widgetScale=percent/100;s.widgetWidth=width;
+            s.popupDelaySeconds=delaySeconds;s.popupSeconds=seconds;s.widgetScale=percent/100;s.widgetWidth=width;
             s.widgetBackgroundColor=rgb;s.widgetBackgroundOpacity=backgroundOpacity/100;
             runtime.save();if(changed)runtime.overlay().refresh();error="";return true;
         }catch(NumberFormatException e){error="Duration, scale, width and opacity must be numbers.";return false;}

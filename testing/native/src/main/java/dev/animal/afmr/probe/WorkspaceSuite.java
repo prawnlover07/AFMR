@@ -127,7 +127,7 @@ public final class WorkspaceSuite {
     }
     private static void shot(String name){Screenshot.grab(mc.gameDirectory,"workspace-"+name+".png",mc.gameRenderer.mainRenderTarget(),1,message->{});}
     @SubscribeEvent public static void tick(ClientTickEvent.Post ignored){
-        if(Boolean.getBoolean("afmr.probe.finalReview"))return;
+        if(Boolean.getBoolean("afmr.probe.finalReview")||Boolean.getBoolean("afmr.probe.features101"))return;
         if(!Boolean.getBoolean("afmr.probe.workspace")||finished)return;
         mc=Minecraft.getInstance();
         try{

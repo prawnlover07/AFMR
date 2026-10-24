@@ -48,7 +48,7 @@ public final class FabricSmoke implements ClientModInitializer {
     private void check(boolean condition,String name){if(condition){passed++;log("PASS "+name);}else{failed++;log("FAIL "+name+" | native="+sample);}}
     private void step(int ticks,Runnable action){steps.add(new Step(ticks,action));}
     private void tick(Minecraft client){
-        if(Boolean.getBoolean("afmr.smoke.finalReview"))return;
+        if(Boolean.getBoolean("afmr.smoke.finalReview")||Boolean.getBoolean("afmr.smoke.features101"))return;
         if(finished)return;mc=client;
         try{
             if(++tick>18000)throw new IllegalStateException("Smoke timeout");

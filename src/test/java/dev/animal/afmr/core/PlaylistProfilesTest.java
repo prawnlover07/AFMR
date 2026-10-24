@@ -100,7 +100,7 @@ class PlaylistProfilesTest {
         l.playlist("day_outside").tracks.put("file:69999",true);l.playlist("day_outside").volume=0.25;
         String id=l.profiles.create(l,"Copy","default");l.rebuildTrackIndex();tracks.locked=true;l.profiles.activate(l,id);
         l.settings.silenceMinSeconds=l.settings.silenceMaxSeconds=0;var audio=new PlaybackEngineTest.FakeAudio();var engine=new PlaybackEngine(audio,new Random(1));
-        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
         for(int i=0;i<2000;i++)engine.tick(i/20.0,l,c,Set.of());assertEquals(0.25,audio.gain,0.001);
     }
     @Test void everyProfilePlaybackFieldSurvivesCaptureAndApply() throws Exception{

@@ -1,6 +1,6 @@
 # AFMR user guide
 
-For animal's final music replacer **1.0**. Reviewed against the source on
+For animal's final music replacer **1.0.1**. Reviewed against the source on
 **October 23, 2026**.
 
 AFMR gives Minecraft a soundtrack built from your own music and Minecraft's music.
@@ -36,7 +36,7 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
 1. Use **Minecraft Java 26.3**, **NeoForge 26.3.0.90 or later**, and **Java 25**.
    Install AFMR on your own Minecraft client; a server installation is unnecessary.
    Fabric, Forge, and other Minecraft versions need a separate port.
-2. Close Minecraft. Put `animals-final-music-replacer-1.0.jar` in your game
+2. Close Minecraft. Put `animals-final-music-replacer-1.0.1.jar` in your game
    instance's `mods` folder. Keep exactly one AFMR JAR there.
 3. Launch that instance, join a world, and press **M**. If M is already assigned
    to another mod, change AFMR's binding in **Options → Controls → Key Binds**.
@@ -439,6 +439,21 @@ This checks item type, including damaged, renamed and enchanted rods; casting is
 not required. Items in your inventory but outside the chosen hand(s) do not count.
 The filter works with All/Any/Not groups in singleplayer and multiplayer.
 
+**Nearby player:** open **Name & conditions → Nearby player**, enter a Minecraft
+player name or select an online player, set a **1–1024 block** radius (default 32),
+and turn the condition on. A selected/known online profile keeps its UUID, so a
+later name change does not target someone else. Otherwise AFMR matches the entered
+name without case sensitivity. You cannot target yourself.
+
+Distance includes height and the exact radius boundary. Only living players
+already tracked by your client in the current dimension count; the online list
+alone does not mean someone is nearby. Server tracking limits can therefore make
+a large configured radius ineffective. No server mod is required. Combine the
+filter with ordinary All/Any/Not groups and adjust playlist priority as usual.
+Entry and exit obey the playlist's existing finish/fade settings. Player names
+and UUIDs are retained in playlist exports and full backups; copied diagnostic
+summaries omit them.
+
 **Weather → Any weather** includes rain, snow and thunderstorms, and excludes clear
 conditions. It uses the dimension's weather state, so it also matches a rainy world
 while you are in a dry biome. **Rain** and **Snow** additionally check which type the
@@ -510,6 +525,20 @@ dimension regardless of cover/light. Every branch and filter is editable.
 
 ## Timing and transitions
 
+**Songs before silence** in Timing sets how many naturally completed songs play
+consecutively before the usual silent gap. It starts at **1**; whole numbers from
+**1 to 1000** are allowed. Set **3** for three songs, a gap, then another three.
+For an individual playlist, open **Playback → Silence → Songs before silence**
+and enable **Override global count**. Song count and custom silence are independent.
+Both global counts and overrides belong to the current world/server profile.
+
+Switching playlists starts a fresh group. Initial playback keeps its usual wait;
+each song still uses the normal fade-in. Groups apply to automatic playback and
+held playlist overrides. Queued songs, previews and one-song overrides retain
+their normal silence behavior. Skip ends the group and waits normally; Next ends
+the group and bypasses the wait. Minecraft defaults restores the global count to
+one, preserving playlist overrides.
+
 **Timing** controls:
 
 | Setting | What it does | Fresh default / range |
@@ -568,7 +597,8 @@ out-of-range records do not hold AFMR. Ending a record never clears a manual Pau
 and the usual rule preventing new music while dead still applies.
 
 **Minecraft defaults** immediately saves 600–1200 second gaps and zero
-fade/buffer, replacing even unsaved timing text. It preserves your other settings.
+fade/buffer and one song before silence, replacing even unsaved timing text.
+It preserves your other settings.
 This approximates normal gameplay music delays; it does not reproduce every special
 Minecraft music timer. Changed global silence settings apply to future gaps; an existing
 countdown remains. Playlist custom ranges remain independent of these global values. Next song bypasses that countdown.
@@ -641,6 +671,15 @@ returning preserves the remaining cycle. Automatic play and overrides share it;
 explicit previews are separate. Skipped/failed selections count as drawn. A playlist
 with one song can repeat. Changing membership preserves already-drawn songs where
 possible. Cycles reset on disconnect, sound reload, or restart.
+
+AFMR also remembers each playlist's own last drawn song across swaps, so returning
+after another playlist played does not immediately repeat that song at a new
+shuffle cycle when alternatives exist. Switching profiles resets the session state.
+
+Use **Add playing to playlist** in the workspace or Inspector to assign the
+current song to another playlist. The picker captures the song that was playing
+when opened. The original assignment and playback remain intact; an already-off
+destination assignment stays off. Files are never moved or copied.
 
 ## Manual overrides and keybinds
 
@@ -864,6 +903,13 @@ and Bottom right. This applies to all three styles. Default preserves top-left
 Minecraft/Hybrid and bottom-left AFMR placement. Bottom popups stay above the hotbar
 when they cannot fit beside it; native pause-menu song information retains its normal
 position. Minecraft's Music Toast visibility option still governs native popups.
+
+**Delay (s)** delays the notification by **0–60 seconds** (default 0).
+The timer starts when audio actually begins and pauses with AFMR playback. A song
+that ends before the delay never displays a notification. Once shown, the widget
+keeps its full ordinary display duration. This setting applies to every supported
+style, including Minecraft's native toast and pause-menu song metadata on 26.3.
+It is shared across profiles.
 
 The same panel sets style, visibility and custom popup duration (initially
 7 seconds; 1–60 allowed). **Scale (%)** sets scale (50–200%, including text and

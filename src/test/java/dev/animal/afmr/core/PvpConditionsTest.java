@@ -14,7 +14,7 @@ class PvpConditionsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(boolean combat,boolean pvp,boolean dead){
-        return new Context("minecraft:overworld","minecraft:plains",combat,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,dead?0:10,pvp,"","",GameMode.SURVIVAL,false);
+        return new Context("minecraft:overworld","minecraft:plains",combat,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,dead?0:10,pvp,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private PlaylistConditions players(){var c=new PlaylistConditions();c.combat=State.YES;c.combatPlayersOnly=true;return c;}
 

@@ -28,6 +28,7 @@ neoForge {
                 gameDirectory = project.file('run/integration')
                 programArguments.addAll '--username', 'AFMRIntegration', '--quickPlaySingleplayer', 'New World'
             } else if (project.hasProperty('workspace')) {
+                if (project.hasProperty('features101')) jvmArguments.add('-Dafmr.probe.features101=true')
                 if (project.hasProperty('finalReview')) jvmArguments.add('-Dafmr.probe.finalReview=true')
                 if (project.hasProperty('reviewRestart')) jvmArguments.add('-Dafmr.probe.reviewRestart=true')
                 if (project.hasProperty('menuColors')) jvmArguments.add('-Dafmr.probe.menuColors=true')

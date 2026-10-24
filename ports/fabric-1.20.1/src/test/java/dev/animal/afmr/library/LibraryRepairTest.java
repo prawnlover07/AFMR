@@ -136,14 +136,15 @@ class LibraryRepairTest {
         }
         class Audio implements PlaybackEngine.Audio{
             boolean playing;
-            public void start(Track t){playing=true;}public boolean playing(){return playing;}public void gain(float v){}public void stop(){playing=false;}public void setPaused(boolean p){}
+            public void start(Track t){playing=true;}public boolean started(){return playing();}
+        public boolean playing(){return playing;}public void gain(float v){}public void stop(){playing=false;}public void setPaused(boolean p){}
         }
         var l=Library.defaults();var tracks=new Guarded();l.tracks=tracks;
         var t=track(l,directory.resolve("gone.wav"),"file:kept");for(int i=0;i<70000;i++)track(l,directory.resolve("unrelated/"+i+".wav"),"file:unused"+i);
         l.playlist("day_outside").tracks.put(t.id,true);Path chosen=file("new.wav");LibraryRepair.apply(l,plan(l,false,t.id,chosen));
         tracks.locked=true;l.settings.silenceMinSeconds=l.settings.silenceMaxSeconds=0;
         var engine=new PlaybackEngine(new Audio(),new Random(1));
-        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false);
+        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
         for(int i=0;i<2000;i++)engine.tick(i/20.0,l,c,Set.of());assertEquals(t.id,engine.current().id);
     }
 }

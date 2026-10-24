@@ -44,6 +44,7 @@ public final class DiagnosticSummary {
             +"; queued playback: "+engine.queuedPlaying()+"; queue size: "+engine.queue().size()+"; queue waiting for override: "+engine.queueWaitingForOverride());
         report.line("Jukebox active / held: "+engine.jukeboxActive()+" / "+engine.jukeboxHolding()+"; time-window wait: "+engine.waitingForTimeFit());
         report.line("Remaining silence / buffer: "+number(engine.remainingSilence(now))+"s / "+number(engine.remainingBuffer(now,settings))+"s");
+        report.line("Song group: "+engine.groupStarted()+" / "+PlaybackEngine.songsBeforeSilence(lib.playlist(engine.sourcePlaylistId()),settings));
         report.line("Playback error: "+errorCategory(engine.error())+"; failed songs this session: "+engine.failedTracks().size());
         report.line("Timing: silence "+number(settings.silenceMinSeconds)+"–"+number(settings.silenceMaxSeconds)+"s; buffer "+number(settings.bufferSeconds)
             +"s; fade in/out "+number(settings.fadeInSeconds)+"/"+number(settings.fadeOutSeconds)+"s; immediate on join "+settings.playImmediatelyOnJoin);
@@ -96,6 +97,7 @@ public final class DiagnosticSummary {
         if(p.healthEnabled)r.line("    Health: "+p.healthComparison+" "+number(p.healthThreshold)+" red hearts");
         if(p.weatherEnabled)r.line("    Weather: "+p.weather);
         if(p.heldItemEnabled)r.line("    Held items: "+p.heldItems.size()+" selected; hand="+p.heldItemHand);
+        if(p.nearbyPlayerEnabled)r.line("    Nearby player: radius="+number(p.nearbyPlayerRadius)+"; matches="+(c==null?"not evaluated":c.nearbyPlayers().matches(p.nearbyPlayerUuid,p.nearbyPlayerName,p.nearbyPlayerRadius))+" (identity omitted)");
         if(p.gameModeEnabled)r.line("    Gamemodes: "+p.gameModes);
         for(int i=0;i<p.groups.size()&&nodes[0]<PlaylistConditions.MAX_NODES;i++)conditions(r,p.groups.get(i),c,settings,group+"."+(i+1),depth+1,nodes);
     }

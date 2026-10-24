@@ -1,0 +1,41 @@
+PASS Grouped song has native audio
+PASS Grouped song has native audio
+PASS Grouped song has native audio
+STEP Three actual songs then a gap
+PASS Exactly three songs before silence
+PASS No ordinary gap inside group
+PASS Full gap follows group
+STEP Delayed card starts hidden
+PASS Three-second card delay is armed
+STEP Pause holds delay
+PASS No card appears while paused
+PASS Playback clock is held
+STEP Card appears after unpaused playback
+PASS Card waits three playback seconds
+STEP Native toast uses a new track's playback clock
+STEP Native toast starts hidden
+PASS Native toast and pause-menu metadata wait for delay
+STEP Native toast appears
+PASS Native toast receives metadata after three playback seconds
+PASS Style refresh does not restart an elapsed delay
+STEP Current-song destination
+PASS Current song destination opens
+STEP Copy assignment preserves source
+PASS Destination receives current song
+PASS Original assignment stays on
+PASS Adding assignment preserves playback
+STEP Global count editor
+PASS Global count saves
+STEP Playlist count override
+PASS Playlist count is independent
+STEP Nearby-player editor
+PASS Player condition saves
+STEP Nearby player wins automatically
+PASS Client-visible nearby player selects theme
+PASS UUID matches tracked player
+STEP Leaving radius uses existing finish-on-exit
+PASS Theme obeys finish-on-exit
+STEP Manual Next returns to normal playlist
+PASS Normal playlist resumes
+PASS Diagnostic summary omits player identity
+COMPLETE: 25 passed / 0 failed

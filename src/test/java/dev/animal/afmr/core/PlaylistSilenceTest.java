@@ -13,7 +13,7 @@ class PlaylistSilenceTest {
     @TempDir Path directory;
     private static Context context(boolean incoming,boolean record){
         return new Context("minecraft:overworld",incoming?"test:b":"test:a",true,false,6000,false,15,"world",0,70,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY);
     }
     private static void range(Playlist p,double min,double max){p.customSilence=true;p.silenceMinSeconds=min;p.silenceMaxSeconds=max;}
     private static final class Scenario {

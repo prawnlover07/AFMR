@@ -72,7 +72,8 @@ public final class ClientRuntime {
     private long savedHistoryRevision;
     private boolean failedHistoryLoad;
     private double nextDurationSave;
-    private Context context = new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false);
+    private final PlayerProximity playerProximity=new PlayerProximity();
+    private Context context = new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
 
     private ClientRuntime() {
         try{
@@ -116,14 +117,14 @@ public final class ClientRuntime {
         if(instance==null)return;
         instance.saveHistory();
         if(instance.durationDirty)instance.save();
-        instance.engine.reset();instance.overlay.clear();instance.surfaceCover.clear();instance.jukebox.clear();
+        instance.playerProximity.clear();instance.engine.reset();instance.overlay.clear();instance.surfaceCover.clear();instance.jukebox.clear();
         instance.structureDetection.clear();
         HostileTargeting.clear();
         instance.durationCheck=null;
         instance.observedMainHand=instance.observedOffHand=null;instance.cachedMainHandId=instance.cachedOffHandId="";
         instance.combatTracker.reset();instance.combatPlayer=null;instance.inWorld=false;
         instance.worldIdentity=null;instance.cachedWorldKey="";instance.applicableVanilla=Set.of();instance.unavailable="";
-        instance.context=new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false);
+        instance.context=new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
         instance.activateProfile(PlaylistProfiles.DEFAULT);
     }
     public static void shutdown() {
@@ -235,8 +236,12 @@ public final class ClientRuntime {
         int light=mc.level.getMaxLocalRawBrightness(pos);
         var biome=mc.level.getBiome(pos);
         int structureRadius=mc.gui.screen() instanceof StructureConditionScreen?0:-1;
-        for(var p:library.playlists)if(p.enabled&&!p.manualOnly)
-            structureRadius=Math.max(structureRadius,p.conditions.structureSearchRadius());
+        boolean observePlayers=false;
+        for(var p:library.playlists){
+            if(p.enabled&&!p.manualOnly)structureRadius=Math.max(structureRadius,p.conditions.structureSearchRadius());
+            if(!observePlayers)observePlayers=p.conditions.needsNearbyPlayers();
+        }
+        if(!observePlayers)playerProximity.clear();
         var structures=structureDetection.update(mc,clock,structureRadius);
         boolean raining=mc.level.isRaining(),thundering=mc.level.isThundering();
         // Match the client's rendered rain/snow type without tying weather to roof exposure.
@@ -252,7 +257,7 @@ public final class ClientRuntime {
             combatTracker.active(clock,library.settings),mc.player.isUnderWater(),(int)Math.floorMod(mc.level.getOverworldClockTime(),24000),covered,light,worldKey(),mc.player.getX(),mc.player.getY(),mc.player.getZ(),coverDepth,biome.value().getBaseTemperature(),dead,structures,raining,thundering,precipitation,mc.player.getHealth()/2.0,combatTracker.playersActive(clock,library.settings),cachedMainHandId,cachedOffHandId,mc.gameMode==null?null:switch(mc.gameMode.getPlayerMode()){
                 case SURVIVAL->GameMode.SURVIVAL;case CREATIVE->GameMode.CREATIVE;
                 case ADVENTURE->GameMode.ADVENTURE;case SPECTATOR->GameMode.SPECTATOR;
-            },jukebox.audible(mc));
+            },jukebox.audible(mc),observePlayers?playerProximity.update(mc,clock):dev.animal.afmr.core.NearbyPlayers.EMPTY);
         applicableVanilla = vanilla.applicable(mc);
         engine.tick(clock, library, context, applicableVanilla); overlay.tick();
         saveHistory();
@@ -366,8 +371,8 @@ public final class ClientRuntime {
         if(!inWorld()||!enabled()){status="Join a world before queuing music.";return false;}
         boolean added=engine.enqueue(trackId,playlistId,library);status=engine.queueMessage();return added;
     }
-    public boolean addHistoryTrack(ListeningHistory.Entry entry,String destination){
-        var track=library.track(entry.trackId());var playlist=library.playlist(destination);
+    public boolean addTrackToPlaylist(String trackId,String destination){
+        var track=library.track(trackId);var playlist=library.playlist(destination);
         if(track==null||playlist==null){status="Song or destination playlist is no longer available.";return false;}
         Boolean previous=playlist.tracks.putIfAbsent(track.id,true);save();
         status=previous==null?"Added to "+playlist.name:previous?"Already in "+playlist.name:"Already assigned, disabled in "+playlist.name;
