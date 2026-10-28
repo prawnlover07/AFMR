@@ -1,15 +1,23 @@
-# animal's final music replacer — 1.0.1
+# animal's final music replacer — 1.1
 
 AFMR is a client-side custom soundtrack mod for **Minecraft Java 26.3**,
 **NeoForge 26.3.0.90+**, and **Java 25**. It combines local music and Minecraft's
 music, chooses playlists from your surroundings, and gives you manual controls.
-Install it on your client; no server installation is needed.
+Install it on your client for ordinary multiplayer use. Optional server companions
+add multiplayer structure detection and mob-target combat retention on both targets.
 The playback implementation passed [27 checks on an unmodified vanilla server](docs/testing/2026-10-21-multiplayer.md).
 See the [multiplayer guide](docs/USER-GUIDE.md#multiplayer) for behavior and scope.
 
 ## Start here
 
-Version **1.0.1** adds song groups before silence, current-song assignment,
+Version **1.1** adds playlist-to-playlist transition rules, an inline playlist
+editor with Undo/Redo and drag priority, seeking and settings search, custom themes/
+fonts/widget backgrounds, stronger import/repair matching, riding/proximity-volume
+conditions and optional multiplayer server companions. See the
+[1.1 release notes](CHANGELOG.md#11--october-28-2026) and
+[release verification](docs/testing/2026-10-28-release-1.1.md).
+
+Version **1.0.1** added song groups before silence, current-song assignment,
 notification delay, shuffle return protection and nearby-player themes. See the
 [update notes](CHANGELOG.md#101--october-23-2026) and
 [feature checks](docs/testing/2026-10-23-features-1.0.1.md).
@@ -29,7 +37,7 @@ See the [release notes](CHANGELOG.md#10--october-23-2026).
   commands, source packaging, and repository workflow.
 
 To install or upgrade, close Minecraft and put
-`animals-final-music-replacer-1.0.1.jar` in the instance's `mods` folder, replacing
+`animals-final-music-replacer-1.1.jar` in the instance's `mods` folder, replacing
 any older AFMR JAR. Keep one version installed. Launch, join a world, and press **M**,
 or open AFMR's Config button from the Mods menu.
 
@@ -37,7 +45,7 @@ The editor uses a playlist workspace: priority and a music
 library on the left, songs in the center, rules on the right, and persistent playback
 controls below. **Add music** can import straight into the selected playlist;
 the lower-left library also assigns existing songs or folders without leaving the screen.
-**Timing**, **Display**, **Keys**, and **Inspector** are directly accessible.
+**Timing**, **Display**, **Shortcuts**, and **Playback status** are directly accessible.
 
 Fresh settings use **10–20 minute gaps**. **Next** skips the wait; **Preview** plays
 the selected song. M still opens/closes AFMR and retains your page and place.

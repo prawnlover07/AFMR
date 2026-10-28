@@ -1,0 +1,97 @@
+STEP Verify decoded position
+STEP Decoded position matches
+PASS Seeking produces PCM from the requested file position
+STEP Selection counts
+PASS Song actions state the affected count
+STEP Audio starts
+PASS Clicking the title finds its source playlist
+PASS Locate clears the filter and selects the current song
+PASS Locate preserves playback and pending queue
+STEP Workspace transport render
+PASS Seek hit area stays above the status line
+PASS Holding a seek previews without changing audio
+PASS Seek release updates the song position
+STEP Paused seek attaches
+PASS Native channel remains paused after seeking
+PASS Seek keeps playback identity and queue
+STEP Seek resumes
+PASS Native playback resumes from the target
+STEP Latest seek wins
+PASS Rapid seeks retain only the latest target
+STEP Repeated seek 0
+STEP Repeated seek 1
+STEP Repeated seek 2
+STEP Repeated seek 3
+STEP Repeated seek 4
+STEP Repeated seek 5
+STEP Repeated seek 6
+STEP Repeated seek 7
+STEP Repeated seek 8
+STEP Repeated seek 9
+STEP Repeated seek 10
+STEP Repeated seek 11
+STEP Search timing
+STEP Search focuses timing
+PASS Search opens and focuses the precise setting
+PASS Global booleans use checkboxes
+PASS Page actions stay above the transport strip
+PASS Search cannot bypass invalid numeric drafts
+STEP Direct font destination
+PASS Font search opens the widget font chooser
+STEP Home search destination
+PASS Home search returns to the playback-area action
+PASS Details arrow opens inline controls without enabling a rule
+PASS Rule checkbox toggles without navigating
+STEP Vanilla preview starts
+PASS Resource-backed music still plays
+PASS Resource-backed song accepts seeking
+STEP Vanilla seek starts
+PASS Resource-backed seek plays from the target
+STEP Collect decoded buffers
+PASS Resource seek survives buffer collection
+STEP Menus render
+PASS Menu blur is a checkbox
+PASS Menu navigation uses arrows
+PASS Small menus reserve the playback strip
+PASS Small menus keep the last setting reachable
+STEP Reset for theme regression
+STEP Readable rule summaries
+PASS Time rule shows clock hours
+PASS Area rule shows radius
+STEP Focused song menu button
+PASS Focused row exposes a visible actions button
+PASS Shift+F10 opens song actions
+PASS Left-click opens the existing song menu
+PASS Menu retains multi-selection
+STEP Song action render
+PASS Action applies to both selected songs
+STEP Start source playlist
+STEP Source identity
+PASS Editing selection can differ from playing source
+STEP Playing source render
+STEP Playing song render
+PASS Current song belongs to the marked source
+STEP Gap countdown
+PASS Footer gives a countdown
+STEP Empty playback reason
+PASS Footer explains an empty matching playlist
+STEP Create preview theme
+PASS Themes starts a separate preview
+STEP Edit draft and change page
+PASS Palette previews without changing settings
+PASS Paging does not save the named theme
+PASS Editor Cancel restores its opening preview
+STEP Hide an uncommitted draft
+PASS Hidden preview is suspended
+PASS Reopening retains the uncommitted draft
+STEP Apply theme
+PASS Editor Apply returns directly to Display
+PASS Apply commits both settings and named theme
+PASS Applied preview is released
+STEP Preview built-in and cancel
+PASS Choosing a theme only previews it
+PASS Theme Cancel keeps committed colors
+STEP Invalid draft can be canceled
+PASS Cancel accepts an invalid draft without saving
+STEP Final workspace render
+COMPLETE: 51 passed / 0 failed

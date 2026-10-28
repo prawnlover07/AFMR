@@ -19,15 +19,15 @@ final class AreaConditionScreen extends MusicScreen {
     AreaConditionScreen(Screen parent,ClientRuntime runtime,PlaylistConditions conditions){super("Location condition",parent,runtime);this.conditions=conditions;}
     @Override protected void init(){
         super.init();var area=conditions.area;enabled=conditions.areaEnabled;configured=area.configured;world=area.world;
-        toggle=button("Filter: "+(enabled?"on":"off"),left,47,contentWidth,()->{enabled=!enabled;toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));});
+        toggle=toggle("Filter",left,47,contentWidth,()->enabled,()->{enabled=!enabled;});
         int third=(contentWidth-8)/3;
         x=edit(""+area.x,"Center X",left,87,third,null);y=edit(""+area.y,"Center Y",left+third+4,87,third,null);z=edit(""+area.z,"Center Z",left+2*(third+4),87,third,null);
         radius=edit(""+area.radius,"Radius",left,129,100,null);dimension=edit(area.dimension,"Dimension",left+108,129,contentWidth-108,null);
         button("Use current location",left,158,contentWidth,()->{
             var c=runtime.context();x.setValue(""+c.x());y.setValue(""+c.y());z.setValue(""+c.z());dimension.setValue(c.dimension());
-            world=runtime.worldKey();configured=true;enabled=true;toggle.setMessage(Component.literal("Filter: on"));
+            world=runtime.worldKey();configured=true;enabled=true;
         }).active=runtime.inWorld();
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     @Override public void onClose(){
         try{
@@ -43,8 +43,8 @@ final class AreaConditionScreen extends MusicScreen {
         }catch(IllegalArgumentException e){error="Use finite coordinates, a dimension ID, and radius 1-100000.";}
     }
     @Override protected void drawBody(GuiGraphics g,int mx,int my,float delta){
-        int third=(contentWidth-8)/3;g.drawString(font,"Center X",left,75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.drawString(font,"Y",left+third+4,75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.drawString(font,"Z",left+2*(third+4),75,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.drawString(font,"Radius",left,117,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));g.drawString(font,"Dimension",left+108,117,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        if(!error.isEmpty())g.drawString(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
+        int third=(contentWidth-8)/3;g.drawString(menuFont,"Center X",left,75,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));g.drawString(menuFont,"Y",left+third+4,75,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));g.drawString(menuFont,"Z",left+2*(third+4),75,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        g.drawString(menuFont,"Radius",left,117,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));g.drawString(menuFont,"Dimension",left+108,117,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        if(!error.isEmpty())g.drawString(menuFont,fit(error,contentWidth),left,bodyBottom()-48,0xFFFFA0A0);
     }
 }

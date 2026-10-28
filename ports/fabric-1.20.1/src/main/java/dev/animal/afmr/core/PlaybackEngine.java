@@ -7,7 +7,7 @@ import dev.animal.afmr.core.ListeningHistory.Origin;
 /** All times are monotonic seconds. No Minecraft or audio-device dependencies. */
 public final class PlaybackEngine {
     public interface Audio {
-        void start(Track track) throws Exception;
+        void start(Track track,double position) throws Exception;
         boolean playing();
         boolean started();
         void gain(float gain);
@@ -26,10 +26,16 @@ public final class PlaybackEngine {
     private boolean silenceCustom;
     private float fadeFrom = 1;
     private float currentGain;
+    private float proximityGain=1,proximityFrom=1,proximityTarget=1;
+    private double proximityChanged;
     private Track current;
     private Playlist playingSource;
+    private Playlist transitionSource;
+    private TransitionRule transitionRule;
+    private double trackFadeIn=Double.NaN;
     private long playbackSequence;
-    private double trackStarted;
+    private double trackStarted,trackOffset,heardBeforeSeek;
+    private double pendingSeek=Double.NaN;
     private String groupPlaylistId;
     private int groupStarted;
     private boolean previewing,joinPending;
@@ -67,6 +73,11 @@ public final class PlaybackEngine {
 
     public void tick(double now, Library lib, Context context, Set<String> vanilla) {
         double wallNow=now;
+        if(!Double.isNaN(pendingSeek)){
+            double target=pendingSeek;pendingSeek=Double.NaN;
+            if(current!=null&&phase==Phase.PLAYING)try{audio.start(current,target);audio.setPaused(paused||jukeboxHeld);}
+            catch(Exception error){failed(current.id,"Could not seek: "+error.getMessage(),now,lib);}
+        }
         now=playbackTime(now);
         automaticSelected = lib.selectPlayable(context, vanilla, failed);
         Playlist forced=overrideId==null?null:lib.playlist(overrideId);
@@ -74,23 +85,32 @@ public final class PlaybackEngine {
         var previousSelection=selected;
         selected = overrideId==null?automaticSelected:forced;
         if(previousSelection!=selected){waitingForTimeFit=false;durationNeeded=null;}
+        transitionRule=overrideId==null&&!previewing&&!queuedPlaying&&!queueReady()&&!finishAfterDeath
+            &&transitionSource!=null&&transitionSource!=selected&&selected!=null&&lib.playlist(transitionSource.id)==transitionSource
+            ?transitionSource.transitions.get(selected.id):null;
         if(context.dead()&&!wasDead&&playingCombat&&!previewing&&current!=null){
+            clearTransition();
             switch(lib.settings.combatDeathMusic){
                 case CUT -> {audio.stop();enterSilence(now,lib,false);}
                 case FADE -> {phase=Phase.FADING;fadeStarted=now;fadeFrom=currentGain;fadeDuration=lib.settings.combatDeathFadeSeconds;}
-                case KEEP_PLAYING -> {if(phase==Phase.FADING)fadeInStarted=now-lib.settings.fadeInSeconds*currentGain;phase=Phase.PLAYING;finishAfterDeath=true;}
+                case KEEP_PLAYING -> {
+                    if(phase==Phase.FADING){double fadeIn=Double.isNaN(trackFadeIn)?lib.settings.fadeInSeconds:trackFadeIn;fadeInStarted=now-fadeIn*currentGain;}
+                    phase=Phase.PLAYING;finishAfterDeath=true;
+                }
             }
         }
         wasDead=context.dead();
+        if(current!=null&&!paused&&!jukeboxHeld)updateProximity(now,context.nearbyPlayers());
         if(updateJukebox(wallNow,lib,context.jukeboxPlaying()))return;
         now=playbackTime(wallNow);
-        if(current!=null&&Double.isNaN(trackStarted)&&audio.started())trackStarted=now;
+        if(current!=null&&Double.isNaN(trackStarted)&&audio.started())trackStarted=now-trackOffset;
         if(paused)return;
         String selectedId = selected == null ? null : selected.id;
         if (!Objects.equals(selectedId, candidateId)) {
             candidateId=selectedId;candidateSince=now;
-            triggerBufferBypass=overrideId==null&&selected!=null&&selected.playOnTrigger&&!previewing&&!queuedPlaying&&!queueReady();
-            triggerPending=triggerBufferBypass&&(phase!=Phase.PLAYING||!Objects.equals(playingPlaylistId,selectedId));
+            boolean triggered=overrideId==null&&selected!=null&&selected.playOnTrigger&&!previewing&&!queuedPlaying&&!queueReady();
+            triggerBufferBypass=triggered&&(transitionRule==null||!transitionRule.customBuffer);
+            triggerPending=triggered&&(transitionRule==null||!transitionRule.customSilence)&&(phase!=Phase.PLAYING||!Objects.equals(playingPlaylistId,selectedId));
             if(triggerPending&&phase==Phase.SILENCE){silenceUntil=now;silenceStarted=Double.NaN;}
         }
         if(joinPending&&!lib.settings.playImmediatelyOnJoin)joinPending=false;
@@ -100,7 +120,7 @@ public final class PlaybackEngine {
                 silenceUntil=now;silenceStarted=Double.NaN;candidateSince=now-lib.settings.bufferSeconds;
             }
         }
-        boolean accepted = triggerBufferBypass||now-candidateSince>=lib.settings.bufferSeconds;
+        boolean accepted = triggerBufferBypass||now-candidateSince>=transitionBuffer(lib.settings);
         if (accepted && !Objects.equals(activeId, candidateId)) {
             activeId = candidateId;groupPlaylistId=null;groupStarted=0;
             if (phase == Phase.PLAYING && !previewing && !queuedPlaying && !finishAfterDeath && !Objects.equals(playingPlaylistId,candidateId)) {
@@ -108,8 +128,10 @@ public final class PlaybackEngine {
                 Playlist outgoing=lib.playlist(playingPlaylistId);
                 boolean matching=overrideId==null&&lib.settings.continuePlayingOnMatch&&current!=null
                     &&lib.isPlayable(selected,current.id,vanilla,failed);
-                if(!matching&&(selected==null||!selected.finishCurrentSong)&&(outgoing==null||!outgoing.finishCurrentSongOnExit)){
-                    phase = Phase.FADING; fadeStarted = now; fadeFrom = currentGain;fadeDuration=lib.settings.fadeOutSeconds;
+                boolean finish=matching||selected!=null&&selected.finishCurrentSong||outgoing!=null&&outgoing.finishCurrentSongOnExit;
+                if(transitionRule!=null&&transitionRule.finish!=TransitionRule.Finish.INHERIT)finish=transitionRule.finish==TransitionRule.Finish.FINISH;
+                if(!finish){
+                    phase = Phase.FADING; fadeStarted = now; fadeFrom = currentGain;fadeDuration=transitionRule!=null&&transitionRule.customFadeOut?transitionRule.fadeOutSeconds:lib.settings.fadeOutSeconds;
                 }
             }
         }
@@ -117,14 +139,15 @@ public final class PlaybackEngine {
         if (phase == Phase.FADING) {
             double fraction = fadeDuration == 0 ? 1 : (now - fadeStarted) / fadeDuration;
             currentGain = (float) (fadeFrom * (1 - Math.max( 0,Math.min(fraction, 1))));
-            audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
+            audio.gain(currentGain*proximityGain*(playingSource==null?1:(float)playingSource.volume));
             if (fraction >= 1) { audio.stop(); enterSilence(now, lib,false); }
         } else if (phase == Phase.PLAYING) {
-            currentGain = lib.settings.fadeInSeconds == 0 ? 1 : (float) Math.max( 0,Math.min((now - fadeInStarted) / lib.settings.fadeInSeconds, 1));
-            audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
+            double fadeIn=Double.isNaN(trackFadeIn)?lib.settings.fadeInSeconds:trackFadeIn;
+            currentGain = fadeIn == 0 ? 1 : (float) Math.max( 0,Math.min((now - fadeInStarted) / fadeIn, 1));
+            audio.gain(currentGain*proximityGain*(playingSource==null?1:(float)playingSource.volume));
         }
         if (phase == Phase.SILENCE) {
-            accepted=triggerBufferBypass||now-candidateSince>=lib.settings.bufferSeconds;
+            accepted=triggerBufferBypass||now-candidateSince>=transitionBuffer(lib.settings);
             // Discard stale queue heads before choosing a range, so their old playlist cannot delay the next request.
             while(queueReady()){
                 var request=queue.first();
@@ -143,7 +166,7 @@ public final class PlaybackEngine {
                     }
                     try{
                         startTrack(track,source,Origin.QUEUE,"Queued manually"+(source==null?"":" from "+source.name),
-                            source!=null&&source.combatDriven(context,lib.settings),now);
+                            source!=null&&source.combatDriven(context,lib.settings),now,context.nearbyPlayers());
                         overrideStarted=false;immediateNext=false;triggerPending=triggerBufferBypass=false;
                     }catch(Exception e){
                         audio.stop();failed.add(track.id);error=track.title+": "+e.getMessage();queueMessage=error;silenceUntil=now+1;silenceStarted=Double.NaN;
@@ -173,7 +196,8 @@ public final class PlaybackEngine {
                 try {
                     startTrack(next,selected,overrideId==null?Origin.AUTOMATIC:Origin.OVERRIDE,
                         overrideId==null?automaticReason(selected,context):"Playlist override: "+overrideMode+"; conditions bypassed",
-                        selected.combatDriven(context,lib.settings),now);
+                        selected.combatDriven(context,lib.settings),now,context.nearbyPlayers());
+                    candidateSince=Math.min(candidateSince,now-lib.settings.bufferSeconds);
                     overrideStarted=overrideId!=null;immediateNext=false;triggerPending=false;
                 } catch (Exception e) {
                     audio.stop(); failed.add(next.id); error = next.title + ": " + e.getMessage();
@@ -191,17 +215,26 @@ public final class PlaybackEngine {
             +"; conditions: "+playlist.conditions.summary();
     }
 
-    private void startTrack(Track track,Playlist source,Origin origin,String reason,boolean combat,double now)throws Exception{
-        joinPending=false;audio.gain(0);audio.start(track);
+    /** Smooth the four-per-second observed distances over 250 ms without changing the fade envelope. */
+    private void updateProximity(double now,NearbyPlayers players){
+        float desired=playingSource==null?1:playingSource.conditions.proximityGain(players);
+        float fraction=(float)Math.max(0,Math.min(1,(now-proximityChanged)/.25));
+        proximityGain=proximityFrom+(proximityTarget-proximityFrom)*fraction;
+        if(desired!=proximityTarget){proximityFrom=proximityGain;proximityTarget=desired;proximityChanged=now;}
+    }
+    private void startTrack(Track track,Playlist source,Origin origin,String reason,boolean combat,double now,NearbyPlayers players)throws Exception{
+        joinPending=false;audio.gain(0);audio.start(track,0);
+        trackFadeIn=origin==Origin.AUTOMATIC&&transitionRule!=null&&transitionRule.customFadeIn?transitionRule.fadeInSeconds:Double.NaN;
+        transitionSource=origin==Origin.AUTOMATIC?source:null;transitionRule=null;
         silenceStarted=Double.NaN;silenceUntil=Double.NaN;
         if(source!=null&&(origin==Origin.AUTOMATIC||origin==Origin.OVERRIDE)){
             if(!Objects.equals(groupPlaylistId,source.id)){groupPlaylistId=source.id;groupStarted=0;}
             groupStarted++;
         }else{groupPlaylistId=null;groupStarted=0;}
-        trackStarted=audio.started()?now:Double.NaN;
+        pendingSeek=Double.NaN;heardBeforeSeek=0;trackOffset=0;trackStarted=audio.started()?now:Double.NaN;
         current=track;playbackSequence++;previousTrack=track.id;phase=Phase.PLAYING;
         playingPlaylistId=source==null?null:source.id;playingCombat=combat;finishAfterDeath=false;
-        playingSource=source;
+        playingSource=source;proximityGain=proximityFrom=proximityTarget=source==null?1:source.conditions.proximityGain(players);proximityChanged=now;
         previewing=origin==Origin.PREVIEW;queuedPlaying=origin==Origin.QUEUE;
         fadeInStarted=now;currentGain=0;error="";waitingForTimeFit=false;durationNeeded=null;
         history.record(track,source,origin,reason);
@@ -211,7 +244,7 @@ public final class PlaybackEngine {
         String sourceId=playlistId==null?"":playlistId;
         if(!queueAvailable(trackId,sourceId,lib)){queueMessage="Cannot queue: song is missing, disabled, removed or failed";return false;}
         if(!queue.add(lib.track(trackId),lib.playlist(sourceId))){queueMessage="Queue is full ("+PlaybackQueue.LIMIT+" songs)";return false;}
-        joinPending=false;queueWaitingForOverride=false;waitingForTimeFit=false;durationNeeded=null;triggerPending=triggerBufferBypass=false;
+        clearTransition();joinPending=false;queueWaitingForOverride=false;waitingForTimeFit=false;durationNeeded=null;triggerPending=triggerBufferBypass=false;
         queueMessage="Queued: "+lib.track(trackId).title;return true;
     }
     private boolean queueAvailable(String trackId,String playlistId,Library lib){
@@ -234,7 +267,7 @@ public final class PlaybackEngine {
             &&playingSource!=null&&playingSource==selected&&Objects.equals(groupPlaylistId,playingSource.id)
             &&!queueReady()&&overrideMode!=OverrideMode.ONE_SONG&&groupStarted<songsBeforeSilence(playingSource,lib.settings);
         if(!consecutive){groupPlaylistId=null;groupStarted=0;}
-        playingSource=null;
+        playingSource=null;proximityGain=proximityFrom=proximityTarget=1;
         waitingForTimeFit=false;durationNeeded=null;
         if(overrideMode==OverrideMode.ONE_SONG&&overrideStarted){
             clearOverride();selected=automaticSelected;candidateId=selected==null?null:selected.id;activeId=candidateId;candidateSince=now;
@@ -255,23 +288,24 @@ public final class PlaybackEngine {
     /** Range changes reuse the original start; unchanged ranges never reroll the gap. */
     private void refreshSilence(Library lib){
         Playlist p=silencePlaylist(lib);
-        boolean custom=p!=null&&p.customSilence;
+        boolean pair=transitionRule!=null&&transitionRule.customSilence;
+        boolean custom=pair||p!=null&&p.customSilence;
         // Ordinary global edits keep an existing global gap; explicit frequency changes reschedule it.
         if(p==silenceSource&&custom==silenceCustom&&!custom&&!Double.isNaN(silenceMinimum))return;
         silenceSource=p;silenceCustom=custom;
-        double min=custom?p.silenceMinSeconds:lib.settings.silenceMinSeconds;
-        double max=custom?p.silenceMaxSeconds:lib.settings.silenceMaxSeconds;
+        double min=pair?transitionRule.silenceMinSeconds:custom?p.silenceMinSeconds:lib.settings.silenceMinSeconds;
+        double max=pair?transitionRule.silenceMaxSeconds:custom?p.silenceMaxSeconds:lib.settings.silenceMaxSeconds;
         if(min==silenceMinimum&&max==silenceMaximum)return;
         silenceMinimum=min;silenceMaximum=max;
         silenceUntil=silenceStarted+min+random.nextDouble()*(max-min);
     }
-    public void skip(double now, Library lib) { joinPending=false;triggerPending=false;audio.stop();enterSilence(playbackTime(now),lib,false); }
-    public void playNow(double now) { if (phase == Phase.SILENCE){silenceUntil=playbackTime(now);silenceStarted=Double.NaN;} }
+    public void skip(double now, Library lib) { clearTransition();joinPending=false;triggerPending=false;audio.stop();enterSilence(playbackTime(now),lib,false); }
+    public void playNow(double now) { clearTransition();if (phase == Phase.SILENCE){silenceUntil=playbackTime(now);silenceStarted=Double.NaN;} }
     /** Explicit global frequency changes restart only gaps which use global timing. */
     public void rescheduleSilence(double now,Library lib){
         if(phase==Phase.SILENCE){
             Playlist p=silencePlaylist(lib);
-            if(p!=null&&p.customSilence)return;
+            if(p!=null&&p.customSilence||transitionRule!=null&&transitionRule.customSilence)return;
             joinPending=false;scheduleSilence(playbackTime(now),lib);waitingForTimeFit=false;durationNeeded=null;
         }
     }
@@ -281,7 +315,7 @@ public final class PlaybackEngine {
         if(overrideId!=null&&(forced==null||!lib.hasPlayable(forced,vanilla,failed)))clearOverride();
         automaticSelected=lib.selectPlayable(context,vanilla,failed);Playlist target=overrideId==null?automaticSelected:forced;
         if(target==null&&!queueReady())return false;
-        joinPending=false;now=playbackTime(now);overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;audio.stop();enterSilence(now,lib,false);
+        clearTransition();joinPending=false;now=playbackTime(now);overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;audio.stop();enterSilence(now,lib,false);
         selected=target;candidateId=target==null?null:target.id;activeId=candidateId;candidateSince=now-lib.settings.bufferSeconds;return true;
     }
     private boolean updateJukebox(double wallNow,Library lib,boolean playing){
@@ -297,7 +331,7 @@ public final class PlaybackEngine {
             if(endingMode==JukeboxMode.RESUME&&current!=null){
                 if(phase==Phase.FADING){
                     fadeDuration=Math.max(0,fadeDuration-(now-fadeStarted));fadeFrom=currentGain;fadeStarted=now;
-                }else fadeInStarted=now-settings.fadeInSeconds*currentGain;
+                }else {trackFadeIn=Double.NaN;fadeInStarted=now-settings.fadeInSeconds*currentGain;}
             }else if(endingMode!=JukeboxMode.RESUME){
                 if(endingMode==JukeboxMode.IMMEDIATE){silenceUntil=now;silenceStarted=Double.NaN;}
                 else scheduleSilence(now,lib);
@@ -307,6 +341,7 @@ public final class PlaybackEngine {
             jukeboxPhase=JukeboxPhase.NONE;jukeboxMode=JukeboxMode.OFF;return false;
         }
         if(jukeboxPhase==JukeboxPhase.NONE){
+            if(mode!=JukeboxMode.RESUME)clearTransition();
             joinPending=false;jukeboxPhase=JukeboxPhase.FADING_OUT;jukeboxFadeStarted=now;jukeboxFadeFrom=currentGain;
         }
         jukeboxMode=mode;
@@ -316,7 +351,7 @@ public final class PlaybackEngine {
         }
         if(current!=null&&!audio.playing())enterSilence(now,lib,false);
         double fraction=settings.fadeOutSeconds==0?1:(now-jukeboxFadeStarted)/settings.fadeOutSeconds;
-        currentGain=jukeboxFadeFrom*(float)(1-Math.max(0,Math.min(fraction,1)));audio.gain(currentGain*(playingSource==null?1:(float)playingSource.volume));
+        currentGain=jukeboxFadeFrom*(float)(1-Math.max(0,Math.min(fraction,1)));audio.gain(currentGain*proximityGain*(playingSource==null?1:(float)playingSource.volume));
         if(current==null||fraction>=1){
             if(mode!=JukeboxMode.RESUME&&current!=null){audio.stop();enterSilence(now,lib,false);}
             boolean wasPaused=paused||jukeboxHeld;jukeboxHeld=true;updatePauseState(wasPaused,wallNow);
@@ -333,7 +368,7 @@ public final class PlaybackEngine {
         if(pause)pausedAt=now;
         else{
             double elapsed=Math.max(0,now-pausedAt);trackStarted+=elapsed;candidateSince+=elapsed;fadeStarted+=elapsed;fadeInStarted+=elapsed;
-            jukeboxFadeStarted+=elapsed;
+            jukeboxFadeStarted+=elapsed;proximityChanged+=elapsed;
             if(!Double.isNaN(silenceUntil))silenceUntil+=elapsed;
             if(!Double.isNaN(silenceStarted))silenceStarted+=elapsed;
         }
@@ -343,7 +378,7 @@ public final class PlaybackEngine {
     /** An explicit request bypasses conditions, finish toggles, context buffer and the initial silent gap. */
     public boolean overridePlaylist(String id,OverrideMode mode,double now,Library lib,Set<String> vanilla){
         Playlist p=lib.playlist(id);if(mode==null||p==null||!lib.hasPlayable(p,vanilla,failed))return false;
-        joinPending=false;now=playbackTime(now);groupPlaylistId=null;groupStarted=0;
+        clearTransition();joinPending=false;now=playbackTime(now);groupPlaylistId=null;groupStarted=0;
         waitingForTimeFit=false;durationNeeded=null;
         overrideId=id;overrideMode=mode;overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;previewing=false;finishAfterDeath=false;
         queueWaitingForOverride=true;
@@ -356,27 +391,39 @@ public final class PlaybackEngine {
     private void clearOverride(){overrideId=null;overrideMode=null;overrideStarted=false;immediateNext=false;queueWaitingForOverride=false;}
     /** Explicit previews bypass automatic playlist rules and finish before scheduling resumes. */
     public void preview(Track track, double now) {
-        joinPending=false;triggerPending=triggerBufferBypass=false;
+        clearTransition();joinPending=false;triggerPending=triggerBufferBypass=false;
         waitingForTimeFit=false;durationNeeded=null;
         now=playbackTime(now);
         clearOverride();
         audio.stop(); current = null; previewing = false;queuedPlaying=false;phase = Phase.SILENCE;
         playingPlaylistId=null;playingCombat=false;finishAfterDeath=false;
         try {
-            startTrack(track,null,Origin.PREVIEW,"Manual preview",false,now);failed.remove(track.id);
+            startTrack(track,null,Origin.PREVIEW,"Manual preview",false,now,NearbyPlayers.EMPTY);failed.remove(track.id);
         } catch (Exception e) {
             audio.stop(); failed.add(track.id); error = track.title + ": " + e.getMessage(); silenceUntil = now + 1;silenceStarted=Double.NaN;
         }
     }
     public boolean previewing() { return previewing; }
+    public float proximityGain(){return proximityGain;}
     /** Distinguishes new starts of the same track; pause/resume and retained songs keep their identity. */
     public long playbackSequence(){return playbackSequence;}
-    public double trackElapsed(double now){return current==null||Double.isNaN(trackStarted)?0:Math.max(0,playbackTime(now)-trackStarted);}
+    public double trackElapsed(double now){return current==null?0:Double.isNaN(trackStarted)?trackOffset:Math.max(0,playbackTime(now)-trackStarted);}
+    public double trackPlayed(double now){return current==null?0:heardBeforeSeek+Math.max(0,trackElapsed(now)-trackOffset);}
+    /** A manual seek retains source, queue, history, shuffle/group identity and manual/jukebox pause. */
+    public boolean seek(double seconds,double now){
+        if(current==null||phase!=Phase.PLAYING||!Double.isFinite(seconds)||!Double.isFinite(current.durationSeconds)||current.durationSeconds<=0)return false;
+        double target=Math.max(0,Math.min(seconds,Math.max(0,current.durationSeconds-0.05)));
+        heardBeforeSeek=trackPlayed(now);trackOffset=target;trackStarted=Double.NaN;pendingSeek=target;error="";return true;
+    }
+    /** Uses the existing duration request lane; attempted failures are not retried every UI tick. */
+    public void requestCurrentDuration(){
+        if(current!=null&&(!Double.isFinite(current.durationSeconds)||current.durationSeconds<=0)&&!durationAttempted.contains(current.id))durationNeeded=current;
+    }
     public int groupStarted(){return groupStarted;}
     public static int songsBeforeSilence(Playlist p,Settings s){return p!=null&&p.customSongCount?p.songsBeforeSilence:s.songsBeforeSilence;}
     public boolean paused(){return paused;}
     public void reset() {
-        joinPending=false;playingSource=null;silenceSource=null;groupPlaylistId=null;groupStarted=0;
+        pendingSeek=Double.NaN;clearTransition();trackFadeIn=Double.NaN;proximityGain=proximityFrom=proximityTarget=1;joinPending=false;playingSource=null;silenceSource=null;groupPlaylistId=null;groupStarted=0;
         queue.clear();queueMessage="";queuedPlaying=queueWaitingForOverride=false;
         triggerPending=triggerBufferBypass=false;
         jukeboxPhase=JukeboxPhase.NONE;jukeboxHeld=false;jukeboxMode=JukeboxMode.OFF;
@@ -398,7 +445,7 @@ public final class PlaybackEngine {
     public void failed(String trackId, String message, double now, Library lib) {
         now=playbackTime(now);
         if (current != null && current.id.equals(trackId)) {
-            failed.add(trackId); error = message; audio.stop(); enterSilence(now, lib,false);
+            clearTransition();failed.add(trackId); error = message; audio.stop(); enterSilence(now, lib,false);
             silenceUntil = now + 1;silenceStarted=Double.NaN;
         }
     }
@@ -413,7 +460,10 @@ public final class PlaybackEngine {
     public boolean jukeboxActive(){return jukeboxPhase!=JukeboxPhase.NONE;}
     public boolean jukeboxHolding(){return jukeboxHeld;}
     public boolean finishingAfterDeath(){return finishAfterDeath;}
-    public double remainingBuffer(double now,Settings settings){return triggerBufferBypass?0:Math.max(0,settings.bufferSeconds-(playbackTime(now)-candidateSince));}
+    private void clearTransition(){transitionSource=null;transitionRule=null;}
+    private double transitionBuffer(Settings settings){return transitionRule!=null&&transitionRule.customBuffer?transitionRule.bufferSeconds:settings.bufferSeconds;}
+    public TransitionRule transitionRule(){return transitionRule;}
+    public double remainingBuffer(double now,Settings settings){return triggerBufferBypass?0:Math.max(0,transitionBuffer(settings)-(playbackTime(now)-candidateSince));}
     public Playlist selected() { return selected; }
     public Track current() { return current; }
     public String error() { return error; }

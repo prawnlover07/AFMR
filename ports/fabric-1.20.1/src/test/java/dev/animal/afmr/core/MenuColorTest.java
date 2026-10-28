@@ -9,17 +9,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MenuColorTest {
     @TempDir Path directory;
-    @Test void defaultsPreserveEveryOriginalShadeExactly(){
-        var colors=MenuColor.defaults();
-        int[] shades={0x141B1B,0x1D2727,0x253232,0x1B2023,0x202629,0x191D20,0x111619,0x35594E,0x3B4949,0x283236,0x6D7976,0x8DE0BE,0xE1ECE6,0xFFFFFF};
-        for(var role:MenuColor.values())for(int shade:shades)assertEquals(0xFF000000|shade,role.argb(colors,shade,1));
+    @Test void defaultsUseTheChosenGraphitePaletteInActualRendering(){
+        int[] expected={0x17191D,0x202329,0x2C3038,0x3B424D,0x304963,0x90C6FF,0xEBEEF3,0xABB5C2,0x3B424C,0x66778B};
+        var settings=Library.defaults().settings;int index=0;
+        for(var role:MenuColor.values()){
+            int rgb=expected[index++];assertEquals(rgb,settings.menuColors.get(role));
+            assertEquals(0xFF000000|rgb,role.argb(settings.menuColors,rgb,1));
+            assertEquals(0xCC000000|rgb,role.argb(settings.menuColors,rgb,0.8));
+        }
     }
     @Test void changesOnlyAffectTheirColorFamilyAndKeepShadeOffsets(){
         var colors=MenuColor.defaults();colors.put(MenuColor.PANELS,0x402030);
-        assertEquals(0xFF402030,MenuColor.PANELS.argb(colors,0x1D2727,1));
-        assertEquals(0xFF482B3B,MenuColor.PANELS.argb(colors,0x253232,1));
-        assertEquals(0xFF141B1B,MenuColor.BACKGROUND.argb(colors,0x141B1B,1));
-        assertEquals(0xFFE1ECE6,MenuColor.TEXT.argb(colors,0xFFE1ECE6,1));
+        assertEquals(0xFF402030,MenuColor.PANELS.argb(colors,0x202329,1));
+        assertEquals(0xFF482B3B,MenuColor.PANELS.argb(colors,0x282E34,1));
+        assertEquals(0xFF17191D,MenuColor.BACKGROUND.argb(colors,0x17191D,1));
+        assertEquals(0xFFEBEEF3,MenuColor.TEXT.argb(colors,0xFFEBEEF3,1));
     }
     @Test void extremeCustomBasesClampChannelsWithoutWrapping(){
         var colors=MenuColor.defaults();colors.put(MenuColor.TEXT,0xFFFFFF);
@@ -28,10 +32,10 @@ class MenuColorTest {
     }
     @Test void opacityIsIndependentFromRgbAndTextCanRemainFullyOpaque(){
         var colors=MenuColor.defaults();colors.put(MenuColor.BACKGROUND,0x203040);
-        assertEquals(0x00203040,MenuColor.BACKGROUND.argb(colors,0x141B1B,0));
-        assertEquals(0x80203040,MenuColor.BACKGROUND.argb(colors,0x141B1B,0.5));
-        assertEquals(0xFF203040,MenuColor.BACKGROUND.argb(colors,0x141B1B,1));
-        assertEquals(0xFFE1ECE6,MenuColor.TEXT.argb(colors,0xFFE1ECE6,1));
+        assertEquals(0x00203040,MenuColor.BACKGROUND.argb(colors,0x17191D,0));
+        assertEquals(0x80203040,MenuColor.BACKGROUND.argb(colors,0x17191D,0.5));
+        assertEquals(0xFF203040,MenuColor.BACKGROUND.argb(colors,0x17191D,1));
+        assertEquals(0xFFEBEEF3,MenuColor.TEXT.argb(colors,0xFFEBEEF3,1));
     }
     @Test void rgbInputAcceptsSixAsciiHexDigitsAndRejectsIncompleteOrAlphaValues(){
         assertEquals(0xABCDEF,MenuColor.parse(" #aBcDeF "));assertEquals(0,MenuColor.parse("000000"));assertEquals(0xFFFFFF,MenuColor.parse("FFFFFF"));

@@ -83,7 +83,10 @@ public final class MenuBackgroundImage {
         if(!ImageIO.write(image,"png",output))throw new IOException("PNG encoder unavailable.");
         return output.toByteArray();
     }
-    public static Path animationFile(Path still){return still.resolveSibling("menu-background.gif");}
+    public static Path animationFile(Path still){
+        String name=still.getFileName().toString();int dot=name.lastIndexOf('.');
+        return still.resolveSibling((dot<0?name:name.substring(0,dot))+".gif");
+    }
     public static Path installed(Path still){Path animation=animationFile(still);return Files.exists(animation)?animation:still;}
 
     public static Prepared install(Path source,Path destination)throws IOException{

@@ -14,7 +14,7 @@ class CustomPlaylistsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(String dimension,int time,double y,boolean covered,double depth,double temperature){
-        return new Context(dimension,"minecraft:plains",false,false,time,covered,3,"world",0,y,0,depth,temperature,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context(dimension,"minecraft:plains",false,false,time,covered,3,"world",0,y,0,depth,temperature,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private Context outside(){return context("minecraft:overworld",18000,80,false,0,0.8);}
     @Test void unsetConditionsAllowAnyEnvironment(){assertTrue(new PlaylistConditions().matches(outside(),settings));}
@@ -65,7 +65,7 @@ class CustomPlaylistsTest {
     }
     @Test void waterLightAndCombatFiltersComposeAndRespectGlobalCombatSwitch(){
         var c=new PlaylistConditions();c.combat=State.YES;c.water=State.YES;c.lightEnabled=true;c.minLight=0;c.maxLight=4;
-        var busy=new Context("d","b",true,true,0,true,4,"world",0,0,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var busy=new Context("d","b",true,true,0,true,4,"world",0,0,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertTrue(c.matches(busy,settings));c.maxLight=3;assertFalse(c.matches(busy,settings));c.maxLight=4;
         settings.combatEnabled=false;assertFalse(c.matches(busy,settings));c.combat=State.NO;assertTrue(c.matches(busy,settings));
         c.water=State.NO;assertFalse(c.matches(busy,settings));

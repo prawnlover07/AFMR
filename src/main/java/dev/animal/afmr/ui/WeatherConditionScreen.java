@@ -25,14 +25,14 @@ final class WeatherConditionScreen extends MusicScreen {
     }
     @Override protected void init(){
         super.init();choices.clear();
-        toggle=button("",left,47,contentWidth,()->{enabled=!enabled;updateLabels();});
+        toggle=toggle("Filter",left,47,contentWidth,()->enabled,()->{enabled=!enabled;updateLabels();});
         choice(Weather.ANY_WEATHER,left,71,contentWidth,Component.translatable("afmr.copy.weathercondition.any_weather"));
         int half=(contentWidth-6)/2;
         choice(Weather.RAIN,left,95,half,Component.translatable("afmr.copy.weathercondition.rain"));
         choice(Weather.SNOW,left+half+6,95,half,Component.translatable("afmr.copy.weathercondition.snow"));
         choice(Weather.THUNDERSTORM,left,119,half,Component.translatable("afmr.copy.weathercondition.thunderstorm"));
         choice(Weather.CLEAR,left+half+6,119,half,Component.translatable("afmr.copy.weathercondition.clear"));
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
         updateLabels();
     }
     private void choice(Weather weather,int x,int y,int width,Component help){
@@ -41,7 +41,6 @@ final class WeatherConditionScreen extends MusicScreen {
         if(!choiceHelpText.getString().isBlank())b.setTooltip(Tooltip.create(choiceHelpText));choices.put(weather,b);
     }
     private void updateLabels(){
-        toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));
         for(var entry:choices.entrySet())entry.getValue().setMessage(Component.literal((entry.getKey()==selected?"[x] ":"[ ] ")+entry.getKey().label()));
     }
     @Override public void onClose(){
@@ -53,6 +52,6 @@ final class WeatherConditionScreen extends MusicScreen {
             var c=runtime.context();
             status="Rain/snow weather: "+c.raining()+"; thunder: "+c.thundering()+"; local type: "+c.precipitation().name().toLowerCase(java.util.Locale.ROOT);
         }
-        g.text(font,fit(status,contentWidth),left,height-49,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0));
+        g.text(menuFont,fit(status,contentWidth),left,bodyBottom()-49,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF));
     }
 }

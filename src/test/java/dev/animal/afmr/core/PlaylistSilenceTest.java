@@ -13,7 +13,7 @@ class PlaylistSilenceTest {
     @TempDir Path directory;
     private static Context context(boolean incoming,boolean record){
         return new Context("minecraft:overworld",incoming?"test:b":"test:a",true,false,6000,false,15,"world",0,70,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private static void range(Playlist p,double min,double max){p.customSilence=true;p.silenceMinSeconds=min;p.silenceMaxSeconds=max;}
     private static final class Scenario {
@@ -22,6 +22,7 @@ class PlaylistSilenceTest {
         final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
         final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
         Scenario(){
+            lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;
             lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=20;
             range(a,600,600);range(b,3,3);
             b.conditions.biomeEnabled=true;b.conditions.biomes.add("test:b");lib.movePlaylist(b.id,0);

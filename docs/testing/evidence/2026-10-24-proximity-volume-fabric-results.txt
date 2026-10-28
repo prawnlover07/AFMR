@@ -1,0 +1,35 @@
+STEP Volume editor
+PASS Proximity controls are reachable beside the trigger
+PASS Proximity defaults off
+PASS Four endpoint fields
+PASS Equal distances block saving
+PASS Over-limit volume blocks enabling
+PASS Hide retains invalid numeric draft
+PASS Valid endpoints enable proximity volume
+PASS Small-window controls fit without overlap
+STEP Saved endpoints
+PASS Trigger radius stays independent
+STEP Near native volume
+Native full reference gain=0.5
+PASS Near endpoint reaches OpenAL
+STEP Midpoint native volume
+PASS Midpoint uses linear block distance
+PASS Moving target does not restart song
+STEP Far native silence
+PASS Zero volume keeps native sound playing
+PASS Outside fade range still matches larger trigger radius
+PASS Reverse swaps gains and preserves distances
+STEP Reverse far endpoint
+PASS Reversed far volume reaches OpenAL
+STEP Reverse near endpoint
+PASS Reversed near endpoint is quiet
+STEP Reverse midpoint
+PASS Reverse keeps the midpoint
+STEP Untracked target
+PASS Untracked target uses far endpoint
+PASS Off retains reversed values
+STEP Disabled curve
+PASS Off restores ordinary playlist gain
+STEP Re-enabled curve
+PASS Re-enable restores retained curve live
+COMPLETE: 22 passed / 0 failed

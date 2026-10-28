@@ -41,7 +41,7 @@ public final class MultiplayerSuite {
     private static String homeKey,oldTrack,serverProfile;
 
     @SubscribeEvent public static void tick(ClientTickEvent.Post ignored){
-        if(!Boolean.getBoolean("afmr.probe.multiplayer")||finished)return;
+        if(!Boolean.getBoolean("afmr.probe.multiplayer")||Boolean.getBoolean("afmr.probe.ridingAudit")||Boolean.getBoolean("afmr.probe.normalization")||finished)return;
         mc=Minecraft.getInstance();
         try{
             if(++ticks>12000)throw new IllegalStateException("Multiplayer fixture timed out");
@@ -127,8 +127,8 @@ public final class MultiplayerSuite {
         add(0,()->check("night music resumes online",source("night_outside")&&playing()));
         add(40,()->rt.overridePlaylist(manual.id,OverrideMode.UNTIL_RELEASED));
         add(0,()->check("Automatic-off held override online",source(manual.id)&&manual.id.equals(engine.overrideId())&&playing()));
-        add(20,()->rt.normalizePlaylist(manual.id));
-        add(0,()->check("normalization waits without decoding during multiplayer",rt.loudnessJob()!=null&&rt.loudnessJob().report()==null&&rt.loudnessJob().completed()==0&&!rt.loudnessJob().allowed()));
+        add(100,()->rt.normalizePlaylist(manual.id));
+        add(0,()->check("manual normalization completes during multiplayer",rt.lastLoudnessReport()!=null&&rt.lastLoudnessReport().count(dev.animal.afmr.library.LoudnessScan.Source.SCANNED)==1&&lib.track("file:multiplayer0").loudness!=null&&!mc.isPaused()));
         add(50,()->{rt.returnAutomatic();command("fill 0 40 0 6 50 6 minecraft:stone hollow");command("tp @s 3.5 41 3.5");});
         add(0,()->check("synchronized cover and darkness",rt.context().covered()&&rt.context().coverDepth()>=9&&source("dark_exploration")));
         add(40,()->command("setblock 3 43 3 minecraft:glowstone"));
@@ -185,7 +185,7 @@ public final class MultiplayerSuite {
             check("actual server reconnect selects linked profile",lib.profiles.activeId.equals(serverProfile));
             check("linked server setup restores independent playlist volume",lib.playlists.stream().allMatch(p->p.volume==0.37));
         });
-        add(0,()->check("waiting normalization finishes after disconnect",rt.lastLoudnessReport()!=null&&rt.lastLoudnessReport().count(dev.animal.afmr.library.LoudnessScan.Source.SCANNED)==1&&lib.track("file:multiplayer0").loudness!=null));
+        add(0,()->check("completed normalization survives disconnect",rt.lastLoudnessReport()!=null&&rt.lastLoudnessReport().count(dev.animal.afmr.library.LoudnessScan.Source.SCANNED)==1&&lib.track("file:multiplayer0").loudness!=null));
         add(80,()->{command("gamemode creative @s");command("execute in minecraft:the_nether run tp @s 3.5 200 3.5");});
         add(0,()->check("server dimension change keeps linked profile",lib.profiles.activeId.equals(serverProfile)&&rt.context().dimension().equals("minecraft:the_nether")&&homeKey.equals(rt.worldKey())));
         add(80,()->command("execute in minecraft:overworld run tp @s 3.5 90 3.5"));

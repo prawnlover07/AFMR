@@ -1,10 +1,56 @@
 # Understanding and developing AFMR
 
-For the **1.0.1** source, reviewed **October 23, 2026**. This guide explains how the
+## Profile-first preset imports (1.1)
+
+`PresetImportScreen` starts with a null destination ID, an editable filename-based
+name and no model mutation. Existing profile IDs remain selectable. `PlaylistPresets.apply`
+accepts the optional new-profile name and returns `ImportResult(profileId, ids)`;
+callers consume both fields directly. A new profile is published only after
+validation/song-plan application, with imported playlists only, fresh playback
+defaults, no activation and no world binding. Profile capacity/name and location
+checks precede mutation.
+
+Existing-profile import builds a case-folded/trimmed name index once. Ambiguous
+target matches or duplicate incoming names fail before playlist mutation. Matching
+playlists retain their object/ID and position; prepared settings replace their
+fields, keeping scheduler/keybind/folder/incoming-transition references valid.
+Settings-only drafts retain the assignment map by reference without reading it;
+song-enabled drafts replace it with the reviewed imported assignments. Other songs
+stay in the shared catalog. Portable transition IDs resolve to final retained/new
+IDs before commit. Unmatched playlists follow insertion controls. No new format
+version, compatibility overload or new worker was introduced. `PresetImportProfilesTest`
+adds thirteen cases per target; existing import tests now assert replacement semantics.
+
+For the **1.1** source, reviewed **October 28, 2026**. This guide explains how the
 current implementation fits together. It is not a reconstruction of development
 before Git. The imported validated baseline is tagged `v0.5.2`.
 
 ## Song groups, notification delay and player themes
+
+### Directional transition rules
+
+Each playlist owns a destination-ID map of `TransitionRule` values. Finish is a
+three-way enum; timing overrides are explicit booleans and bounded primitive
+values. `PlaybackEngine.transitionSource` retains actual automatic song ownership
+through natural completion/silence. Automatic selection performs a map lookup
+only when the source differs from the destination, without catalog traversal or
+allocation. Finish overrides replace ordinary entry/exit/shared-track protection;
+optional buffer and gap overrides suppress the corresponding Play on trigger
+bypass. Manual controls, queue admission, previews, errors, death and reset clear
+pair state. A custom incoming fade is captured once for that song; normal later
+songs use global fades. Accepted short buffers cannot reintroduce a longer global
+buffer after the incoming song starts. Existing pause clocks shift all deadlines.
+
+`PlaylistTransitionsScreen` caches destination labels on initialization, and
+`TransitionRuleScreen` owns a deep draft with blank timing fields for inheritance.
+The workspace exposes it beside Overrides without adding another sidebar row.
+Snapshots/profile copies own their maps and values; deletion removes incoming
+references. `PlaylistPresets` remaps jointly selected destinations to portable IDs
+on capture and new IDs on apply, omitting links outside the export. Strict import
+validates rule fields, enum, finite bounds and referenced destinations. No new
+format version or compatibility layer is introduced. `TransitionRulesTest` and
+the existing backup roundtrip cover these semantics. Test-only `Feature101Suite`
+accepts `-Ptransitions` alongside its existing mode for actual UI/audio checks.
 
 `PlaybackEngine` owns group identity/count on the client. Only a natural PLAYING
 completion with the same source/selection can skip an ordinary gap; queues,
@@ -113,7 +159,7 @@ tests possible without launching Minecraft or opening an audio device.
 | Owner / execution context | Responsibilities |
 | --- | --- |
 | Client thread | Live library mutation, combat/environment observations, scheduler state, UI actions, applying completed imports |
-| Integrated server thread (singleplayer) | Read loaded structure starts/references and registry IDs; maintain the loaded combat-capable mob index and inspect actual targets; publish immutable observations, never load or generate chunks |
+| Integrated/dedicated server thread | Read loaded structure starts/references and registry IDs; maintain the loaded combat-capable mob index and inspect actual targets; publish immutable observations, never load or generate chunks |
 | `AFMR library` single worker | File discovery, playlist parsing, import metadata reads; returns scan results |
 | `AFMR loudness` bounded lanes (up to two) | Explicit playlist batches; lane-owned PCM buffers/meters, disjoint results, immutable progress |
 | `AFMR library save` single worker | JSON serialization and disk replacement using an owned save snapshot |
@@ -143,7 +189,7 @@ The runtime:
 2. Resets session state when leaving a world. When entering one, it stops Minecraft's
    existing music manager. If Minecraft is paused, gameplay updates stop there.
 3. Updates combat death state; source-qualified attack/damage events refresh the
-   general and independent PvP timers. Singleplayer target observations can sustain
+   general and independent PvP timers. Server target observations can sustain
    an event-started fight. Health loss or targeting alone never creates combat.
 4. Samples position, dimension, biome, world time, light, water, and surface cover;
    polls the bounded structure observation when a filter or its editor needs it.
@@ -163,21 +209,34 @@ a tick that observes a null level. The null-level tick path remains a fallback.
 Dimension changes and respawn retain the connection's playback state; player
 replacement separately resets combat observations.
 
-AFMR registers no payloads, synchronized configuration, or gameplay registries.
-Its entrypoint and event subscribers are restricted to `Dist.CLIENT`, and the
-sound mixins are in the mixin configuration's `client` list. Context comes from
-the client level and local player, using vanilla-synchronized data. The separate
-[vanilla multiplayer fixture](../testing/native/README.md#vanilla-multiplayer-suite)
-tests the packaged JAR against a server with no mods. Structure detection is an
-explicit singleplayer exception: [StructureDetection.java](../src/main/java/dev/animal/afmr/StructureDetection.java)
-submits at most one integrated-server request at a time, at most twice per second.
-Only that server task reads registry/chunk state; the client consumes owned IDs
-and integer bounds. Radius is capped at 128, bounding the scan to 17x17 loaded chunks
-plus their loaded referenced starts. No disk reads, chunk loads or generation are
-requested. Cached bounds still match across chunk edges, and cache/futures are
-discarded on dimension/session changes. Multiplayer observes unavailable data,
-so that filter cannot match; Match any may still succeed via another enabled filter.
-Other rules and overrides continue normally.
+AFMR registers two optional play payloads: a self-scoped condition query and a
+bounded immutable observation. `ClientConditions` owns connection/player/dimension
+identity; `ServerConditionSession` owns request tokens, one outstanding request,
+500 ms polling, two-second retry/expiry and the owned structure catalog. Session,
+respawn, dimension and profile changes reject old responses. Servers without the
+channels receive no AFMR requests and preserve unavailable structure/event timers.
+
+`server/ServerConditions` owns loaded combat-capable mob indices, a round-robin
+client queue and cached catalogs on the server thread. Packets request only the
+sender's current dimension/entity and a radius of -1 (disabled) to 128. Coordinates
+come from the authenticated server player. There is one pending request per player,
+replies are limited to once per five ticks, inactive sessions expire after 60 ticks,
+and up to eight clients share a total 256 mob visits plus one structure scan per
+tick. An idle client sends nothing. Structure scans visit at most 17x17 loaded
+chunks, with a 4096-reference/start bound; they never load or generate terrain.
+Observations cap bounds at 256, registry IDs at 2048 and IDs at 256 characters.
+A scan exceeding bounds reports unavailable rather than a misleading partial match.
+
+NeoForge registers optional codecs and side-specific handlers. Fabric registers
+its common server receiver in `server/ServerAfmr` and its client receiver in
+`ClientConditions`; decoded owned values are delivered to the owning main thread.
+There are no AFMR worker threads for world observation. Separate `serverJar`
+(NeoForge) / `remapServerJar` (Fabric) tasks package only server/network code,
+`StructureContext`, minimal metadata and the MIT license. The ordinary client JAR
+also supplies its integrated server. Install one AFMR JAR per dedicated server.
+
+`networkTest` runs packet component tests with Minecraft/Netty on its classpath;
+ordinary `test` remains Minecraft-independent. Both run under `build`.
 
 ## Models and playlist selection
 
@@ -223,6 +282,13 @@ Ranges are inclusive. Time can wrap midnight;
 equal endpoints select one tick. Elevation floors player Y to block Y. Temperature
 boundaries use Minecraft float precision. Avoid implementing a second set of
 condition comparisons in the UI.
+
+`Context.ridingAnimal` samples `player.getVehicle() instanceof Animal` directly
+on the client in both targets. The condition uses `State.ANY/YES/NO`, defaults to
+ANY, and participates in the same failure bitset, group logic, summaries and
+Inspector. There is no entity search, mount registry cache or server request.
+The single boolean snapshot clears with the existing world/disconnect context;
+condition copying and strict portable-file validation retain its configured state.
 
 `fitSongsToTimeWindow` is opt-in on each enabled Time filter. At an automatic song
 start, `songTimeBudget()` projects only opted-in time comparisons at their start
@@ -319,24 +385,15 @@ Attack/damage attribution needs no entity-radius scan. Unresolved/unloaded attac
 are not guessed; the broad global mode can accept unattributed damage. Fully blocked
 shield events do not carry this damage-source packet and do not create a new trigger.
 
-[HostileTargeting.java](../src/main/java/dev/animal/afmr/HostileTargeting.java) keeps
-singleplayer combat active while a loaded combat-capable mob actually targets the
-player. The integrated server owns per-level mob arrays and entity-ID indices,
-maintained by entity join/leave and level/server teardown events. Removal swaps the
-last entry into the removed slot. A scoped immutable request identifies server,
-dimension, player UUID and entity ID; the client accepts only a result carrying
-that same request instance. Volatile request/result references cross threads;
-mutable entities and collections stay on the server thread. Client session resets
-clear the request, while server events own index cleanup.
-
-An active-combat request checks at most 256 indexed mobs per server tick, continuing
-large scans across ticks. A completed result schedules the next check five server
-ticks later; target loss is therefore sampled, with extra latency for large pools.
-No target scan runs outside combat. No terrain is loaded and no multiplayer request
-is sent. The tracker requires an unexpired event-started fight before accepting a
-first positive observation. Losing the last target starts the general quiet period;
-mob targeting never extends the independent PvP timer. Generic vanilla mob target
-identity is not synchronized, so multiplayer retains its event timeout.
+[ServerConditions.java](../src/main/java/dev/animal/afmr/server/ServerConditions.java)
+keeps event-started combat active while a loaded combat-capable mob targets the
+requesting player. Entity load/unload events maintain a dense mob array and
+identity index; removal swaps in the last entry. Scans continue across ticks within
+the shared budget and schedule a new pass five ticks after completing. Large pools
+and many clients increase observation latency. Targeting cannot start or revive a
+fight, and losing the last target starts the full quiet period. Mob targeting
+never extends the independent PvP timer. Without the companion, multiplayer keeps
+its existing attack/damage timer.
 
 `Context.healthHearts` is `player.getHealth()/2`, excluding absorption, and
 `playerCombat` records the independent PvP timer. `healthEnabled`, `healthComparison`
@@ -484,7 +541,8 @@ those deadlines would change pause and stall behavior.
 
 `Playlist.volume` is a normalized linear 0-1 gain. `PlaybackEngine.currentGain`
 remains the unscaled fade envelope; output multiplies it by the retained
-`playingSource.volume` for normal, death and jukebox fades. This avoids squaring
+`playingSource.volume` and the smoothed proximity multiplier for normal, death
+and jukebox fades. This avoids squaring
 the multiplier when a fade begins. Source references permit live edits without
 scanning playlists or the music library. Source-free previews use unity. Reset
 drops the source, queue, overrides, pause state and shuffle bags; history survives.
@@ -562,10 +620,12 @@ Peak protection uses decoded PCM sample peaks, not an oversampled true-peak mete
 No metadata or audio writes occur. File size/mtime must match before and after a scan.
 See [measurement checks](testing/2026-10-21-loudness.md) and their limits.
 
-Until gameplay impact is measured, the client grants analysis only at the title
-screen or while singleplayer is paused. The progress screen requests that pause;
-resuming gameplay revokes the grant and workers wait at chunk/file checkpoints.
-The report screen caches formatted rows and draws only the visible viewport.
+Manual normalization batches run immediately regardless of world/pause state,
+including multiplayer. The progress screen does not request a game pause; Back
+leaves the explicit job running. Cancellation/interruption checkpoints remain
+between files and PCM chunks. Keep lane-owned buffers/meters, disjoint result
+ownership, bounded workers, and client-owned result application/save snapshots;
+no game-thread audio analysis or automatic whole-library batches are introduced.
 
 [SoundEngineMixin.java](../src/main/java/dev/animal/afmr/mixin/SoundEngineMixin.java)
 remembers AFMR's channel and submits pause/unpause through its channel handle to
@@ -604,12 +664,23 @@ ordinary scan details retain their existing 100-message cap. UI caches report ro
 and only the hovered full-path tooltip; rendering never checks disk/catalog paths.
 `ClientRuntime` uses Minecraft's system toast and a red workspace repair count.
 
+Explicit health checks and repair plans receive a cancellation predicate. The
+client owns one AtomicBoolean request flag per operation; the existing library
+worker polls it between folders/tracks and before returning a result. The repair
+screen reuses Check again as Cancel search/Cancelling. Client callbacks verify
+the operation's flag identity and cancellation state before publishing results.
+Keep scanning busy until the worker finishes, retain the last completed report,
+and avoid interrupting the shared worker for ordinary user cancellation.
+In-progress OS filesystem/metadata calls may finish before the next poll.
+
 `LibraryRepair` separates read-only planning (existing scanner) from validated
 client-owned application. Folder plans preserve exact relative paths and stable
-IDs; individual plans accept a chosen supported file. Partial plans retain expected
+IDs; individual plans accept a chosen supported file, verifying its bytes when an
+identity is recorded. Partial unsigned plans retain expected
 new paths for unfound songs. Metadata reads and file attributes are worker-owned;
-no new executor or file-format version is added. An existing linked target root
-is rejected to avoid overwriting distinct folder rescan destinations.
+no new executor or file-format version is added. Content-verified plans can merge
+existing linked roots while retaining their destination settings; unsigned
+duplicate roots require explicit unlinking.
 
 Apply validates all original paths, duplicate entries and folder links before
 mutation. It replaces metadata, transfers active/inactive folder keys, and merges
@@ -664,16 +735,30 @@ The 16 MiB file limit still applies, with 100,000 distinct song references and a
 bounded assignment count. Neither toggle defaults on; a null song plan applies
 settings only, even when a file contains song tables.
 
-Matching uses unique linked-folder names or explicit Explorer choices. An owned
-catalog snapshot and root choices go to the existing scanner; one serial timeline
-checks exact relative paths and publishes an immutable plan. It does not normalize
+Matching initially uses linked-folder names and explicit Explorer choices.
+Shared local references can carry a SHA-256/size identity. `ContentFiles.Reader`
+owns one digest/64-KiB buffer and checks cancellation between chunks, verifying
+stable file attributes before/after reading. Recursive searches prune by remaining
+byte sizes, avoid symlink traversal, prefer existing catalog paths and retain only
+matching identities plus bounded errors. User-requested linked-library searches
+also inspect known individual catalog files; initial matching only consults
+already fingerprinted catalog candidates. No disk/catalog work occurs in rendering
+or playback ticks. Absolute source paths/IDs used while exporting are transient.
+
+An owned catalog snapshot, folder/file choices and cancellation flag go to the
+existing scanner; one serial timeline verifies contents and publishes an immutable
+plan. Cancelled/obsolete results are discarded on the client. It does not normalize
 the condition tree shared with the preview. Cancellation/closed-runtime guards
 discard late results. Apply performs one transition-time path index, reuses current
 library IDs, inserts assignments into newly copied playlists, and retains missing
 tracks. Unknown roots use AFMR-owned expected paths under `missing-imports` without
 creating files/directories. These roots become ordinary missing folder links, so
 existing `LibraryRepair` updates paths, merges duplicates and retains all profile
-assignments. Renamed files use ordinary individual repair. Partial matches under
+assignments. Recorded identities also find renamed files during folder repair;
+unresolved signed references keep their original missing path/root for retry.
+Nested verified links follow their actual matched parents, collapsing duplicate
+roots while preferring existing destination settings or the chosen source root.
+Partial matches under
 an already chosen root retain missing tracks without linking/scanning that whole
 folder. Unavailable vanilla/resource IDs stay resource references and are reported
 separately. Both maintained targets implement the same JSON model directly.
@@ -763,16 +848,42 @@ progress indicators keep their own opaque colors. Both screen roots use native
 controls blur strength. Display → Menus previews the independent menu settings
 live and saves them when leaving or hiding the page.
 
-`MenuColor` defines ten RGB families. `Settings.menuColors` is normalized to a
+`ColorTheme` captures only menu RGB families/opacity and widget background
+RGB/opacity. Named snapshots live in shared `Settings.savedThemes`, capped at 128
+and deeply copied into save/backup snapshots. Graphite is an independent built-in
+snapshot. Theme IDs are local; shared files omit them and assign a new ID on read.
+Names are bounded and collision suffixes preserve existing entries.
+
+`ThemeFiles` reads/writes small .afmrt JSON files, with a 64 KiB input bound,
+strict required/allowed fields, duplicate detection, RGB checks and finite 0–1
+opacity. Exports write an owned snapshot atomically. `Themes` owns all mutation
+on the client; its single in-flight operation gives bounded file work exclusive
+snapshot ownership and hands its result back to the client. Shutdown discards
+late import completion; full-backup capture excludes an active theme operation.
+Unrelated music scans do not block explicit theme file actions.
+
+`ThemesScreen` replaces the former direct Menu colors entry. It previews rows,
+explicitly applies appearance, and offers rename/export/delete through an opaque
+menu. `ThemePreview` owns an isolated ColorTheme draft. `MenuAppearance` and the
+AFMR card renderer read that draft only while visible; the persisted Settings
+object never holds preview values. Paging and ColorPicker callbacks cannot leak
+them into saves/backups. `ThemeEditorScreen` validates on Apply, commits through
+the owning ThemesScreen and returns directly to Display. Cancel restores its
+opening draft. Workspace navigation discards the session; MusicMenu hide/reopen
+suspends/restores rendering. Save as explicitly snapshots the draft as a new
+collection entry. The old automatic update-on-page-change path was removed.
+The former `MenuColorsScreen` was removed; callers now open the Themes menu.
+
+`MenuColor` defines ten RGB families with Graphite defaults. `Settings.menuColors` is normalized to a
 complete EnumMap and explicitly copied into owned save snapshots. Each drawing
-call identifies its family and original shade directly; `MenuColor.argb()` shifts
+call identifies its family and Graphite shade directly; `MenuColor.argb()` shifts
 channels relative to the family base and clamps at 0–255. The default palette
-therefore reproduces every original shade exactly, without runtime classification
-by RGB. Cached `MenuSurface` geometry stores the family and original shade so
+therefore reproduces each Graphite drawing shade exactly, without runtime classification
+by RGB. Cached `MenuSurface` geometry stores the family and drawing shade so
 live edits recolor existing screens without rebuilding layouts. Palette resolution
 uses fixed arithmetic and one map lookup, with no per-frame allocations or I/O.
-`MenuColorsScreen` edits paged RGB fields with valid live previews, draft validation,
-swatches and an independent Reset colors action. Foreground calls always request
+`ThemeEditorScreen` edits paged RGB fields with valid live previews, draft validation,
+swatches and an independent Reset menu colors action. Foreground calls always request
 full alpha. HUD artwork/widgets, warning colors and native Minecraft widget skins
 remain independent. Both maintained targets edit their direct drawing call sites;
 there is no compatibility theme layer.
@@ -797,9 +908,45 @@ remembered screen so world-specific drafts and external parent screens cannot
 survive into another connection. `Afmr` drains held-key repeats after hiding to
 prevent an immediate reopen. No menu state is written to the library file.
 
+`PlaylistEditHistory` is client-owned session state with separate profile timelines,
+128 retained entries and a shared retained-weight bound. Settings checkpoints copy
+only the selected playlist metadata, never its song assignments or the track
+catalog. Sparse song deltas preserve absent/off/on; order changes store ranks.
+Restores update existing playlist objects in place and reject conflicting song
+changes. Numeric responders coalesce one field until a different action or timeout.
+`PlaybackStatus` produces compact transport labels from already-computed scheduler
+state and cached availability text; it performs no catalog selection scans.
+`PlaybackIndicator` draws current/source notes or pause bars independently of
+selection. One viewport-positioned song action button is reused across rows;
+its hit target shares the right-click menu and preserves selected assignments.
+The pinned song region reserves the assignment state and playback marker, while
+the metadata viewport reserves the action region. Rule summaries are built at
+UI rebuilds, including Minecraft-clock windows and named single selections.
+`PriorityDrag` owns threshold, insertion and scroll geometry; release commits one
+history entry. `WorkspaceTabButton` uses the workspace's physical scale/bounds
+on both root and nested pages. Popups explicitly override surface alpha to opaque.
+
+`CustomFonts` owns independent menu/widget selections and Font/FontSet caches on
+the client. Font IDs come from the loaded FontManager; render lookups never scan
+disk. A bounded import worker owns validation/copy/AFMR resource-pack generation,
+then hands completion to the client for native resource reload. `FontFiles` accepts
+TrueType outlines up to 16 MiB and writes only owned pack files; missing glyphs
+reference Minecraft default. Imported TTF assets join ConfigBackup; resource-pack
+IDs persist without embedding third-party packs. UI screens own menuFont rather
+than assigning Minecraft's final Screen.font. Widget metrics invalidate when the
+selected Font object changes; opacity controls also use the selected menu font.
+
+`ClientRuntime.minecraftMusicMuted()` reads Music/Master volume solely for the
+workspace warning. Muting/unmuting does not alter scheduler pause state or clocks;
+manual pause remains independent. The former delayed mute-pause controller and
+its ownership/reset hooks were removed. Fabric's SoundEngine/SoundManager mixins
+still retain AFMR's silent stream at exact zero source/listener gain, while
+preserving other sounds' stop behavior. Those hooks support silent continuation,
+not automatic pause. All channel work stays on Minecraft's sound executor.
+
 The playlist workspace owns priority, song assignments, inline rules and the bottom
 transport. `WorkspaceLayout` computes its bounded virtual canvas and independently
-scrolling priority/library/song regions. `WorkspacePage` names the six navigation
+scrolling priority/library/song regions. `WorkspacePage` names the shared navigation
 destinations. The root retains each primary settings page; `MusicScreen` validates
 draft fields before a navigation change. Shared condition/group pages, combat/death,
 import/report, overrides/bindings, display settings, and inspector remain separate
@@ -1015,7 +1162,7 @@ the managed GIF only after every frame validates. The other managed format is th
 removed; GIF takes precedence if an interrupted replacement leaves both files.
 WebP lossless decoding may allocate a bounded source-sized intermediate despite
 subsampling; the 64-megapixel input guard still applies. Animated WebP is rejected.
-`MenuBackground` owns the registered frame textures and cached viewport
+`CustomBackground` owns independent MENU and WIDGET instances, registered frame textures and cached viewport
 layout on the client. Neither rendering nor steady gameplay walks image files.
 The stream form of `NativeImage.read` avoids the 1.20.1 scratch-stack limitation;
 texture/image ownership is released on replacement, disable, reload and shutdown.
@@ -1026,6 +1173,14 @@ use 100 ms; positive GIF delays retain their hundredth-second timing. The animat
 clock continues while menus are hidden and restarts after an image reload.
 The settings are global `Library.Settings` fields, explicitly copied in snapshots;
 `ProfilePlayback` and `.afmrp` do not include appearance.
+
+`CustomBackgroundScreen` edits the selected instance directly; widget settings open
+it only for the AFMR card. `NowPlayingWidget` draws the widget instance inside the
+card's translated/scaled pose before artwork and text, with the popup fade alpha.
+The image replaces the solid fill, including at zero image opacity; unloaded or
+unavailable images retain the solid fallback. `MenuBackgroundImage.animationFile`
+derives the GIF filename from each PNG stem, so installing one background cannot
+delete the other. All callers use the shared implementation directly.
 
 Both `MusicScreen` and `LibraryScreen` draw through this owner. On 26.3,
 `extractBackground` submits the wallpaper, calls `nextStratum()`, then marks blur
@@ -1038,15 +1193,15 @@ The windowless native probes exercise actual native decode/close separately.
 ## Whole-configuration transfer
 
 `ConfigBackup` writes `.afmrb` ZIP archives with an exact allowlist: `library.json`,
-`history.json`, `keys.json` and optional `menu-background.png` or `menu-background.gif`
-(never both). Required model data,
+`history.json`, `keys.json` and optional `menu-background.png`/`.gif` and
+`widget-background.png`/`.gif` (one file per background). Required model data,
 track/playlist identities and assignments, profiles, history, all fifteen AFMR key
 names/modifiers and the background are validated before preview. JSON nesting is
 bounded before tree parsing (48 levels); per-entry decompressed limits are 96 MiB
-for the library, 2 MiB for history, 64 KiB for keys and 20 MiB for the image. The
+for the library, 2 MiB for history, 64 KiB for keys and 20 MiB per image. The
 archive itself is bounded at 128 MiB. Managed PNG dimensions are bounded to 2048;
 GIFs validate through the same bounded compositor, preserving animation source
-bytes during export/restore. Both managed filenames participate in restore/recovery.
+bytes during export/restore. All four managed image filenames participate in restore/recovery.
 No arbitrary archive member is extracted or treated as a filesystem path.
 
 `ClientRuntime` owns export snapshots of the library, bounded immutable history
@@ -1123,3 +1278,22 @@ and decoder retries clear the ordinary-gap anchor. Transport methods accept the
 owning `Library` directly to resolve queue sources and one-song override release.
 Global edits retain an existing default gap; explicit frequency changes restart
 only default gaps. Copies/snapshots must include all three playlist fields.
+
+### Nearby player proximity volume
+
+`PlayerProximityVolume` owns the two distance/gain endpoints and their validation,
+normalization, linear interpolation and owned copy. Each `PlaylistConditions` node
+owns one curve, used only with that node's enabled nearby-player filter. Evaluate
+the enabled condition tree with the quietest curve result, independently of trigger
+matching, so retained songs follow their actual source's distance settings.
+`NearbyPlayers.distanceSquared` reuses the UUID/name lookup and returns infinity
+for unavailable observations. Do not fall back from a known UUID to another name.
+`PlaybackEngine` initializes the source multiplier at start, then interpolates
+new targets over 250 ms in playback time. Pause/record holds freeze that ramp.
+Keep fade envelopes separate; multiply only at the three actual gain writes.
+No whole-track-library traversal or additional entity-observation frequency is added.
+The dedicated screen has four numeric drafts and a reversal action; preserve
+parent player/radius selection and hidden/resized drafts. Strict playlist import
+checks nested curve keys/types/ranges before normalization. Full configuration
+backups and profiles use deep condition copies. Diagnostics may show endpoint
+settings but never the target identity or raw observed player distance.

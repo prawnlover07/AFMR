@@ -20,7 +20,7 @@ class ContinuePlayingOnMatchTest {
 
     private static final class CountingAudio extends PlaybackEngineTest.FakeAudio {
         int starts,stops;
-        @Override public void start(Track t)throws Exception{super.start(t);starts++;}
+        @Override public void start(Track t,double position)throws Exception{super.start(t,position);starts++;}
         @Override public void stop(){super.stop();stops++;}
     }
     private Playlist playlist(String name){
@@ -28,7 +28,7 @@ class ContinuePlayingOnMatchTest {
         lib.tracks.add(new Track(name,"file",name,false));p.tracks.put(name,true);return p;
     }
     private Context context(Playlist where,boolean dead){
-        return new Context("minecraft:overworld","test:"+where.name,false,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context("minecraft:overworld","test:"+where.name,false,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private void tick(double now,Playlist where){engine.tick(now,lib,context(where,false),vanilla);}
     private void enter(double now,Playlist where){tick(now,where);tick(now+2,where);}
@@ -114,7 +114,7 @@ class ContinuePlayingOnMatchTest {
     @Test void combatDeathCutTakesPrecedenceOverMatchProtection(){
         a.conditions.combat=PlaylistConditions.State.YES;a.conditions.matchAny=true;
         engine.reset();lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;
-        var combatContext=new Context("minecraft:overworld","test:A",true,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var combatContext=new Context("minecraft:overworld","test:A",true,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         engine.tick(0,lib,combatContext,vanilla);engine.tick(2,lib,combatContext,vanilla);retainInB();
         lib.settings.combatDeathMusic=DeathMusic.CUT;engine.tick(17,lib,context(b,true),vanilla);assertNull(engine.current());
     }

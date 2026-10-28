@@ -2,6 +2,7 @@ package dev.animal.afmr.library;
 
 import dev.animal.afmr.core.Library;
 import dev.animal.afmr.core.Library.*;
+import dev.animal.afmr.core.SongIdentity;
 import dev.animal.afmr.library.PlaylistPresets.FileData;
 import dev.animal.afmr.library.MusicFiles.*;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.BooleanSupplier;
 
 /** Portable song references and an owned, read-only filesystem plan for a setup import. */
 public final class PresetSongs {
@@ -20,12 +22,15 @@ public final class PresetSongs {
     }
     public static final class Song {
         public String id="",folder="",path="",title="";
+        public String sha256="";
+        public long bytes=-1;
+        public transient String sourcePath="",sourceId="";
         public boolean vanilla;
     }
     public record Root(String id,String name,String path,boolean chosen){}
     public record Resolved(String song,Track track,boolean found){}
-    public record Plan(FileData data,List<Root> roots,List<Resolved> songs,int missing,int unavailableResources){
-        public Plan{roots=List.copyOf(roots);songs=List.copyOf(songs);}
+    public record Plan(FileData data,List<Root> roots,List<Resolved> songs,int missing,int unavailableResources,int verified,List<String> errors){
+        public Plan{roots=List.copyOf(roots);songs=List.copyOf(songs);errors=List.copyOf(errors);}
         public int found(){return songs.size()-missing-unavailableResources;}
     }
     private PresetSongs(){}
@@ -42,6 +47,7 @@ public final class PresetSongs {
                     Track t=lib.track(entry.getKey());
                     if(t==null)throw new IllegalArgumentException("A selected playlist references a removed song; rescan or remove that entry first.");
                     var song=new Song();song.id="song:"+data.songs.size();song.title=t.title;song.vanilla=t.vanilla;
+                    if(!t.vanilla){song.sourcePath=t.path;song.sourceId=t.id;if(t.content!=null){song.sha256=t.content.sha256();song.bytes=t.content.size();}}
                     if(t.vanilla)song.path=t.path;
                     else{
                         Path path=Path.of(t.path).toAbsolutePath().normalize(),root=path.getParent();
@@ -60,6 +66,20 @@ public final class PresetSongs {
             }
         }
     }
+    /** Receives the owned export snapshot; source paths are transient and never serialized. */
+    public static void identifyExport(FileData data,Consumer<ScanProgress> progress,BooleanSupplier cancelled)throws IOException{
+        var reader=new ContentFiles.Reader(cancelled);int processed=0;
+        for(var song:data.songs){
+            reader.checkpoint();
+            if(!song.vanilla&&!song.sourcePath.isEmpty()){
+                Path path=Path.of(song.sourcePath);
+                try{var identity=reader.identify(path);song.sha256=identity.sha256();song.bytes=identity.size();}
+                catch(NoSuchFileException e){if(song.sha256.isEmpty())throw new IOException("Cannot verify song contents: "+song.title+". Locate the missing file before sharing its song list.",e);}
+            }
+            progress.accept(new ScanProgress(ScanStage.HASHING,data.songs.size(),++processed,song.title));
+        }
+        reader.checkpoint();validate(data);
+    }
     public static void validate(FileData data){
         if(data.folders==null||data.songs==null||data.folders.size()>MAX_SONGS||data.songs.size()>MAX_SONGS)throw new IllegalArgumentException("Too many song references");
         var roots=new HashSet<String>();var ids=new HashSet<String>();var paths=new HashSet<String>();
@@ -69,7 +89,10 @@ public final class PresetSongs {
         }
         for(var s:data.songs){
             if(s==null||!id(s.id,"song:")||!ids.add(s.id)||s.folder==null||!name(s.title,1024)||s.path==null||s.path.length()>4096)throw new IllegalArgumentException("Invalid or duplicate song reference");
+            if(s.sha256==null||(s.sha256.isEmpty()?s.bytes!=-1:!SongIdentity.validHash(s.sha256)||s.bytes<0))
+                throw new IllegalArgumentException("Invalid song content fingerprint");
             if(s.vanilla){
+                if(!s.sha256.isEmpty())throw new IllegalArgumentException("Resource music cannot have a local file fingerprint");
                 if(!s.folder.isEmpty()||!s.path.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")||s.path.contains(".."))throw new IllegalArgumentException("Invalid resource music identifier");
             }else if(!roots.contains(s.folder)||!relative(s.path)||!MusicFiles.supported(Path.of(s.path)))throw new IllegalArgumentException("Use relative MP3, FLAC, OGG or WAV paths inside a music folder");
             if(!paths.add(s.folder+"\n"+s.path))throw new IllegalArgumentException("Duplicate song path");
@@ -104,19 +127,22 @@ public final class PresetSongs {
         return result;
     }
     /** All disk/tag work stays on the existing library worker; inputs are owned snapshots. */
-    public static Plan plan(FileData data,List<Track> catalog,Map<String,Path> choices,Path missingRoot,Consumer<ScanProgress> progress)throws IOException{
+    public static Plan plan(FileData data,List<Track> catalog,Map<String,Path> choices,Path missingRoot,Consumer<ScanProgress> progress,
+                            Collection<Path> searchFolders,Map<String,Path> fileChoices,BooleanSupplier cancelled,boolean searchCatalog)throws IOException{
         // Conditions were validated before publishing the file; do not normalize shared UI data here.
-        validate(data);
+        validate(data);var reader=new ContentFiles.Reader(cancelled);var errors=new ArrayList<String>();
         var known=new HashMap<Path,Track>();var resources=new HashMap<String,Track>();
         for(var t:catalog)if(t.vanilla)resources.put(t.path,t);else known.put(Path.of(t.path).toAbsolutePath().normalize(),t);
-        var roots=new ArrayList<Root>();var paths=new HashMap<String,Path>();
+        var roots=new ArrayList<Root>();var paths=new HashMap<String,Path>();var unresolvedPaths=new HashMap<String,Path>();
         for(var f:data.folders){
             Path chosen=choices.get(f.id),path=(chosen==null?missingRoot.resolve(f.id.replace(':','-')).resolve(f.name):chosen).toAbsolutePath().normalize();
             roots.add(new Root(f.id,f.name,path.toString(),chosen!=null));paths.put(f.id,path);
+            unresolvedPaths.put(f.id,missingRoot.resolve(f.id.replace(':','-')).resolve(f.name).toAbsolutePath().normalize());
         }
-        var result=new ArrayList<Resolved>();int missing=0,unavailable=0,processed=0;
+        var result=new ArrayList<Resolved>();int missing=0,unavailable=0,processed=0,verified=0;
+        var wanted=new HashSet<SongIdentity>();
         for(var s:data.songs){
-            if(Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
+            reader.checkpoint();
             Track track;boolean found;
             if(s.vanilla){
                 Track existing=resources.get(s.path);found=existing!=null;
@@ -125,12 +151,21 @@ public final class PresetSongs {
             }else{
                 Path root=paths.get(s.folder),path=root.resolve(s.path).normalize();
                 if(!path.startsWith(root))throw new IOException("Song path escapes the chosen music folder");
+                if(fileChoices.containsKey(s.id))path=fileChoices.get(s.id).toAbsolutePath().normalize();
+                var identity=s.sha256.isEmpty()?null:new SongIdentity(s.bytes,s.sha256);
                 Track existing=known.get(path);found=false;
                 try{
                     if(!Files.isRegularFile(path)||!Files.isReadable(path))throw new IOException("Song unavailable");
+                    if(identity!=null&&!reader.matches(path,identity))throw new IOException("Selected file has different contents");
                     track=existing==null?MusicFiles.read(path):Library.copyTrack(existing);found=true;
+                    if(identity!=null){track.content=identity;verified++;}
                 }catch(IOException|SecurityException e){
+                    if(fileChoices.containsKey(s.id)&&errors.size()<100)errors.add(s.title+": "+e.getMessage());
+                    if(identity!=null){
+                        path=unresolvedPaths.get(s.folder).resolve(s.path).normalize();existing=null;wanted.add(identity);
+                    }
                     track=existing==null?new Track("file:"+UUID.nameUUIDFromBytes(path.toString().getBytes(StandardCharsets.UTF_8)),path.toString(),s.title,false):Library.copyTrack(existing);
+                    track.content=identity;
                     missing++;
                 }
                 known.put(path,track);
@@ -138,7 +173,20 @@ public final class PresetSongs {
             result.add(new Resolved(s.id,track,found));
             progress.accept(new ScanProgress(ScanStage.READING_TAGS,data.songs.size(),++processed,s.path));
         }
-        return new Plan(data,roots,result,missing,unavailable);
+        var folders=new ArrayList<Path>(searchFolders);folders.addAll(choices.values());
+        var candidates=new ArrayList<Path>();
+        for(var track:catalog)if(!track.vanilla&&(searchCatalog||!folders.isEmpty()||track.content!=null&&wanted.contains(track.content)))candidates.add(Path.of(track.path));
+        for(var resolved:result)if(resolved.found()&&!resolved.track().vanilla&&resolved.track().content!=null&&wanted.contains(resolved.track().content))candidates.add(Path.of(resolved.track().path));
+        var matches=ContentFiles.find(folders,candidates,wanted,reader,progress);
+        for(String error:matches.errors())if(errors.size()<100)errors.add(error);
+        for(int i=0;i<result.size();i++){
+            reader.checkpoint();var resolved=result.get(i);var song=data.songs.get(i);
+            if(resolved.found()||song.vanilla||song.sha256.isEmpty())continue;
+            var identity=new SongIdentity(song.bytes,song.sha256);Path found=matches.files().get(identity);if(found==null)continue;
+            Track existing=known.get(found),track=existing==null?MusicFiles.read(found):Library.copyTrack(existing);track.content=identity;
+            result.set(i,new Resolved(song.id,track,true));known.put(found,track);missing--;verified++;
+        }
+        reader.checkpoint();return new Plan(data,roots,result,missing,unavailable,verified,errors);
     }
     /** One transition-time catalog index; no file access. Existing tracks/assignments are retained. */
     public static void apply(Library lib,FileData data,Plan plan,List<Playlist> added){
@@ -150,6 +198,7 @@ public final class PresetSongs {
             Track t=resolved.track();Path path=t.vanilla?null:Path.of(t.path).toAbsolutePath().normalize();
             Track existing=t.vanilla?resources.get(t.path):local.get(path);
             if(existing==null){existing=Library.copyTrack(t);newTracks.add(existing);if(t.vanilla)resources.put(t.path,existing);else local.put(path,existing);}
+            if(resolved.found()&&t.content!=null)existing.content=t.content;
             mapped.put(resolved.song(),existing.id);
         }
         for(int i=0;i<added.size();i++)for(var e:data.playlists.get(i).tracks.entrySet()){
@@ -165,6 +214,11 @@ public final class PresetSongs {
             Path path=Path.of(root.path());
             if(!root.chosen()&&missingRoots.contains(root.id())&&linked.add(path))
                 newFolders.add(new Folder(root.path(),"library"));
+        }
+        for(int i=0;i<data.songs.size();i++)if(!plan.songs().get(i).found()&&!data.songs.get(i).sha256.isEmpty()){
+            Path base=Path.of(plan.songs().get(i).track().path);
+            for(int depth=0;depth<Path.of(data.songs.get(i).path).getNameCount();depth++)base=base.getParent();
+            if(linked.add(base))newFolders.add(new Folder(base.toString(),"library"));
         }
         lib.tracks.addAll(newTracks);lib.folders.addAll(newFolders);lib.rebuildTrackIndex();
     }

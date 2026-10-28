@@ -99,7 +99,7 @@ class SurfaceCoverTest {
         double depth=surface-62;
         return new Library.Context("minecraft:overworld","minecraft:snowy_plains",false,false,18000,
             depth>1,0,"fixture",7,62,6,depth,0,false,StructureContext.UNAVAILABLE,false,false,
-            Library.Precipitation.NONE,10,false,"","",Library.GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            Library.Precipitation.NONE,10,false,"","",Library.GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     @Test void sampledCaveAtNightSelectsDarkExplorationAheadOfNightOutside(){
         var chunk=chunk(0,0);block(chunk,7,90,6,Blocks.STONE);receivedHeightmaps(chunk);

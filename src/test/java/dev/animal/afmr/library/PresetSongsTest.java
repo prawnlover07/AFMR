@@ -18,14 +18,14 @@ class PresetSongsTest {
     private Path file(String name)throws Exception{Path p=directory.resolve(name);Files.createDirectories(p.getParent());return Files.write(p,new byte[]{1,2,3});}
     private FileData songs(Library lib){return PlaylistPresets.capture(lib,new HashSet<>(lib.playlists.stream().map(p->p.id).toList()),true);}
     private PresetSongs.Plan plan(FileData data,Library target,Map<String,Path> roots)throws Exception{
-        return PresetSongs.plan(data,target.tracks.stream().map(Library::copyTrack).toList(),roots,directory.resolve("unresolved"),p->{});
+        return PresetSongs.plan(data,target.tracks.stream().map(Library::copyTrack).toList(),roots,directory.resolve("unresolved"),p->{},List.of(),Map.of(),()->false,false);
     }
     private FileData example(){
         var lib=source();Path root=directory.resolve("PrivateSender/Music");lib.folders.add(new Folder(root.toString(),"library"));
         var a=track(lib,root.resolve("Album A/same.wav"),"sender-one");var b=track(lib,root.resolve("Album B/same.wav"),"sender-two");
         lib.playlists.getFirst().tracks.put(a.id,true);lib.playlists.getFirst().tracks.put(b.id,false);return songs(lib);
     }
-    private List<String> apply(Library lib,FileData data,PresetSongs.Plan plan){return PlaylistPresets.apply(lib,"default","",Placement.TOP,data,"",plan);}
+    private List<String> apply(Library lib,FileData data,PresetSongs.Plan plan){return PlaylistPresets.apply(lib,"default","","",Placement.TOP,data,"",plan).ids();}
 
     @Test void optionalSongListContainsOnlyPortablePathsAndDeduplicatesSharedSongs()throws Exception{
         var lib=source();var t=track(lib,directory.resolve("PrivateSender/Music/Album/track.wav"),"private-original-id");
@@ -53,23 +53,23 @@ class PresetSongsTest {
         var data=example();var target=source();var plan=plan(data,target,Map.of());assertEquals(2,plan.missing());
         String id=apply(target,data,plan).getFirst();var assigned=new LinkedHashMap<>(target.playlist(id).tracks);
         assertEquals(1,target.folders.size());assertFalse(Files.exists(Path.of(target.folders.getFirst().path)));
-        var health=LibraryHealth.check(LibraryRepair.capture(target),List.of(),p->{});assertEquals(3,health.issues().size());
+        var health=LibraryHealth.check(LibraryRepair.capture(target),List.of(),p->{},()->false);assertEquals(3,health.issues().size());
         Path a=file("Found/Album A/same.wav");file("Found/Album B/same.wav");byte[] bytes=Files.readAllBytes(a);
-        var repair=LibraryRepair.plan(new LibraryRepair.Request(true,target.folders.getFirst().path,directory.resolve("Found")),LibraryRepair.capture(target),p->{});
+        var repair=LibraryRepair.plan(new LibraryRepair.Request(true,target.folders.getFirst().path,directory.resolve("Found")),LibraryRepair.capture(target),p->{},()->false);
         assertEquals(2,repair.found());LibraryRepair.apply(target,repair);assertEquals(assigned,target.playlist(id).tracks);
-        assertTrue(LibraryHealth.check(LibraryRepair.capture(target),List.of(),p->{}).issues().isEmpty());assertArrayEquals(bytes,Files.readAllBytes(a));
+        assertTrue(LibraryHealth.check(LibraryRepair.capture(target),List.of(),p->{},()->false).issues().isEmpty());assertArrayEquals(bytes,Files.readAllBytes(a));
     }
     @Test void partialMatchesKeepMissingAssignmentForIndividualRenamedFileRepairAndRestart()throws Exception{
         var data=example();file("Recipient/Album A/same.wav");Path renamed=file("Recipient/Album B/new-name.wav");
         var lib=source();var plan=plan(data,lib,Map.of("folder:0",directory.resolve("Recipient")));assertEquals(1,plan.missing());
         var p=lib.playlist(apply(lib,data,plan).getFirst());String missing=p.tracks.entrySet().stream().filter(e->!e.getValue()).findFirst().orElseThrow().getKey();
-        var repair=LibraryRepair.plan(new LibraryRepair.Request(false,missing,renamed),LibraryRepair.capture(lib),s->{});LibraryRepair.apply(lib,repair);
+        var repair=LibraryRepair.plan(new LibraryRepair.Request(false,missing,renamed),LibraryRepair.capture(lib),s->{},()->false);LibraryRepair.apply(lib,repair);
         assertFalse(p.tracks.get(missing));assertEquals(renamed.toRealPath().toString(),lib.track(missing).path);
         try(var store=new LibraryStore(directory.resolve("library.json"))){store.save(lib.snapshot());var loaded=store.load();assertEquals(lib.track(missing).path,loaded.track(missing).path);assertEquals(p.tracks,loaded.playlist(p.id).tracks);}
     }
     @Test void existingTracksAreReusedByPathEvenWhenIdsDifferAndOtherPlaylistsAreUntouched()throws Exception{
         var data=example();Path a=file("Recipient/Album A/same.wav");file("Recipient/Album B/same.wav");
-        var target=source();var existing=track(target,a,"recipient-stable-id");target.playlists.getFirst().tracks.put(existing.id,false);
+        var target=source();target.playlists.getFirst().name="Recipient local playlist";var existing=track(target,a,"recipient-stable-id");target.playlists.getFirst().tracks.put(existing.id,false);
         var plan=plan(data,target,Map.of("folder:0",directory.resolve("Recipient")));String imported=apply(target,data,plan).getFirst();
         assertEquals(2,target.tracks.size());assertEquals(true,target.playlist(imported).tracks.get(existing.id));assertEquals(false,target.playlists.get(1).tracks.get(existing.id));
     }
@@ -77,7 +77,7 @@ class PresetSongsTest {
         var data=example();file("Recipient/Album A/same.wav");file("Recipient/Album B/same.wav");var lib=source();
         var first=plan(data,lib,Map.of("folder:0",directory.resolve("Recipient")));var a=apply(lib,data,first).getFirst();
         var b=apply(lib,data,plan(data,lib,Map.of("folder:0",directory.resolve("Recipient")))).getFirst();
-        assertNotEquals(a,b);assertEquals(2,lib.tracks.size());assertEquals(lib.playlist(a).tracks,lib.playlist(b).tracks);
+        assertEquals(a,b);assertEquals(2,lib.tracks.size());assertEquals(lib.playlist(a).tracks,lib.playlist(b).tracks);
     }
     @Test void settingsOnlyImportOfSongBearingFileDoesNotTouchCatalogOrFolders(){
         var lib=source();var data=example();lib.tracks=new ArrayList<>(){@Override public Iterator<Track> iterator(){throw new AssertionError("Visited catalog during settings-only import");}};
@@ -111,7 +111,7 @@ class PresetSongsTest {
     }
     @Test void importedSongsCanTargetInactiveProfileWhileLibraryStaysShared()throws Exception{
         var lib=source();var data=example();String other=lib.profiles.create(lib,"Other",null);var plan=plan(data,lib,Map.of());
-        var ids=PlaylistPresets.apply(lib,other,"",Placement.TOP,data,"",plan);assertEquals(1,lib.playlists.size());assertEquals(2,lib.tracks.size());
+        var ids=PlaylistPresets.apply(lib,other,"","",Placement.TOP,data,"",plan).ids();assertEquals(1,lib.playlists.size());assertEquals(2,lib.tracks.size());
         assertEquals(2,lib.profiles.playlists(lib,other).getFirst().tracks.size());assertEquals(ids.getFirst(),lib.profiles.playlists(lib,other).getFirst().id);
     }
     @Test void vanillaResourceReferencesRetainExplicitExclusionsAndReportUnavailableResources()throws Exception{
@@ -124,7 +124,7 @@ class PresetSongsTest {
     }
     @Test void deletedProfileOrWrongPlanFailsWithoutChangingLibrary()throws Exception{
         var lib=source();var data=example();var plan=plan(data,lib,Map.of());
-        assertThrows(IllegalStateException.class,()->PlaylistPresets.apply(lib,"deleted","",Placement.TOP,data,"",plan));
+        assertThrows(IllegalStateException.class,()->PlaylistPresets.apply(lib,"deleted","","",Placement.TOP,data,"",plan).ids());
         assertThrows(IllegalArgumentException.class,()->apply(lib,example(),plan));assertTrue(lib.tracks.isEmpty());assertTrue(lib.folders.isEmpty());assertEquals(1,lib.playlists.size());
     }
     @Test void untrustedPathsAndWindowsAbsoluteOrNetworkPathsAreRejectedBeforeDiskAccess(){
@@ -145,7 +145,7 @@ class PresetSongsTest {
     }
     @Test void progressIsBoundedAndFileChecksDoNotLoseMissingEntries()throws Exception{
         var data=example();var progress=new ArrayList<MusicFiles.ScanProgress>();
-        var plan=PresetSongs.plan(data,List.of(),Map.of(),directory.resolve("unresolved"),progress::add);
+        var plan=PresetSongs.plan(data,List.of(),Map.of(),directory.resolve("unresolved"),progress::add,List.of(),Map.of(),()->false,false);
         assertEquals(2,progress.size());assertEquals(2,progress.getLast().processed());assertEquals(1,progress.getLast().fraction());assertEquals(2,plan.songs().size());
     }
     @Test void songExportReadsOnlyAssignedTracksThroughTheExistingIndex(){

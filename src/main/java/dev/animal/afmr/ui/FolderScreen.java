@@ -29,13 +29,13 @@ final class FolderScreen extends MusicScreen {
             minecraft.gui.setScreen(new LibraryRepairScreen(this,runtime));
             NativePicker.open(runtime,NativePicker.Kind.REPAIR_FOLDER,folder.path);
         }).active=!runtime.scanning()&&runtime.pendingRepair()==null;
-        button("Back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        g.text(font,fit(folder.path,contentWidth),left,50,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
+        g.text(menuFont,fit(folder.path,contentWidth),left,50,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
         var playlist=runtime.library().playlist(folder.playlistId);
         String target=folder.playlistId.equals("ambient")?"Day / night / underground (migrated link)":playlist==null?"Music library":playlist.name;
-        g.text(font,fit("Rescan destination: "+target,contentWidth),left,65,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.text(font,fit(runtime.status(),contentWidth),left,height-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABC3B9));
+        g.text(menuFont,fit("Rescan destination: "+target,contentWidth),left,65,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        g.text(menuFont,fit(runtime.status(),contentWidth),left,bodyBottom()-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADBBC8));
     }
 }

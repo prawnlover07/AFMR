@@ -63,7 +63,7 @@ public final class NativeSuite {
         nativeState=new NativeState(0,0,0,0,0,"",0);
     }
     @SubscribeEvent public static void tick(ClientTickEvent.Post ignored){
-        if(finished||Boolean.getBoolean("afmr.probe.multiplayer")||Boolean.getBoolean("afmr.probe.workspace")||Boolean.getBoolean("afmr.probe.integration")||Boolean.getBoolean("afmr.probe.performance"))return;
+        if(finished||Boolean.getBoolean("afmr.probe.serverCompanion")||Boolean.getBoolean("afmr.probe.multiplayer")||Boolean.getBoolean("afmr.probe.workspace")||Boolean.getBoolean("afmr.probe.integration")||Boolean.getBoolean("afmr.probe.performance"))return;
         mc=Minecraft.getInstance();
         if(mc.player==null||mc.level==null)return;
         try{

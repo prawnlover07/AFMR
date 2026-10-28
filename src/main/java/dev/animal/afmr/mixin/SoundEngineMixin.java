@@ -37,6 +37,14 @@ public abstract class SoundEngineMixin {
             var handle=instanceToChannel.get(afmr$music);if(handle!=null){handle.execute(Channel::pause);afmr$appliedPause=true;}
         }
     }
+    @Inject(method="stop(Lnet/minecraft/client/resources/sounds/SoundInstance;)V",at=@At("TAIL"))
+    private void afmr$stopPending(SoundInstance instance,CallbackInfo ci){
+        if(instance instanceof MusicSound music&&!music.started()){
+            var handle=instanceToChannel.get(instance);
+            // OpenAL stop on an INITIAL source leaves it INITIAL. Play/stop makes it reclaimable.
+            if(handle!=null)handle.execute(channel->{if(!channel.stopped()&&!channel.playing())channel.play();channel.stop();});
+        }
+    }
     @Inject(method="stopAll",at=@At("TAIL"))
     private void afmr$clear(CallbackInfo ci){afmr$music=null;afmr$appliedPause=false;}
 }

@@ -1,0 +1,36 @@
+plugins { id 'java-library'; id 'net.neoforged.moddev' version '2.0.148' }
+
+def afmrProperties = new Properties()
+file('../../gradle.properties').withInputStream { afmrProperties.load(it) }
+def afmrVersion = afmrProperties.getProperty('mod_version')
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+neoForge {
+    version = afmrProperties.getProperty('neo_version')
+    runs { server { server(); gameDirectory = file('run'); programArguments.add('--nogui'); if (project.hasProperty('socket')) jvmArguments.add('-Dafmr.probe.socket=true') } }
+    mods { afmr_server_probe { sourceSet(sourceSets.main) } }
+}
+dependencies { compileOnly files("../../build/libs/animals-final-music-replacer-server-neoforge-26.3-${afmrVersion}.jar") }
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def companionJar = file("../../build/libs/animals-final-music-replacer-server-neoforge-26.3-${afmrVersion}.jar")
+tasks.register('prepareProbe') {
+    doLast {
+        def profile = file('run')
+        profile.mkdirs()
+        if (!project.hasProperty('socket')) file('run/server-companion-results.txt').delete()
+        file('run/eula.txt').text = 'eula=true\n'
+        file('run/server.properties').text = 'server-ip=127.0.0.1\nserver-port=' + (project.hasProperty('socket') ? '25585' : '0') + '\nonline-mode=false\nwhite-list=false\nenforce-whitelist=false\npause-when-empty-seconds=-1\nlevel-name=probe-world\nlevel-type=minecraft:flat\ngenerate-structures=false\nspawn-protection=0\nview-distance=2\nsimulation-distance=2\nmax-tick-time=60000\n'
+        copy { from companionJar; into 'run/mods' }
+    }
+}
+tasks.named('runServer') { dependsOn tasks.named('prepareProbe') }
+
+tasks.named('runServer') {
+    doLast {
+        if (project.hasProperty('socket')) return
+        def result = file('run/server-companion-results.txt')
+        if (!result.isFile() || result.readLines('UTF-8').count { it.startsWith('PASS ') } < 13 || result.getText('UTF-8').contains('FAIL ')) {
+            throw new GradleException('Server companion checks failed; inspect run/server-companion-results.txt')
+        }
+    }
+}

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BiomeConditionsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
-    private Context context(String biome,int time){return new Context("minecraft:overworld",biome,false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private Context context(String biome,int time){return new Context("minecraft:overworld",biome,false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private PlaylistConditions forest(){var c=new PlaylistConditions();c.biomeEnabled=true;c.biomes.addAll(List.of("minecraft:forest","example:autumn_forest"));return c;}
 
     @Test void selectedBiomesMatchAnyExactIdIncludingModdedBiomes(){

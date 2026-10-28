@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"afmr_server_probe","version":"1","name":"AFMR disposable server probe","environment":"server","entrypoints":{"main":["dev.animal.afmr.probe.ServerProbe"]}}

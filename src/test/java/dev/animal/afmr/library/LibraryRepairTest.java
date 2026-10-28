@@ -17,7 +17,7 @@ class LibraryRepairTest {
         Path p=directory.resolve(name);Files.createDirectories(p.getParent());return Files.write(p,new byte[]{1,2,3});
     }
     private Plan plan(Library l,boolean folder,String source,Path replacement)throws Exception{
-        return LibraryRepair.plan(new Request(folder,source,replacement),LibraryRepair.capture(l),p->{});
+        return LibraryRepair.plan(new Request(folder,source,replacement),LibraryRepair.capture(l),p->{},()->false);
     }
     @Test void movingFolderPreservesRelativePathsIdentityAndAssignmentsWithoutWritingMusic()throws Exception{
         var l=Library.defaults();Path old=directory.resolve("old"),a=file("new/Album A/same.wav"),b=file("new/Album B/same.wav");
@@ -33,7 +33,7 @@ class LibraryRepairTest {
         track(l,old.resolve("found.wav"),"file:found");track(l,old.resolve("renamed.wav"),"file:missing");file("new/different.wav");
         var plan=plan(l,true,old.toString(),directory.resolve("new"));assertEquals(1,plan.found());assertEquals(1,plan.missing());LibraryRepair.apply(l,plan);
         assertEquals(directory.resolve("new/renamed.wav").toString(),l.track("file:missing").path);
-        var report=LibraryHealth.check(LibraryRepair.capture(l),List.of(),p->{});assertEquals(1,report.issues().size());assertEquals("file:missing",report.issues().getFirst().id());
+        var report=LibraryHealth.check(LibraryRepair.capture(l),List.of(),p->{},()->false);assertEquals(1,report.issues().size());assertEquals("file:missing",report.issues().getFirst().id());
     }
     @Test void zeroMatchesRejectsTheWrongFolderAndLeavesSetupUntouched()throws Exception{
         var l=Library.defaults();Path old=directory.resolve("old");l.folders.add(new Folder(old.toString(),"home"));var t=track(l,old.resolve("song.wav"),"file:song");
@@ -96,7 +96,8 @@ class LibraryRepairTest {
         var l=Library.defaults();var t=track(l,directory.resolve("gone.wav"),"file:old");Path chosen=file("new.wav");
         t.loudness=new TrackLoudness(Files.size(chosen),Files.getLastModifiedTime(chosen).toString(),-4,0.8);
         var measurement=t.loudness;LibraryRepair.apply(l,plan(l,false,t.id,chosen));assertSame(measurement,l.track(t.id).loudness);
-        Path different=file("different.wav");Files.write(different,new byte[]{1,2,3,4});LibraryRepair.apply(l,plan(l,false,t.id,different));assertNull(l.track(t.id).loudness);
+        Path different=file("different.wav");Files.setLastModifiedTime(different,java.nio.file.attribute.FileTime.fromMillis(Files.getLastModifiedTime(chosen).toMillis()+2000));
+        LibraryRepair.apply(l,plan(l,false,t.id,different));assertNull(l.track(t.id).loudness);
     }
     @Test void rescansRefreshMetadataWithoutChangingRepairedIdentityOrCreatingDuplicates()throws Exception{
         var l=Library.defaults();var original=track(l,directory.resolve("gone.wav"),"file:kept");Path chosen=file("new/renamed.wav");
@@ -136,7 +137,7 @@ class LibraryRepairTest {
         }
         class Audio implements PlaybackEngine.Audio{
             boolean playing;
-            public void start(Track t){playing=true;}public boolean started(){return playing();}
+            public void start(Track t,double position){playing=true;}public boolean started(){return playing();}
         public boolean playing(){return playing;}public void gain(float v){}public void stop(){playing=false;}public void setPaused(boolean p){}
         }
         var l=Library.defaults();var tracks=new Guarded();l.tracks=tracks;
@@ -144,7 +145,7 @@ class LibraryRepairTest {
         l.playlist("day_outside").tracks.put(t.id,true);Path chosen=file("new.wav");LibraryRepair.apply(l,plan(l,false,t.id,chosen));
         tracks.locked=true;l.settings.silenceMinSeconds=l.settings.silenceMaxSeconds=0;
         var engine=new PlaybackEngine(new Audio(),new Random(1));
-        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var c=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"",0,70,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         for(int i=0;i<2000;i++)engine.tick(i/20.0,l,c,Set.of());assertEquals(t.id,engine.current().id);
     }
 }

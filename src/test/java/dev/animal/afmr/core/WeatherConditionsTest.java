@@ -14,7 +14,7 @@ class WeatherConditionsTest {
     private final Settings settings=new Settings();
     private Context context(boolean raining,boolean thunder,Precipitation type,boolean covered){
         return new Context("minecraft:overworld","minecraft:plains",false,false,6000,covered,15,"world",0,70,0,covered?10:0,0.8,false,
-            StructureContext.UNAVAILABLE,raining,thunder,type,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,raining,thunder,type,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions condition(Weather weather){var c=new PlaylistConditions();c.weatherEnabled=true;c.weather=weather;return c;}
     @Test void anyWeatherIncludesRainSnowAndThunderButExcludesClear(){

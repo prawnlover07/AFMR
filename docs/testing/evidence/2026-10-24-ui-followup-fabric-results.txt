@@ -1,0 +1,64 @@
+STEP Empty / active rules
+PASS No active filters gives Show rules
+PASS Song toolbar actions are absent
+PASS Only the enabled filter appears compactly
+STEP Undo and redo
+PASS Undo restores the empty condition set
+PASS Redo restores the filter
+STEP Priority drag
+PASS Dragging commits a new priority
+PASS Undo restores priority
+PASS Redo restores drag order
+STEP Song context menu
+PASS Song right-click keeps the existing multi-selection
+PASS Context controls force opaque backgrounds
+STEP Song menu render and edit
+PASS Song menu applies to the full selection
+PASS Song edits undo
+STEP Stable navigation
+PASS Stable tab Profiles
+PASS Stable tab Playlists
+PASS Stable tab Shortcuts
+PASS Stable tab Library
+PASS Stable tab Timing
+PASS Stable tab Playback status
+PASS Stable tab Queue / history
+PASS Stable tab Display
+STEP Timing render
+STEP Background import
+STEP Background uploaded
+PASS Custom background is loaded
+STEP Background present on playlist view
+PASS Playlist view draws the green image behind its surfaces
+STEP Resource-pack menu font
+PASS Menu font can use a loaded resource-pack font
+PASS Menu font leaves widget font independent
+PASS Widget supports resource-pack fonts independently
+STEP Import menu TTF
+STEP Imported menu font ready
+PASS Imported menu font selected
+PASS Imported glyph metrics are used
+PASS TTF import leaves widget default
+STEP Independent widget TTF ready
+PASS Widget font imports independently
+PASS Widget metrics use its selected font
+STEP Generated music active
+STEP Delayed mute pause
+PASS Mute waits at least one second
+PASS Mute preserves the native song channel
+PASS Menu detects Minecraft mute
+STEP Paused offset remains stable
+PASS Muted song position is paused
+STEP Unmute resumes
+PASS Unmute resumes the same song
+STEP Ordinary sound active
+STEP Master mute pauses
+PASS Master mute also pauses after the delay
+PASS Master mute still stops ordinary sounds
+STEP Master unmute resumes
+PASS Master unmute retains the song
+PASS Unmute leaves ordinary sounds stopped
+STEP Manual pause survives mute
+STEP Manual pause survives unmute
+PASS Unmute does not undo manual pause
+COMPLETE: 40 passed / 0 failed

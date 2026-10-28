@@ -7,6 +7,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.BooleanSupplier;
 
 /** Filesystem checks run only on the library worker, never during ticks or rendering. */
 public final class LibraryHealth {
@@ -16,10 +17,11 @@ public final class LibraryHealth {
         public Report{issues=List.copyOf(issues);scanErrors=List.copyOf(scanErrors);}
     }
     private LibraryHealth(){}
-    public static Report check(LibraryRepair.Sources sources,List<String> errors,Consumer<ScanProgress> progress){
+    public static Report check(LibraryRepair.Sources sources,List<String> errors,Consumer<ScanProgress> progress,BooleanSupplier cancelled){
         var issues=new ArrayList<Issue>();var unavailable=new HashMap<Path,String>();
         int total=sources.folders().size()+sources.tracks().size(),processed=0;
         for(String folder:sources.folders()){
+            if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
             String problem=problem(folder,true);
             if(!problem.isEmpty()){
                 issues.add(new Issue(Kind.FOLDER,folder,folder,folder,problem));
@@ -28,7 +30,7 @@ public final class LibraryHealth {
             progress.accept(new ScanProgress(ScanStage.CHECKING,total,++processed,folder));
         }
         for(var track:sources.tracks()){
-            if(Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
+            if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
             String failure="";
             try{
                 Path path=Path.of(track.path).toAbsolutePath().normalize();
@@ -40,6 +42,7 @@ public final class LibraryHealth {
             if(!failure.isEmpty())issues.add(new Issue(Kind.TRACK,track.id,track.path,track.title,failure));
             progress.accept(new ScanProgress(ScanStage.CHECKING,total,++processed,track.path));
         }
+        if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException();
         return new Report(issues,errors,sources.folders().size(),sources.tracks().size());
     }
     private static String problem(String name,boolean folder){

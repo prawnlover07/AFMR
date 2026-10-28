@@ -48,6 +48,7 @@ public final class FabricSmoke implements ClientModInitializer {
     private void check(boolean condition,String name){if(condition){passed++;log("PASS "+name);}else{failed++;log("FAIL "+name+" | native="+sample);}}
     private void step(int ticks,Runnable action){steps.add(new Step(ticks,action));}
     private void tick(Minecraft client){
+        if(Boolean.getBoolean("afmr.smoke.serverCompanion")||Boolean.getBoolean("afmr.smoke.ridingAudit")||Boolean.getBoolean("afmr.smoke.playbackSoak")||Boolean.getBoolean("afmr.smoke.overnightAudit")||Boolean.getBoolean("afmr.smoke.inlineSettings")||Boolean.getBoolean("afmr.smoke.uiFollowup"))return;
         if(Boolean.getBoolean("afmr.smoke.finalReview")||Boolean.getBoolean("afmr.smoke.features101"))return;
         if(finished)return;mc=client;
         try{
@@ -69,7 +70,7 @@ public final class FabricSmoke implements ClientModInitializer {
                 else mc.createWorldOpenFlows().createFreshLevel("AFMR Smoke",new LevelSettings("AFMR Smoke",GameType.CREATIVE,false,Difficulty.PEACEFUL,true,new GameRules(),WorldDataConfiguration.DEFAULT),new WorldOptions(123456789L,false,false),WorldPresets::createNormalWorldDimensions);
                 stage=2;return;
             }
-            if(stage==2){if(mc.level==null||mc.player==null)return;if(wait++<80)return;if(Boolean.getBoolean("afmr.smoke.playlistSilence"))silenceChecks();else if(Boolean.getBoolean("afmr.smoke.widgetSettings"))widgetChecks();else if(Boolean.getBoolean("afmr.smoke.backgroundImages"))backgroundChecks();else if(Boolean.getBoolean("afmr.smoke.playOnJoin"))joinChecks();else prepare();stage=3;wait=0;return;}
+            if(stage==2){if(mc.level==null||mc.player==null)return;if(wait++<80)return;if(Boolean.getBoolean("afmr.smoke.normalization")){stage=4;return;}if(Boolean.getBoolean("afmr.smoke.playlistSilence"))silenceChecks();else if(Boolean.getBoolean("afmr.smoke.widgetSettings"))widgetChecks();else if(Boolean.getBoolean("afmr.smoke.backgroundImages"))backgroundChecks();else if(Boolean.getBoolean("afmr.smoke.playOnJoin"))joinChecks();else prepare();stage=3;wait=0;return;}
             if(stage==3){
                 nativeSample();
                 if(wait-->0)return;
@@ -103,7 +104,7 @@ public final class FabricSmoke implements ClientModInitializer {
         return visible.stream().allMatch(a->a.getX()>=0&&a.getY()>=0&&a.getX()+a.getWidth()<=mc.screen.width&&a.getY()+a.getHeight()<=mc.screen.height)
             &&visible.stream().allMatch(a->visible.stream().allMatch(b->a==b||a.getX()+a.getWidth()<=b.getX()||b.getX()+b.getWidth()<=a.getX()||a.getY()+a.getHeight()<=b.getY()||b.getY()+b.getHeight()<=a.getY()));
     }
-    private void silenceChecks(){
+    private void silenceChecks()throws Exception{
         engine.reset();lib.settings.bufferSeconds=lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=0;
         lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=20;lib.settings.playImmediatelyOnJoin=false;
         lib.settings.jukeboxMode=JukeboxMode.OFF;lib.settings.menuImageEnabled=false;
@@ -111,25 +112,13 @@ public final class FabricSmoke implements ClientModInitializer {
         var track=lib.tracks.stream().filter(t->!t.vanilla&&t.durationSeconds>=30&&Files.isRegularFile(Path.of(t.path))).findFirst().orElseThrow();
         Playlist target=lib.createPlaylist("Silence fixture");target.includeVanilla=false;target.tracks.put(track.id,true);lib.movePlaylist(target.id,0);
         workspace=new LibraryScreen(null,rt,target.id);mc.setScreen(workspace);
-        check(widget("Silence: default").getX()>=(widget("Volume: 100%").getX()+widget("Volume: 100%").getWidth()),"Volume and silence share one row without overlap");
-        click("Silence: default");
-        check(mc.screen.getClass().getSimpleName().equals("PlaylistSilenceScreen")&&!target.customSilence&&widget("Custom silence: off").active,"Playlist silence editor opens with inherited default");
-        check(widgetBounds(),"Small-window controls fit without overlap");
-        widgetField("minimum").setValue("600");widgetField("maximum").setValue("600");click("Custom silence: off");
-        check(target.customSilence&&target.silenceMinSeconds==600&&target.silenceMaxSeconds==600,"Fixed ten-minute custom gap can be enabled");
-        widgetField("minimum").setValue("invalid");var screen=mc.screen;click("Save & back");
-        check(mc.screen==screen&&target.silenceMinSeconds==600,"Invalid draft blocks saving");
-        click("Custom silence: on");check(target.customSilence,"Invalid draft also blocks toggling");
-        widgetField("minimum").setValue("601");click("Save & back");check(mc.screen==screen,"Reversed range blocks saving");
-        widgetField("minimum").setValue("600");widgetField("maximum").setValue("86401");click("Save & back");check(mc.screen==screen,"Over-limit range blocks saving");
-        widgetField("maximum").setValue("600");MusicMenu.hide(screen);mc.setScreen(MusicMenu.reopen(null,rt));
-        check(mc.screen==screen&&widgetField("maximum").getValue().equals("600"),"Hide and reopen retains fields");
-        int originalHeight=screen.height;screen.resize(mc,screen.width,originalHeight+20);check(widgetField("minimum").getValue().equals("600")&&widgetField("maximum").getValue().equals("600"),"Resize retains numeric drafts");screen.resize(mc,screen.width,originalHeight);
-        click("Custom silence: on");click("Custom silence: off");
-        step(15,()->{screenshot("playlist-silence-editor.png");click("Save & back");check(widget("Silence: custom").active,"Workspace label reflects custom timing");});
-        step(15,()->{screenshot("playlist-silence-workspace.png");click("Silence: custom");click("Custom silence: on");check(!target.customSilence&&target.silenceMinSeconds==600&&target.silenceMaxSeconds==600,"Disabling keeps the saved range");
-            click("Save & back");check(widget("Silence: default").active,"Workspace label returns to default");click("Silence: default");click("Custom silence: off");
-            widgetField("minimum").setValue("3");widgetField("maximum").setValue("3");click("Save & back");rt.overridePlaylist(target.id,OverrideMode.UNTIL_RELEASED);});
+        Object panel=field(workspace,"settingsPanel");
+        var scroll=panel.getClass().getDeclaredMethod("scrollTo",int.class);scroll.setAccessible(true);scroll.invoke(panel,10);
+        click("Custom gap between songs");panel=field(workspace,"settingsPanel");
+        @SuppressWarnings("unchecked") var gapFields=(Map<String,EditBox>)field(panel,"fields");
+        gapFields.get("min").setValue("3");gapFields.get("max").setValue("3");click("Include Minecraft music");
+        check(target.customSilence&&target.silenceMinSeconds==3&&target.silenceMaxSeconds==3,"Inline custom gap applies without a separate editor");
+        target.includeVanilla=false;rt.overridePlaylist(target.id,OverrideMode.UNTIL_RELEASED);
         step(15,()->{check(engine.current()!=null&&target.id.equals(engine.sourcePlaylistId()),"Manual override starts generated music despite custom gap");pausedAdvances=engine.playbackSequence();rt.skip();});
         step(15,()->check(engine.current()==null&&engine.remainingSilence(rt.now())>0&&engine.remainingSilence(rt.now())<=3,"Skip waits inside the custom three-second gap"));
         step(15,()->{});step(15,()->{});step(15,()->{});step(15,()->{});
@@ -147,7 +136,7 @@ public final class FabricSmoke implements ClientModInitializer {
         check(widgetField("duration")==duration&&duration.getValue().equals("invalid"),"scrolling retains invalid drafts");click("Menus");
         check(mc.screen==screen&&(int)field(screen,"page")==0,"invalid draft blocks tab navigation");duration.setValue("9");widgetField("scale").setValue("125");widgetField("widgetWidth").setValue("360");
         click("Menus");check(lib.settings.popupSeconds==9&&lib.settings.widgetScale==1.25&&lib.settings.widgetWidth==360,"tab switch saves all widget fields");
-        check(widgetControls().stream().noneMatch(EditBox.class::isInstance)&&widget("Custom background…").active&&widget("Menu colors…").active,"Menus contains only menu appearance controls");
+        check(widgetControls().stream().noneMatch(EditBox.class::isInstance)&&widget("Custom background…").active&&widget("Themes…").active,"Menus contains only menu appearance controls");
         check(widgetBounds(),"menu controls fit without overlap");click("Widget");
         var corner=widgetControls().stream().filter(w->w.getMessage().getString().startsWith("Corner:")).findFirst().orElseThrow();var oldCorner=lib.settings.widgetCorner;click(corner.getMessage().getString());check(lib.settings.widgetCorner!=oldCorner,"corner remains configurable");
         var artist=widgetControls().stream().filter(w->w.getMessage().getString().startsWith("Artist:")).findFirst().orElseThrow();boolean oldArtist=lib.settings.widgetArtist;click(artist.getMessage().getString());check(lib.settings.widgetArtist!=oldArtist,"information toggle works in consolidated panel");
@@ -176,12 +165,12 @@ public final class FabricSmoke implements ClientModInitializer {
     private com.mojang.blaze3d.platform.NativeImage[] backgroundPixels;
     private void backgroundChecks(){
         var background=rt.menuBackground();background.enabled(false);lib.settings.menuImageName="";lib.settings.menuImageOpacity=1;lib.settings.menuBackgroundOpacity=0.25;
-        open("MenuBackgroundScreen");background.choose(Path.of("background-fixtures/lossless.webp"));
+        open("CustomBackgroundScreen");background.choose(Path.of("background-fixtures/lossless.webp"));
         step(20,()->{
             try{
                 check(!background.busy()&&background.status().isBlank()&&(boolean)field(background,"uploaded"),"packaged WebP imports through actual menu worker");
                 check(((Object[])field(background,"textures")).length==1&&lib.settings.menuImageName.equals("lossless.webp"),"static WebP uploads one texture");
-                check(widget("Image: on").active&&widget("Remove image").active,"fast import refreshes enabled and remove controls");
+                check(widget("Image").active&&widget("Remove image").active,"fast import refreshes enabled and remove controls");
             }catch(Exception e){throw new RuntimeException(e);}
             screenshot("background-webp.png");background.choose(Path.of("background-fixtures/disposal.gif"));
         });
@@ -267,8 +256,8 @@ public final class FabricSmoke implements ClientModInitializer {
         seamChecks();
         backupChecks();
     }
-    @SuppressWarnings("unchecked") private Map<MenuColor,EditBox> colorFields(){
-        try{return (Map<MenuColor,EditBox>)field(mc.screen,"fields");}catch(Exception e){throw new RuntimeException(e);}
+    @SuppressWarnings("unchecked") private Map<String,EditBox> colorFields(){
+        try{return (Map<String,EditBox>)field(mc.screen,"fields");}catch(Exception e){throw new RuntimeException(e);}
     }
     private void click(String label){
         var w=mc.screen.children().stream().filter(AbstractWidget.class::isInstance).map(AbstractWidget.class::cast).filter(widget->widget.getMessage().getString().equals(label)).findFirst().orElseThrow();
@@ -284,25 +273,25 @@ public final class FabricSmoke implements ClientModInitializer {
         try{var method=screen.getClass().getDeclaredMethod("repositionElements");method.setAccessible(true);method.invoke(screen);}catch(Exception e){throw new RuntimeException(e);}
     }
     private void menuColorChecks(){
-        step(10,()->{lib.settings.menuColors=MenuColor.defaults();lib.settings.menuBackgroundOpacity=0.5;lib.settings.widgetBackgroundColor=0x123456;open("NowPlayingSettingsScreen");click("Menus");click("Menu colors…");
-            check(mc.screen.getClass().getSimpleName().equals("MenuColorsScreen"),"menu color editor opens");
-            var field=colorFields().get(MenuColor.BACKGROUND);field.setValue("#123");var screen=mc.screen;click("Save & back");check(mc.screen==screen,"invalid RGB blocks navigation");field.setValue("#22142B");
+        step(10,()->{lib.settings.menuColors=MenuColor.defaults();lib.settings.menuBackgroundOpacity=0.5;lib.settings.widgetBackgroundColor=0x123456;open("NowPlayingSettingsScreen");click("Menus");click("Themes…");click("Edit colors…");
+            check(mc.screen.getClass().getSimpleName().equals("ThemeEditorScreen"),"menu color editor opens");
+            var field=colorFields().get("BACKGROUND");field.setValue("#123");var screen=mc.screen;click("Save & back");check(mc.screen==screen,"invalid RGB blocks navigation");field.setValue("#22142B");
             check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0x22142B,"valid menu color previews immediately");
-            colorFields().get(MenuColor.PANELS).setValue("#30203B");colorFields().get(MenuColor.CONTROLS).setValue("#473150");colorFields().get(MenuColor.HOVER).setValue("#604268");colorFields().get(MenuColor.SELECTION).setValue("#624176");
+            colorFields().get("PANELS").setValue("#30203B");colorFields().get("CONTROLS").setValue("#473150");colorFields().get("HOVER").setValue("#604268");colorFields().get("SELECTION").setValue("#624176");
         });
-        step(10,()->{screenshot("menu-colors-editor.png");click(">");colorFields().get(MenuColor.ACCENT).setValue("#DD92EE");colorFields().get(MenuColor.TEXT).setValue("#F3E7F6");
-            colorFields().get(MenuColor.MUTED_TEXT).setValue("#BFA8C9");colorFields().get(MenuColor.BORDERS).setValue("#79568A");colorFields().get(MenuColor.SCROLLBARS).setValue("#AE77BB");
-            MusicMenu.hide(mc.screen);mc.setScreen(MusicMenu.reopen(null,rt));check(colorFields().get(MenuColor.ACCENT).getValue().equals("#DD92EE"),"hidden color drafts retained");
+        step(10,()->{screenshot("menu-colors-editor.png");click(">");colorFields().get("ACCENT").setValue("#DD92EE");colorFields().get("TEXT").setValue("#F3E7F6");
+            colorFields().get("MUTED_TEXT").setValue("#BFA8C9");colorFields().get("BORDERS").setValue("#79568A");colorFields().get("SCROLLBARS").setValue("#AE77BB");
+            MusicMenu.hide(mc.screen);mc.setScreen(MusicMenu.reopen(null,rt));check(colorFields().get("ACCENT").getValue().equals("#DD92EE"),"hidden color drafts retained");
             int oldHeight=mc.screen.height;reflowColorEditor(oldHeight+220);
-            check(colorFields().get(MenuColor.ACCENT).getValue().equals("#DD92EE")&&colorFields().get(MenuColor.BACKGROUND).getValue().equals("#22142B"),"resize retains drafts by color family");
-            reflowColorEditor(oldHeight);if(!colorFields().containsKey(MenuColor.ACCENT))click(">");
+            check(colorFields().get("ACCENT").getValue().equals("#DD92EE")&&colorFields().get("BACKGROUND").getValue().equals("#22142B"),"resize retains drafts by color family");
+            reflowColorEditor(oldHeight);if(!colorFields().containsKey("ACCENT"))click(">");
             check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0x22142B&&lib.settings.menuColors.get(MenuColor.ACCENT)==0xDD92EE,"resize does not remap palette values");
             check(lib.settings.menuBackgroundOpacity==0.5&&lib.settings.widgetBackgroundColor==0x123456,"menu palette preserves opacity and widget settings");
         });
         step(10,()->{screenshot("menu-colors-text.png");click("Save & back");mc.setScreen(workspace);check(!workspace.isPauseScreen(),"themed workspace remains non-pausing");});
-        step(10,()->{screenshot("menu-colors-workspace.png");open("NowPlayingSettingsScreen");click("Menus");click("Menu colors…");colorFields().get(MenuColor.BACKGROUND).setValue("bad");click("Reset colors");
+        step(10,()->{screenshot("menu-colors-workspace.png");open("NowPlayingSettingsScreen");click("Menus");click("Themes…");click("Edit colors…");colorFields().get("BACKGROUND").setValue("bad");click("Reset menu colors");
             check(lib.settings.menuColors.equals(MenuColor.defaults()),"reset colors recovers invalid input");check(lib.settings.menuBackgroundOpacity==0.5&&lib.settings.widgetBackgroundColor==0x123456,"reset colors preserves other appearance");
-            click("Save & back");click("Reset menu appearance");check(lib.settings.menuColors.equals(MenuColor.defaults())&&lib.settings.menuBackgroundOpacity==0.8,"full menu reset restores defaults");rt.save();
+            click("Save & back");click("Back");click("Reset menu appearance");check(lib.settings.menuColors.equals(MenuColor.defaults())&&lib.settings.menuBackgroundOpacity==0.8,"full menu reset restores defaults");rt.save();
         });
     }
     private EditBox pickerHex(){return mc.screen.children().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).findFirst().orElseThrow();}
@@ -313,12 +302,12 @@ public final class FabricSmoke implements ClientModInitializer {
     }
     private void colorPickerChecks(){
         step(10,()->{lib.settings.menuColors=MenuColor.defaults();lib.settings.menuBackgroundOpacity=0.5;lib.settings.widgetBackgroundColor=0x123456;
-            open("NowPlayingSettingsScreen");click("Menus");click("Menu colors…");
+            open("NowPlayingSettingsScreen");click("Menus");click("Themes…");click("Edit colors…");
             for(var role:MenuColor.values()){
-                while(!colorFields().containsKey(role))click(">");click("Pick "+role.label);
+                while(!colorFields().containsKey(role.name()))click(">");click("Pick "+role.label);
                 check(mc.screen.getClass().getSimpleName().equals("ColorPickerScreen")&&pickerHex().getValue().equals(String.format(Locale.ROOT,"#%06X",role.defaultRgb)),role.label+" opens a seeded picker");click("Cancel");
             }
-            while(!colorFields().containsKey(MenuColor.BACKGROUND))click("<");click("Pick Background");
+            while(!colorFields().containsKey("BACKGROUND"))click("<");click("Pick Background");
             check(mc.screen.children().stream().filter(AbstractWidget.class::isInstance).map(AbstractWidget.class::cast).allMatch(w->w.getX()>=0&&w.getX()+w.getWidth()<=mc.screen.width&&w.getY()>=0&&w.getY()+w.getHeight()<=mc.screen.height),"picker controls fit screen");
             pickerHex().setValue("#FF0000");check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF0000,"picker hex previews menu color");
             choosePickerArea(1,0.5,1/3d);check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0x00FF00,"hue strip selects green");
@@ -329,7 +318,7 @@ public final class FabricSmoke implements ClientModInitializer {
             check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0,"dragging outside picker clamps to black");screen.setFocused(area);screen.keyPressed(com.mojang.blaze3d.platform.InputConstants.KEY_UP,0,0);
             check(lib.settings.menuColors.get(MenuColor.BACKGROUND)>0,"focused arrows adjust picker");
             pickerHex().setValue("#12");click("Apply");check(mc.screen==screen,"invalid picker hex blocks Apply");click("Cancel");check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==MenuColor.BACKGROUND.defaultRgb,"picker Cancel restores menu color");
-            colorFields().get(MenuColor.BACKGROUND).setValue("bad");click("Pick Background");click("#FF4040");click("Apply");check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF4040&&colorFields().get(MenuColor.BACKGROUND).getValue().equals("#FF4040"),"picker recovers invalid parent hex");
+            colorFields().get("BACKGROUND").setValue("bad");click("Pick Background");click("#FF4040");click("Apply");check(lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF4040&&colorFields().get("BACKGROUND").getValue().equals("#FF4040"),"picker recovers invalid parent hex");
             check(lib.settings.menuBackgroundOpacity==0.5,"picker preserves panel opacity");click("Save & back");click("Widget");click("Pick Background color");pickerHex().setValue("#00A0C0");
             check(lib.settings.widgetBackgroundColor==0x00A0C0&&lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF4040,"widget picker previews independently");
         });
@@ -407,6 +396,9 @@ public final class FabricSmoke implements ClientModInitializer {
             if(name.equals("PlaylistConditionsScreen")){
                 ctor=type.getDeclaredConstructor(Screen.class,ClientRuntime.class,Playlist.class,PlaylistConditions.class,int.class);ctor.setAccessible(true);
                 var p=lib.playlist("day_outside");mc.setScreen((Screen)ctor.newInstance(workspace,rt,p,p.conditions,0));
+            }else if(name.equals("CustomBackgroundScreen")){
+                ctor=type.getDeclaredConstructor(Screen.class,ClientRuntime.class,dev.animal.afmr.ui.CustomBackground.Target.class);ctor.setAccessible(true);
+                mc.setScreen((Screen)ctor.newInstance(workspace,rt,dev.animal.afmr.ui.CustomBackground.Target.MENU));
             }else{ctor=type.getDeclaredConstructor(Screen.class,ClientRuntime.class);ctor.setAccessible(true);mc.setScreen((Screen)ctor.newInstance(workspace,rt));}
         }catch(Exception e){throw new RuntimeException(name,e);}
     }

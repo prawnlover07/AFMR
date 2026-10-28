@@ -1,0 +1,40 @@
+plugins { id 'fabric-loom' version '1.14.10'; id 'java-library' }
+
+def afmrProperties = new Properties()
+file('../../gradle.properties').withInputStream { afmrProperties.load(it) }
+def afmrVersion = afmrProperties.getProperty('mod_version')
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:1.20.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.92.12+1.20.1'
+    compileOnly files("../../ports/fabric-1.20.1/build/devlibs/animals-final-music-replacer-server-fabric-1.20.1-${afmrVersion}-dev.jar")
+}
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+tasks.withType(JavaCompile).configureEach { options.release = 17 }
+loom { mods { afmr_server_probe { sourceSet(sourceSets.main) } }; runs { server { server(); runDir 'run'; programArg 'nogui'; if (project.hasProperty('socket')) vmArg '-Dafmr.probe.socket=true' } } }
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def companionJar = file("../../ports/fabric-1.20.1/build/libs/animals-final-music-replacer-server-fabric-1.20.1-${afmrVersion}.jar")
+tasks.register('prepareProbe') {
+    doLast {
+        def profile = file('run')
+        profile.mkdirs()
+        if (!project.hasProperty('socket')) file('run/server-companion-results.txt').delete()
+        file('run/eula.txt').text = 'eula=true\n'
+        file('run/server.properties').text = 'server-ip=127.0.0.1\nserver-port=' + (project.hasProperty('socket') ? '25586' : '0') + '\nonline-mode=false\nwhite-list=false\nenforce-whitelist=false\npause-when-empty-seconds=-1\nlevel-name=probe-world\nlevel-type=minecraft:flat\ngenerate-structures=false\nspawn-protection=0\nview-distance=2\nsimulation-distance=2\nmax-tick-time=60000\n'
+        copy { from companionJar; into 'run/mods' }
+    }
+}
+tasks.named('runServer') { dependsOn tasks.named('prepareProbe') }
+
+tasks.named('runServer') {
+    doLast {
+        if (project.hasProperty('socket')) return
+        def result = file('run/server-companion-results.txt')
+        if (!result.isFile() || result.readLines('UTF-8').count { it.startsWith('PASS ') } < 13 || result.getText('UTF-8').contains('FAIL ')) {
+            throw new GradleException('Server companion checks failed; inspect run/server-companion-results.txt')
+        }
+    }
+}

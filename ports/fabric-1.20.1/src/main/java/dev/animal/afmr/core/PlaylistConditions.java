@@ -23,7 +23,7 @@ public final class PlaylistConditions {
         public String label(){return label;}
     }
     public enum Failure {
-        NONE, NEARBY_PLAYER, LOCATION, DIMENSION, BIOME, STRUCTURE_DATA, STRUCTURE, TIME, ELEVATION, TEMPERATURE, LIGHT, COVER, COMBAT, WATER, WEATHER, HEALTH, HELD_ITEM, GAME_MODE, NO_CONDITIONS_MATCH, GROUP, NEGATED, DISABLED;
+        NONE, NEARBY_PLAYER, LOCATION, DIMENSION, BIOME, STRUCTURE_DATA, STRUCTURE, TIME, ELEVATION, TEMPERATURE, LIGHT, COVER, COMBAT, WATER, WEATHER, HEALTH, HELD_ITEM, GAME_MODE, RIDING_ANIMAL, NO_CONDITIONS_MATCH, GROUP, NEGATED, DISABLED;
         private final int bit=1<<ordinal();
     }
     private static final Failure[] FAILURES=Failure.values();
@@ -38,6 +38,7 @@ public final class PlaylistConditions {
     public boolean nearbyPlayerEnabled;
     public String nearbyPlayerName="",nearbyPlayerUuid="";
     public double nearbyPlayerRadius=32;
+    public PlayerProximityVolume proximityVolume=new PlayerProximityVolume();
     public Set<String> biomes=new LinkedHashSet<>();
     public boolean heldItemEnabled;
     public Set<String> heldItems=new LinkedHashSet<>();
@@ -51,7 +52,7 @@ public final class PlaylistConditions {
     public String dimension="minecraft:overworld";
     public int startTime=0,endTime=11999,minY=-64,maxY=320,minLight=0,maxLight=4;
     public double minTemperature=-1,maxTemperature=0.15,minCoverDepth=1;
-    public State cover=State.ANY,combat=State.ANY,water=State.ANY;
+    public State cover=State.ANY,combat=State.ANY,water=State.ANY,ridingAnimal=State.ANY;
     public boolean combatPlayersOnly,healthEnabled;
     public HealthComparison healthComparison=HealthComparison.BELOW;
     public double healthThreshold=5;
@@ -90,6 +91,8 @@ public final class PlaylistConditions {
         boolean inCombat=settings.combatEnabled&&(combatPlayersOnly?c.playerCombat():c.combat());
         if(combat!=State.ANY){checked|=Failure.COMBAT.bit;if(combat==State.YES&&!inCombat||combat==State.NO&&inCombat)failed|=Failure.COMBAT.bit;}
         if(water!=State.ANY){checked|=Failure.WATER.bit;if(water==State.YES&&!c.underwater()||water==State.NO&&c.underwater())failed|=Failure.WATER.bit;}
+        if(ridingAnimal!=State.ANY){checked|=Failure.RIDING_ANIMAL.bit;
+            if(ridingAnimal==State.YES&&!c.ridingAnimal()||ridingAnimal==State.NO&&c.ridingAnimal())failed|=Failure.RIDING_ANIMAL.bit;}
         if(healthEnabled){
             checked|=Failure.HEALTH.bit;
             double hearts=c.healthHearts();
@@ -167,6 +170,16 @@ public final class PlaylistConditions {
         for(var group:groups)if(group.enabled&&(!matchAny||group.matches(c,settings))&&group.combatDriven(c,settings))return true;
         return false;
     }
+    /** Volume follows the actual source's enabled nearby rules, independently of trigger matching.
+     * Multiple enabled rules use the quietest result, without compounding their attenuation.
+     */
+    public float proximityGain(NearbyPlayers players){
+        if(!enabled)return 1;
+        float gain=nearbyPlayerEnabled&&proximityVolume.enabled
+            ?proximityVolume.gain(Math.sqrt(players.distanceSquared(nearbyPlayerUuid,nearbyPlayerName))):1;
+        for(var group:groups)gain=Math.min(gain,group.proximityGain(players));
+        return gain;
+    }
     public boolean needsNearbyPlayers(){
         if(!enabled)return false;
         if(nearbyPlayerEnabled)return true;
@@ -193,6 +206,7 @@ public final class PlaylistConditions {
         if(combat!=State.ANY)parts.add(combatPlayersOnly?(combat==State.YES?"PvP":"not in PvP"):(combat==State.YES?"combat":"peaceful"));
         if(healthEnabled)parts.add("health "+(healthComparison==HealthComparison.BELOW?"below ":"above ")+healthThreshold+" hearts");
         if(water!=State.ANY)parts.add(water==State.YES?"underwater":"out of water");
+        if(ridingAnimal!=State.ANY)parts.add(ridingAnimal==State.YES?"riding animal":"not riding animal");
         if(weatherEnabled)parts.add("weather: "+weather.label());
         if(heldItemEnabled)parts.add("held items: "+heldItems.size()+" selected / "+heldItemHand.label());
         if(gameModeEnabled)parts.add("gamemode: "+(gameModes.isEmpty()?"none selected":gameModes.stream().map(GameMode::label).collect(java.util.stream.Collectors.joining(", "))));
@@ -201,15 +215,16 @@ public final class PlaylistConditions {
         return (enabled?"":"Off / ")+(negated?"NOT ("+result+")":result);
     }
     public void normalize(){
+        normalize(0,new int[1]);
+    }
+    private void normalize(int depth,int[] nodes){
+        if(depth>MAX_DEPTH||++nodes[0]>MAX_NODES)throw new IllegalArgumentException("Too many nested conditions");
         if(nearbyPlayerName==null)nearbyPlayerName="";
         if(nearbyPlayerUuid==null)nearbyPlayerUuid="";
         nearbyPlayerName=nearbyPlayerName.strip();nearbyPlayerUuid=nearbyPlayerUuid.strip();
         if(!Double.isFinite(nearbyPlayerRadius))nearbyPlayerRadius=32;
         nearbyPlayerRadius=Math.max(1,Math.min(1024,nearbyPlayerRadius));
-        normalize(0,new int[1]);
-    }
-    private void normalize(int depth,int[] nodes){
-        if(depth>MAX_DEPTH||++nodes[0]>MAX_NODES)throw new IllegalArgumentException("Too many nested conditions");
+        if(proximityVolume==null)proximityVolume=new PlayerProximityVolume();proximityVolume.normalize();
         if(label==null)label="";label=label.replaceAll("\\p{Cc}","").strip();if(label.length()>80)label=label.substring(0,80);
         if(groups==null)groups=new ArrayList<>();
         if(groups.size()>MAX_GROUPS)throw new IllegalArgumentException("Too many condition groups");
@@ -233,6 +248,7 @@ public final class PlaylistConditions {
         if(!Double.isFinite(structureRadius))structureRadius=0;
         structureRadius=Math.max(0,Math.min(structureRadius,StructureContext.MAX_RADIUS));
         if(cover==null)cover=State.ANY;if(combat==null)combat=State.ANY;if(water==null)water=State.ANY;
+        if(ridingAnimal==null)ridingAnimal=State.ANY;
         startTime=Math.max(0,Math.min(startTime,23999));endTime=Math.max(0,Math.min(endTime,23999));
         if(minY>maxY){int swap=minY;minY=maxY;maxY=swap;}
         minLight=Math.max(0,Math.min(minLight,15));maxLight=Math.max(minLight,Math.min(maxLight,15));
@@ -243,7 +259,7 @@ public final class PlaylistConditions {
     }
     public PlaylistConditions copy(){
         var c=new PlaylistConditions();c.nearbyPlayerEnabled=nearbyPlayerEnabled;c.nearbyPlayerName=nearbyPlayerName;
-        c.nearbyPlayerUuid=nearbyPlayerUuid;c.nearbyPlayerRadius=nearbyPlayerRadius;c.areaEnabled=areaEnabled;c.dimensionEnabled=dimensionEnabled;c.timeEnabled=timeEnabled;
+        c.nearbyPlayerUuid=nearbyPlayerUuid;c.nearbyPlayerRadius=nearbyPlayerRadius;c.proximityVolume=proximityVolume.copy();c.areaEnabled=areaEnabled;c.dimensionEnabled=dimensionEnabled;c.timeEnabled=timeEnabled;
         c.fitSongsToTimeWindow=fitSongsToTimeWindow;
         c.enabled=enabled;c.negated=negated;c.label=label;
         for(var group:groups)c.groups.add(group.copy());
@@ -255,7 +271,7 @@ public final class PlaylistConditions {
         c.structureEnabled=structureEnabled;c.structures=new LinkedHashSet<>(structures);c.structureRadius=structureRadius;
         c.dimension=dimension;c.startTime=startTime;c.endTime=endTime;c.minY=minY;c.maxY=maxY;
         c.minLight=minLight;c.maxLight=maxLight;c.minTemperature=minTemperature;c.maxTemperature=maxTemperature;
-        c.minCoverDepth=minCoverDepth;c.cover=cover;c.combat=combat;c.water=water;
+        c.minCoverDepth=minCoverDepth;c.cover=cover;c.combat=combat;c.water=water;c.ridingAnimal=ridingAnimal;
         c.combatPlayersOnly=combatPlayersOnly;c.healthEnabled=healthEnabled;c.healthComparison=healthComparison;c.healthThreshold=healthThreshold;
         c.area.configured=area.configured;c.area.world=area.world;c.area.dimension=area.dimension;
         c.area.x=area.x;c.area.y=area.y;c.area.z=area.z;c.area.radius=area.radius;

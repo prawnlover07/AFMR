@@ -5,7 +5,7 @@ import java.util.Set;
 
 /** Bounded horizontal geometry. The assignment switch stays pinned while metadata scrolls. */
 final class SongTableLayout {
-    static final int PINNED=28, BAR=10;
+    static final int PINNED=42, ACTIONS=22, ACTION_GAP=4, BAR=10;
     final SongColumn[] columns;
     final int[] offsets,widths;
     final int viewport,total;

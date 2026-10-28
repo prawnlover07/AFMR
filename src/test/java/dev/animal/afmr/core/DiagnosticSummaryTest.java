@@ -11,7 +11,7 @@ class DiagnosticSummaryTest {
     private final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
     private final Context context=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,
         "server:private-server.example:25565",123456,80,-654321,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,
-        "minecraft:fishing_rod","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        "minecraft:fishing_rod","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     private DiagnosticSummary.SystemInfo system(){return new DiagnosticSummary.SystemInfo("0.6","26.3","NeoForge","26.3.0.90","25.0.4","Windows 11","amd64",1,.5,128L<<20,256L<<20,1024L<<20);}
     private DiagnosticSummary.Session session(){return new DiagnosticSummary.Session(true,false,true,false,"READING_TAGS",12,50,-1);}
     private String report(String id){return DiagnosticSummary.create(system(),session(),lib,engine,context,Set.of(),2,id);}

@@ -1,23 +1,32 @@
 # AFMR for Fabric 1.20.1
 
-This is the actively maintained Fabric 1.20.1 backport of AFMR 1.0.1.
+This is the actively maintained Fabric 1.20.1 backport of AFMR 1.1.
 The repository's
 root `src/` remains the separate NeoForge 26.3 implementation. Edit this port's
 sources directly when changing 1.20.1 behavior; it has no runtime compatibility
 layer and does not load the NeoForge build.
 
 `.afmrp` export/import supports optional song lists shared with the NeoForge build.
-Turn on **Include song list** when exporting and **Import songs** when importing;
-choose music roots under **Locate music folders...** when needed. Exact relative
-paths and per-song on/off states are preserved, with missing files retained for
+Turn on **Include song list** when exporting. On import, **Search linked libraries**
+finds identical song files in your linked folders/catalog across renamed files
+and reorganized layouts. **Find song files...** also offers an extra folder search,
+individual file selection, filtering, match details and cancellation. Per-song
+on/off states are preserved, with missing files retained for
 **Library repair / missing sources**. Audio files and absolute music paths are
 excluded. Both switches start off. See the root [user guide](../../docs/USER-GUIDE.md#sharing-playlist-setups-afmrp).
+
+The playlist workspace supports Undo/Redo, drag priority and opaque song context
+menus with selection counts. The bottom strip supports seeking; click a playing
+song title to locate its source playlist. Search settings opens global controls
+and the selected playlist's rules. Display provides independent imported
+TTF/resource-pack fonts for menus and the widget. Minecraft Music/Master mute
+silences playback and shows a warning without pausing the song or scheduling.
 
 ## Install
 
 Use a **Minecraft Java 1.20.1** instance with **Fabric Loader 0.19.5 or newer**, a
 matching **Fabric API for 1.20.1**, and **Java 17 or newer**. Put
-`animals-final-music-replacer-fabric-1.20.1-1.0.1.jar` from `build/libs/` in that
+`animals-final-music-replacer-fabric-1.20.1-1.1.jar` from `build/libs/` in that
 instance's `mods` folder. The audio decoders are included in the JAR.
 
 Press **M** to open the music workspace. Import files or folders with **Add music**;
@@ -30,19 +39,28 @@ created in a newer Minecraft release in 1.20.1. Music and foobar data stay read-
 
 ## Scope
 
+**Playlist Settings → When it plays → Show rules → Riding animal** supports horseback/other animal-mount
+playlists with Any/Riding/Not riding choices. It uses the ordinary client riding
+state and works in multiplayer without a server mod.
+
 The playlist workspace, filters/nested groups, priorities, manual overrides,
 entry/exit finish controls, independent fades, volume, queue/history, profiles,
 library repair, `.afmrp` sharing, metadata, ReplayGain and loudness analysis are
-retained. Singleplayer structures and combat targeting keep their existing
-client/server ownership and bounded observation work. Multiplayer keeps the
-same limits as the NeoForge build: no remote structure boundaries or mob-target
-synchronization from a vanilla server.
+retained. Structures and combat targeting use owned, bounded server observations. The optional
+`animals-final-music-replacer-server-fabric-1.20.1-1.1.jar` adds these observations
+to Fabric servers (with Fabric API). Install one AFMR JAR per server; clients keep
+the ordinary client JAR. Vanilla servers remain supported with unavailable structure
+data and attack/damage combat timers.
 
 The sole now-playing style is the **AFMR album-art card**. Minecraft's newer native
 toast/pause-menu song display, Hybrid style, Music Frequency synchronization and
 menu blur are removed. Background opacity, card position, size, information and
 text scrolling remain available together under **Display → Widget**, with scrolling
 on smaller windows. Menu appearance stays under **Menus**.
+**Display → Widget → Custom background…** imports an independent PNG/JPEG/static
+WebP or animated GIF for the card, with on/off, Fill/Fit/Stretch, image opacity,
+preview and removal. Transparent pixels show the game; unavailable images fall
+back to the card color. Full backups include both widget and menu images.
 **Inspector → Copy diagnostic summary** copies versions, safe playback/context
 state and numeric diagnostics locally, using priority numbers instead of names.
 It omits private paths, world/server identifiers, saved locations and raw errors.
@@ -143,3 +161,14 @@ three-second Skip gap and actual OpenAL playback. Results are
 
 AFMR's code and documentation use the [MIT license](LICENSE), copyright 2026 animal.
 [Bundled components](THIRD_PARTY.md) retain their separate licenses.
+
+`-Psmoke -PpackagedSmoke -PgameplayNormalization runClient` verifies manually requested
+normalization in the unpaused disposable singleplayer world, including progress
+screen/Back/Cancel, partial results, normal saves and continued music. Results are
+`run-smoke/normalization-singleplayer-results.txt`. Analysis also runs during
+multiplayer; its scanner no longer takes a world/pause gate.
+
+`-Psmoke -PpackagedSmoke -PproximityVolume runClient` exercises the distance-volume
+editor and actual OpenAL gains with generated music and a synthetic client-visible
+player. Results use `run-smoke/proximity-volume-results.txt`; this is not a real
+two-player remote-server test.

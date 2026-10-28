@@ -13,17 +13,20 @@ public final class NearbyPlayers {
         this.distancesSquared=Collections.unmodifiableMap(copy);
     }
     public boolean matches(String uuid,String name,double radius){
-        if(!Double.isFinite(radius)||radius<1||radius>1024)return false;
+        return Double.isFinite(radius)&&radius>=1&&radius<=1024&&distanceSquared(uuid,name)<=radius*radius;
+    }
+    /** Missing/untracked players have no observed distance; callers use their far endpoint. */
+    public double distanceSquared(String uuid,String name){
         String key;
-        if(!uuid.isBlank()){
-            if(!validUuid(uuid))return false;
+        if(uuid!=null&&!uuid.isBlank()){
+            if(!validUuid(uuid))return Double.POSITIVE_INFINITY;
             key=uuid;
         }else{
-            if(!validName(name))return false;
+            if(!validName(name))return Double.POSITIVE_INFINITY;
             key=name;
         }
         Double distance=distancesSquared.get(key);
-        return distance!=null&&Double.isFinite(distance)&&distance>=0&&distance<=radius*radius;
+        return distance!=null&&Double.isFinite(distance)&&distance>=0?distance:Double.POSITIVE_INFINITY;
     }
     public static boolean validName(String name){
         if(name==null||name.isEmpty()||name.length()>16)return false;

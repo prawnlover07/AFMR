@@ -9,7 +9,7 @@ import net.minecraft.util.valueproviders.ConstantFloat;
 
 /** A directly resolved, streaming music sound, retaining Minecraft's volume and device handling. */
 public final class MusicSound extends AbstractTickableSoundInstance {
-    private volatile boolean paused,started;
+    private volatile boolean paused,started,ended;
     public boolean started(){return started;}
     public void markStarted(){started=true;}
     private final WeighedSoundEvents soundEvent;
@@ -26,5 +26,6 @@ public final class MusicSound extends AbstractTickableSoundInstance {
     public void gain(float value) { volume = value; }
     public void setPaused(boolean value){paused=value;}
     public boolean paused(){return paused;}
-    public void end() { stop(); }
+    public boolean ended(){return ended;}
+    public void end() { ended=true;stop(); }
 }

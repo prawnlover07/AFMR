@@ -1,9 +1,10 @@
 # animal's final music replacer (AFMR)
 
-AFMR is a client-side Minecraft soundtrack mod. It combines local music and vanilla
+AFMR is a client-side Minecraft soundtrack mod with an optional server companion.
+It combines local music and vanilla
 tracks, selects playlists from the player's situation, and provides manual controls.
 
-Current build: **1.0.1**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
+Current build: **1.1**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
 The imported validated Git baseline remains **0.5.2**.
 The owner/author is **animal**. This folder is the source of truth for development.
 
@@ -11,7 +12,7 @@ An independently buildable **Fabric 1.20.1 / Java 17** backport is maintained in
 [`ports/fabric-1.20.1`](ports/fabric-1.20.1/README.md). It retains AFMR's playback
 and library features with the AFMR card as its sole now-playing style, without
 newer vanilla music-toast/frequency integration or menu blur. Its validation is
-separate from the NeoForge results below; both maintained builds are version 1.0.1.
+separate from the NeoForge results below; both maintained builds are version 1.1.
 
 Keep the version unchanged while any development tasks are in progress, including
 concurrent chats. Increment it once for the combined update only after all
@@ -22,6 +23,173 @@ The [user guide](docs/USER-GUIDE.md) explains current controls and workflows. Th
 keep the documentation current alongside code changes.
 
 ## Accepted product decisions
+
+- Animal authorized the combined 1.1 release on October 28, 2026, after concurrent
+  development completed. The version freezes recorded in the feature decisions
+  below applied while those features were in progress; their combined update is
+  now 1.1. Preserve the original 1.0.1 tag, packages and historical measurements.
+
+- Workspace transport uses font-independent Play/Pause/Resume and immediate-next
+  icons with state-specific tooltip/narration names. The primary action resumes
+  a manual pause (including a silent gap); otherwise no song requests Play now. Keep Skip & wait labelled
+  and disabled without a song; preserve its ordinary silence and the existing
+  immediate-next pause/queue/override behavior. No scheduler/audio changes.
+- Playlist priority rows expose one shared hover/focus ellipsis in a reserved
+  right-edge slot, separate from the playing marker and name. It opens the existing
+  opaque playlist menu for the actual clicked row, including after scrolling.
+  Preserve same-playlist song selection/search, invalid-draft guards, Undo/Redo,
+  right-click, F2 and priority dragging; Shift+F10 also opens playlist actions.
+
+- Both targets provide a bottom song-position bar in the playlist workspace and
+  AFMR settings pages. Click/drag previews a target and commits on release;
+  arrow keys seek five seconds and Home returns to the start. Keep pause,
+  source/queue/history/group identity and notification listening-time separate
+  from song position. Unknown lengths disable seeking until the existing duration
+  worker resolves them. Decoder work uses existing workers; canceled seeks close
+  their streams and repeated same-tick requests coalesce to the latest target.
+- Clicking the current-song title locates its actual source playlist and song,
+  clearing its song search without changing playback. Song menu actions show
+  their affected selection count. Search settings opens and highlights controls,
+  including global settings, fonts/themes and the selected playlist's rules.
+  Search navigation respects invalid drafts. Boolean options use checkboxes;
+  arrows identify details/navigation, while mode selectors retain cycling.
+  Reserve transport space in page layouts and keep version 1.0.1 unchanged.
+
+- Optional server companions for NeoForge 26.3 and Fabric 1.20.1 provide loaded
+  structure boundaries/catalogs and sustain event-started combat while hostile or
+  angered mobs target the player. No target-only combat starts, no PvP retention,
+  and no terrain loading/generation. Clients without a companion keep ordinary
+  multiplayer support and event timers. Server JARs exclude client/audio/library
+  code; send only self-scoped observations, never music or playlist settings.
+  Keep version 1.0.1 unchanged during development.
+- New features or conditions that would otherwise be singleplayer-only because
+  they need server-owned state must include matching companion support for both
+  maintained targets in the same change. Update observations, availability text
+  and tests together; verify multiplayer with and without the companion, and
+  explicitly record any unavoidable limitation or unfinished validation.
+
+- The workspace marks the current song and its source playlist separately from
+  editing selection. Hover/focus song actions expose the existing opaque menu;
+  Shift+F10 and right-click retain multi-selection. Compact rules use clock times
+  and selected names. Waiting transport text gives reasons/countdowns without
+  performing new catalog scans or changing scheduler policy.
+- Theme previews own separate draft colors/opacity. Only Apply commits current
+  appearance and the selected named theme. Cancel accepts invalid drafts, paging
+  does not save, hiding suspends the preview and navigation cancels it. Explicit
+  Save as/rename/delete remain collection operations. Never persist preview
+  colors through unrelated saves, backups or color-picker callbacks.
+
+- Themes include menu RGB colors/opacity and widget background RGB/opacity.
+  Display → Menus → Themes owns named copies, editing, rename/delete and .afmrt
+  sharing on both targets. Imported themes append with unique names; select to
+  preview and explicitly Apply or Cancel. Saved themes are shared across profiles and included in full backups.
+  Keep fonts, images, blur, layout, music and playlists outside theme files.
+
+- Graphite is the default menu palette on both targets. Drawing shades, Reset
+  colors and Reset menu appearance use the same charcoal/blue palette. Keep saved
+  custom colors; users can reset the palette to opt in on existing installations.
+  Widget background color uses its picker/RGB field; omit fixed color presets.
+
+- All disposable Minecraft probes are capped at 60 FPS from startup, with VSync
+  off in test profiles only. The owner reports substantial desktop lag above 60.
+  Enforce this for native and Fabric smoke modes, including performance runs;
+  retain other options and personal profiles. This is test setup, not an AFMR
+  playback setting or a diagnosis of the underlying system lag.
+
+- Playlist edits have session-only, per-profile Undo/Redo; global settings remain
+  outside that history. Drag playlist rows to change priority. Song actions live
+  in an opaque right-click menu and preserve an existing multi-selection. Compact
+  When it plays lists enabled filters; Show rules/More rules reveals the others.
+- Menu and widget fonts are separate shared appearance choices: imported TrueType
+  (.ttf) files or loaded resource-pack font IDs. Imported assets join full backups;
+  external resource packs remain the player's responsibility. Header/tab geometry
+  stays consistent across AFMR pages; playlist views draw custom backgrounds too.
+- Minecraft Music or Master at zero only silences playback and shows
+  **Music muted in Minecraft** in the workspace. It does not pause/resume AFMR or
+  its scheduling. Manual pause stays independent. The prior delayed mute-pause
+  controller was removed at the user's request on October 25.
+
+- The playlist workspace uses inline **Playlist Settings**, keeping the library
+  lower left and **Set playback area here** visible. The held one-second action
+  still replaces only the selected playlist's conditions with a 64-block zone.
+  Condition rows toggle; separate Edit controls open details. Area/time numeric
+  details, volume and custom song gaps stay inline, with independent panel scrolling
+  and draft validation. Rename is a playlist right-click/visible actions menu or F2
+  action, never part of the conditions editor. Keep nested group naming, all rules,
+  priority, duplication, sharing, overrides and independent finish flags available.
+  Blank list space is silent; handled controls retain click feedback. No version bump.
+
+- `.afmrp` imports default to a new filename-named, editable profile containing
+  only imported playlists. Create it on successful confirmation, keep it inactive
+  and unbound, and retain the shared music library. Existing-profile mode replaces
+  names ignoring case and surrounding spaces; keep playlist object/ID, relative
+  priority, key/transition/folder references. Settings-only keeps existing song
+  assignments without traversing them; with Import songs on, replace assignments
+  using the reviewed song plan. Block ambiguous duplicate matches before mutation;
+  add unmatched playlists using insertion controls. Respect the profile limit
+  without silently falling back. Keep the current working version unchanged.
+
+- Repair / missing offers Cancel search during explicit source checks and repair
+  preview preparation on both targets. Preserve the previous completed report
+  and saved references; discard cancelled results even if work finished before
+  the client processes the result. Stop between filesystem operations and keep
+  the busy state until the existing worker acknowledges cancellation. Version
+  remains 1.0.1.
+
+- Riding animal is an ordinary Any/Riding/Not riding condition on both targets,
+  off by default (Any). Observe the player's direct vehicle using Minecraft's
+  Animal class; horses, other vanilla animal mounts and modded subclasses count.
+  Standing near an animal, boats and minecarts do not count. Use synchronized
+  client riding state in singleplayer and multiplayer, without entity scans or
+  server requests. Keep All/Any/Not groups, priority, normal transition controls,
+  copies/profiles, portable sharing and full backups. Version stays 1.0.1.
+
+- Nearby player offers optional **Proximity volume**, off by default: two
+  distance/volume endpoints (default near 4 blocks/100%, far 32 blocks/0%).
+  Distances are 0–1024 blocks with far > near; endpoint volumes are 0–100% of
+  the actual song-source playlist's volume. Reverse volumes swaps percentages.
+  The existing trigger radius stays independent. Clamp outside endpoints; use
+  Far volume for offline/untracked players. Use existing client-visible player
+  observations, smoothly blending over 250 ms without restarting music. Apply to
+  retained songs, overrides and source-owned queue entries; source-free previews
+  retain normal volume. Enabled nearby rules in enabled condition groups use the
+  quietest result; turning the filter/group off disables its curve. Keep fade,
+  jukebox and normalization behavior and deep copies/profiles/sharing/backups;
+  diagnostics omit identities. Version remains 1.0.1 during development.
+
+- Explicit player actions such as **Normalize** must not be blocked behind a
+  performance precaution requiring title-screen or paused-singleplayer use.
+  Manual normalization starts immediately in gameplay and multiplayer and
+  continues when its screen is closed. Its screen does not pause singleplayer.
+  Preserve worker-owned decoding, bounded parallel lanes, cancellation with
+  partial results, read-only music and normal saves. Keep version 1.0.1 unchanged.
+
+- The AFMR now-playing card accepts its own custom background under **Display →
+  Widget → Custom background…** on both targets. Reuse the bounded menu image
+  decoder for PNG/JPEG/static WebP and animated GIF, storing an independent
+  `config/afmr/widget-background.png` or `.gif`. Provide on/off, Fill/Fit/Stretch,
+  separate image opacity, preview, removal and reset. Replace the colored panel;
+  transparent pixels/Fit gaps show the game. Missing/failed loads use the existing
+  card color. Text/artwork and popup fades remain intact. Appearance is shared
+  across profiles and included in full backups/recovery. Hybrid/native toast
+  frames keep their existing styles. Keep the development version at 1.0.1.
+
+- Directional playlist transition rules are under each playlist's **Transitions**
+  button. Choose the actual song-source playlist and its destination. Finish mode
+  inherits, forces finish, or interrupts; independent optional buffer/fade-out/
+  fade-in (0–60s) and silence min/max (0–86400s) override only this automatic pair.
+  Blank timing inherits; zero is explicit. Forced interruption overrides both
+  finish switches and Continue Playing on Match. Explicit buffer/silence takes
+  precedence over Play on trigger for that component. Manual controls, previews,
+  queues, death policies and time-fit guards retain precedence. Switching during
+  a gap retains elapsed silence and evaluates from the last actual automatic source.
+  Once a fade starts it completes; a later destination updates pending gap/fade-in.
+  Later songs use ordinary timing. Retain deep owned copies in profiles/backups;
+  portable sharing includes only links between playlists exported together and
+  remaps both ends. Deleting a playlist clears incoming references. Maximum 128
+  destination rules per source. Keep current development version 1.0.1 as requested;
+  preserve the already tagged/packaged 1.0.1 checkpoint and collect this addition
+  under Unreleased until the next release decision.
 
 - 1.0.1 adds song groups (global/default 1 plus per-playlist override, 1-1000),
   current-song assignment copying, delayed now-playing (shared 0-60s/default 0),
@@ -106,12 +274,10 @@ keep the documentation current alongside code changes.
   Minecraft defaults preserves this independent toggle. Turning it on mid-session
   does not skip the current gap. Keep the Timing control directly visible.
 
-- Mark options that require singleplayer in their visible option label and editor
-  title on both targets. Structures is currently the only wholly restricted
-  condition; explicitly identify multiplayer unavailability in its editor and
-  tooltips. Keep configuration/editing available for later singleplayer use.
-  Combat works in multiplayer, so qualify only mob-target retention in hover text.
-  Normalization also works outside a world; its existing wait state remains.
+- Structure controls explain that observations require singleplayer or the optional
+  AFMR server companion. Keep configuration/manual IDs editable without a connected
+  data source. Combat works on all servers; qualify mob-target retention as requiring
+  singleplayer or the companion. Manual normalization remains available in gameplay.
 
 - Full configuration transfer uses `.afmrb` archives through Import / export →
   Full configuration. Include all profiles/settings/playlists/assignments, library
@@ -174,9 +340,13 @@ keep the documentation current alongside code changes.
   Export and import each have an optional song-list switch, off by default. Song
   lists retain explicit on/off assignments, resource IDs and paths relative to
   named music roots (up to 100,000 distinct songs, within the same 16 MiB limit).
-  Match unique linked root names or let the user choose roots in Explorer; use
-  exact relative paths, never filename/title guesses. Ambiguous root names require
-  explicit choices. Keep unfound songs assigned and persist unlocated roots as
+  Export whole-file SHA-256/size identities on the worker; no audio is embedded.
+  Import offers explicit Search linked libraries (including known individual
+  songs), additional folder searches and individual file choices. Verify identical
+  bytes across different names/layouts; never guess from filenames/titles. Keep
+  exact-relative-path matching for references without content information.
+  Searches are cancellable and report verified/missing counts. Keep unfound songs
+  assigned and persist unlocated roots as
   missing references; open ordinary Library repair after import so folder-relative
   relinking and individual renamed-file repair remain available. Music stays
   read-only. Both NeoForge 26.3 and Fabric 1.20.1 use the same portable references.
@@ -184,14 +354,16 @@ keep the documentation current alongside code changes.
 - Library repair checks linked folders and all local tracks on rescan, with a
   toast and searchable missing/unavailable-source report. Checks also work without
   any folder links. Preserve assignments and files; use Explorer to choose a new
-  root or individual renamed file. Folder repair matches exact relative paths,
+  root or individual renamed file. Fingerprinted songs match identical contents
+  anywhere under the chosen folder; unsigned references use exact relative paths.
   previews results, then changes AFMR references only. Partial matches update
   expected paths while leaving unmatched songs listed for individual repair; zero
   matches reject a likely wrong root. Nested folder links and inactive profile
   destinations move together. Stable track IDs survive rescans, and duplicate
   target entries merge across profiles/legacy/queue/history with off winning
-  assignment conflicts. Already linked folder destinations require unlinking the
-  duplicate folder first to avoid overwriting its rescan settings. Apply stops an
+  assignment conflicts. Verified folder repair can merge an already linked
+  destination, preserving its rescan settings. Unsigned duplicate roots still
+  require an explicit unlink. Apply stops an
   affected playing song, preserving other playback and pending requests; source
   checks and metadata reads stay on the existing library worker.
 
@@ -233,14 +405,15 @@ keep the documentation current alongside code changes.
   Any selected exact biome
   or structure satisfies its individual filter. Weather offers Any weather
   (rain/snow/thunderstorms), Rain, Snow, Thunderstorm, and Clear; filter off permits all.
-  Structure detection initially uses loaded generated singleplayer structure bounds,
+  Structure detection uses loaded generated structure bounds in singleplayer or
+  companion-enabled multiplayer,
   with an optional 0-128 block spherical radius outside the bounds (0 = inside only).
-  Multiplayer structure synchronization is planned; unavailable structure data
+  Servers without the optional companion provide unavailable structure data, which
   cannot satisfy that filter. Match any can still activate through another enabled
   filter; Match all falls through to normal eligible playlists.
 - The first eligible playlist in the editable priority list wins. Empty playlists
   fall through. Each Location filter owns a world/dimension-scoped sphere. Home is
-  an unconfigured Location template. Autoplay here requires a continuous one-second
+  an unconfigured Location template. Set playback area here requires a continuous one-second
   hold with red warning text and a filling bar; releasing/moving off/leaving cancels.
   Completion replaces the selected playlist's conditions with a 64-block sphere at
   the player, enables Automatic and clears Manual only, preserving music and flags.
@@ -273,8 +446,10 @@ keep the documentation current alongside code changes.
   rules. Natural completion uses normal silence. Manual overrides retain priority
   and their existing immediate-switch behavior.
 - Normal transitions use the configured buffer, Fade out, silence, then Fade in.
-  Both fade durations are independent, default to zero and accept 0-60 seconds.
-  Minecraft-like timing defaults are 600-1200 seconds, with no added fades or buffer.
+  Both fade durations are independent and accept 0-60 seconds. Fresh defaults are
+  fade-in 0, fade-out 3 and context buffer 3 seconds, with 600-1200 second gaps.
+  New profiles use these defaults; saved timings are preserved. The separate
+  Minecraft defaults preset restores zero added fades/buffer.
 - Timing's Jukebox selector defaults off. Audible nearby records can fade AFMR
   out and pause/resume the same song, end it and wait a full normal silence after
   the record ends, or end it and immediately start the next eligible song after
@@ -284,10 +459,11 @@ keep the documentation current alongside code changes.
 - Combat defaults to attacking or receiving source-attributed damage from hostile/
   neutral mobs and other players. Passive targets and environmental damage do not
   refresh it; a global broad-trigger option remains available. Attack/damage switches
-  are independent. In singleplayer, once an event starts combat, actual targeting
+  are independent. In singleplayer or companion-enabled multiplayer, once an event
+  starts combat, actual targeting
   by loaded hostile/angered combat-capable mobs sustains it; losing the last target
   starts the quiet countdown. Targeting alone cannot start or revive combat.
-  Multiplayer retains the attack/damage timeout until server target data is available.
+  Servers without the companion retain the attack/damage timeout.
   A playlist Combat condition can restrict itself to Players only,
   using an independent PvP timer that mob attacks cannot extend. Combat supports
   immediate death fade by default, cut, or finishing the song. New music while dead
@@ -323,8 +499,8 @@ keep the documentation current alongside code changes.
 - Existing ReplayGain track gain/peak tags take precedence over cached loudness scans.
   An explicit, cancellable **Normalize playlist** action analyzes imported tracks
   at a shared -18 LUFS target, saves results only in AFMR, and reports each track's
-  effective dB adjustment. Vanilla music stays unchanged. Scanning suspends during
-  active gameplay pending gameplay-impact measurements.
+  effective dB adjustment. Vanilla music stays unchanged. Explicit scans run during active gameplay and
+  multiplayer without a pause requirement.
 - Use the playlist workspace: priority above the library on the left, songs in
   the center, conditions/playback switches on the right, transport below. Keep labels
   concise; no welcome flow, tutorials, or flavor text. Preserve folder/column editing,

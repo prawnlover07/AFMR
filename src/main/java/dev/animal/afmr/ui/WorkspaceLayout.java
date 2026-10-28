@@ -8,11 +8,11 @@ record WorkspaceLayout(float scale, int width, int height, int sidebarWidth, int
     static WorkspaceLayout fit(int windowWidth, int windowHeight) {
         float scale = Math.min(1f, Math.min(Math.max(1, windowWidth) / 1000f, Math.max(1, windowHeight) / 540f));
         int width = Math.round(windowWidth / scale), height = Math.round(windowHeight / scale);
-        int sidebar = 230, tableX = sidebar + 12, rulesWidth = 248, rulesX = width - rulesWidth - 12;
-        int footer = height - 76, priorityHeight = Math.clamp((footer - 180) / 3, 98, 168);
+        int sidebar = 230, tableX = sidebar + 12, rulesWidth = 284, rulesX = width - rulesWidth - 12;
+        int footer = height - 94, priorityHeight = Math.clamp((footer - 180) / 3, 98, 168);
         int libraryY = 94 + priorityHeight + 70, libraryListY = libraryY + 44;
         return new WorkspaceLayout(scale, width, height, sidebar, tableX, rulesX - tableX - 12,
             rulesX, rulesWidth, priorityHeight, libraryY, libraryListY, footer - 32 - libraryListY,
-            footer, 164, 182, footer - 222);
+            footer, 164, 182, footer - 190);
     }
 }

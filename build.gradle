@@ -47,3 +47,32 @@ tasks.register('sourceZip', Zip) {
         exclude 'testing/native/fixtures/**', 'testing/native/results/**', 'testing/native/scan-fixtures/**'
     }
 }
+
+// Minimal optional dedicated-server distribution; no client/audio dependencies.
+tasks.register('serverJar', Jar) {
+    archiveBaseName = 'animals-final-music-replacer-server-neoforge-26.3'
+    from(sourceSets.main.output) {
+        include 'dev/animal/afmr/server/**', 'dev/animal/afmr/network/**', 'dev/animal/afmr/core/StructureContext*'
+    }
+    from('src/server/resources')
+    from('LICENSE')
+}
+tasks.named('assemble') { dependsOn tasks.named('serverJar') }
+
+// Protocol component tests need Minecraft/Netty; keep pure regression tests independent.
+sourceSets {
+    networkTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+configurations {
+    networkTestImplementation.extendsFrom testImplementation
+    networkTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+tasks.register('networkTest', Test) {
+    testClassesDirs = sourceSets.networkTest.output.classesDirs
+    classpath = sourceSets.networkTest.runtimeClasspath
+    useJUnitPlatform()
+}
+tasks.named('check') { dependsOn tasks.named('networkTest') }

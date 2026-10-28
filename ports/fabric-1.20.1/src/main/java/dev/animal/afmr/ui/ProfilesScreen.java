@@ -28,7 +28,7 @@ final class ProfilesScreen extends MusicScreen {
         joinLabel=runtime.inWorld()?"On next join: "+model.entries().stream().filter(p->p.id().equals(linked)).map(Info::name).findFirst().orElse("Default")
             :Component.translatable("afmr.copy.profiles.join_a_world_or_server_to_link_it").getString();
         half=(contentWidth-12)/2;right=left+half+12;
-        profiles=addRenderableWidget(new DenseList<>(left,70,half,Math.max(28,height-142),this::drawProfile,
+        profiles=addRenderableWidget(new DenseList<>(left,70,half,Math.max(28,bodyBottom()-142),this::drawProfile,
             (p,clickX,clickY,button,twice)->{selected=p.id();rebuildWidgets();},Info::name));profiles.items(model.entries());
         String label=model.entries().stream().filter(p->p.id().equals(selected)).findFirst().orElseThrow().name();
         name=edit(label,"Profile name",right,70,half,null);name.setMaxLength(80);
@@ -62,7 +62,7 @@ final class ProfilesScreen extends MusicScreen {
             minecraft.setScreen(this);rebuildWidgets();
         },Component.literal("Delete profile?"),Component.literal("Delete this setup and its links? Shared music and other profiles are kept."))))
             .active=!selected.equals(PlaylistProfiles.DEFAULT)&&!selected.equals(model.activeId);
-        button("Back",left,height-29,contentWidth,this::onClose);
+        button("Back",left,bodyBottom()-29,contentWidth,this::onClose);
     }
     private void create(boolean copy){
         change(()->selected=runtime.library().profiles.create(runtime.library(),name.getValue(),copy?selected:null));
@@ -72,12 +72,12 @@ final class ProfilesScreen extends MusicScreen {
         catch(IllegalArgumentException e){error=e.getMessage();}
     }
     private void drawProfile(GuiGraphics g,Info p,int x,int y,int width,boolean hover){
-        if(p.id().equals(selected))g.fill(x,y,x+width,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
+        if(p.id().equals(selected))g.fill(x,y,x+width,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF304963));
         String text=(p.id().equals(runtime.library().profiles.activeId)?"> ":"")+p.name();
-        g.drawString(font,fit(text,width-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFE3F2E9),false);
+        g.drawString(menuFont,fit(text,width-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFEDF4F6),false);
     }
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
-        g.drawString(font,fit(activeLabel,contentWidth),left,51,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        g.drawString(font,fit(error.isBlank()?joinLabel:error,contentWidth),left,height-48,error.isBlank()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3):0xFFFFA0A0);
+        g.drawString(menuFont,fit(activeLabel,contentWidth),left,51,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
+        g.drawString(menuFont,fit(error.isBlank()?joinLabel:error,contentWidth),left,bodyBottom()-48,error.isBlank()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2):0xFFFFA0A0);
     }
 }

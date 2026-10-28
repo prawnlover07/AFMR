@@ -35,7 +35,7 @@ class LoudnessScanTest {
     @Test void scansBalanceTracksAndPreserveSourceBytesAndTimes() throws Exception {
         Path quiet=tone("quiet.wav",0.025),loud=tone("loud.wav",0.4);byte[] original=Files.readAllBytes(quiet);var time=Files.getLastModifiedTime(quiet);
         try(var scanner=new LoudnessScan()){
-            var report=await(scanner.start("Test",List.of(request(quiet,null),request(loud,null)),true));assertEquals(2,report.count(LoudnessScan.Source.SCANNED));
+            var report=await(scanner.start("Test",List.of(request(quiet,null),request(loud,null))));assertEquals(2,report.count(LoudnessScan.Source.SCANNED));
             var a=report.rows().get(0);var b=report.rows().get(1);assertEquals(20*Math.log10(16),a.appliedDb()-b.appliedDb(),0.01);
             assertEquals(a.requestedDb(),a.appliedDb(),1e-10);assertNotNull(a.measurement());assertTrue(a.measurement().valid());
         }
@@ -45,7 +45,7 @@ class LoudnessScanTest {
         Path zero=tone("zero.wav",0.1),bad=tone("bad.wav",0.1);tag(zero,"0 dB","0.2");tag(bad,"NaN","0.2");
         var cache=new TrackLoudness(Files.size(zero),Files.getLastModifiedTime(zero).toString(),12,0.1);
         try(var scanner=new LoudnessScan()){
-            var report=await(scanner.start("Tags",List.of(request(zero,cache),request(bad,null)),true));
+            var report=await(scanner.start("Tags",List.of(request(zero,cache),request(bad,null))));
             assertEquals(LoudnessScan.Source.TAGS,report.rows().get(0).source());assertEquals(0,report.rows().get(0).appliedDb());
             assertNull(report.rows().get(0).measurement());assertEquals(LoudnessScan.Source.SCANNED,report.rows().get(1).source());
         }
@@ -53,37 +53,46 @@ class LoudnessScanTest {
     @Test void missingPeakTagDoesNotCauseUnverifiedBoostAndReportShowsLimit() throws Exception {
         Path file=tone("nopeak.wav",0.1);tag(file,"+6 dB","");
         try(var scanner=new LoudnessScan()){
-            var row=await(scanner.start("Tags",List.of(request(file,null)),true)).rows().getFirst();
+            var row=await(scanner.start("Tags",List.of(request(file,null)))).rows().getFirst();
             assertEquals(LoudnessScan.Source.TAGS,row.source());assertTrue(row.limited());assertEquals(6,row.requestedDb());assertEquals(0,row.appliedDb());
         }
     }
     @Test void cacheReusedAndBothTimestampAndSizeChangesInvalidateIt() throws Exception {
         Path file=tone("cached.wav",0.1);
         try(var scanner=new LoudnessScan()){
-            var cached=await(scanner.start("First",List.of(request(file,null)),true)).rows().getFirst().measurement();
-            assertEquals(LoudnessScan.Source.CACHED,await(scanner.start("Second",List.of(request(file,cached)),true)).rows().getFirst().source());
+            var cached=await(scanner.start("First",List.of(request(file,null)))).rows().getFirst().measurement();
+            assertEquals(LoudnessScan.Source.CACHED,await(scanner.start("Second",List.of(request(file,cached)))).rows().getFirst().source());
             Files.setLastModifiedTime(file,FileTime.fromMillis(Files.getLastModifiedTime(file).toMillis()+2000));
-            assertEquals(LoudnessScan.Source.SCANNED,await(scanner.start("Changed",List.of(request(file,cached)),true)).rows().getFirst().source());
+            assertEquals(LoudnessScan.Source.SCANNED,await(scanner.start("Changed",List.of(request(file,cached)))).rows().getFirst().source());
             var differentSize=new TrackLoudness(Files.size(file)+1,Files.getLastModifiedTime(file).toString(),0,0.1);
-            assertEquals(LoudnessScan.Source.SCANNED,await(scanner.start("Size",List.of(request(file,differentSize)),true)).rows().getFirst().source());
+            assertEquals(LoudnessScan.Source.SCANNED,await(scanner.start("Size",List.of(request(file,differentSize)))).rows().getFirst().source());
         }
     }
-    @Test void pausedJobCanResumeOrCancelAndDoesNotAcceptConcurrentBatch() throws Exception {
-        Path file=tone("paused.wav",0.1);
+    @Test void manualJobStartsImmediatelyAndRejectsConcurrentBatch() throws Exception {
+        Path file=tone("manual.wav",0.1);
         try(var scanner=new LoudnessScan()){
-            var job=scanner.start("Paused",List.of(request(file,null)),false);
-            assertNull(job.report());assertEquals(0,job.completed());
-            assertThrows(IllegalStateException.class,()->scanner.start("Other",List.of(),true));
-            job.setAllowed(true);assertFalse(await(job).cancelled());
-            job=scanner.start("Cancel",List.of(request(file,null)),false);job.cancel();var report=await(job);
-            assertTrue(report.cancelled());assertTrue(report.rows().isEmpty());
+            var job=scanner.start("Manual",Collections.nCopies(1000,request(file,null)));
+            assertThrows(IllegalStateException.class,()->scanner.start("Other",List.of()));
+            assertTimeoutPreemptively(Duration.ofSeconds(10),()->{while(job.completed()==0)Thread.sleep(1);});
+            job.cancel();var report=await(job);
+            assertTrue(report.cancelled());assertFalse(report.rows().isEmpty());assertTrue(report.rows().size()<job.total());
+            var next=await(scanner.start("Next",List.of(request(file,null))));
+            assertFalse(next.cancelled());assertEquals(1,next.count(LoudnessScan.Source.SCANNED));
+        }
+    }
+    @Test void emptyManualBatchCompletesAndOwnsItsRequests() throws Exception {
+        Path file=tone("owned.wav",0.1);var requests=new ArrayList<LoudnessScan.Request>();requests.add(request(file,null));
+        try(var scanner=new LoudnessScan()){
+            var job=scanner.start("Owned",requests);requests.clear();
+            assertEquals(1,await(job).rows().size());
+            var empty=await(scanner.start("Empty",List.of()));assertEquals(0,empty.total());assertTrue(empty.rows().isEmpty());assertFalse(empty.cancelled());
         }
     }
     @Test void cancelKeepsAlreadyCompletedRows() throws Exception {
         Path first=tone("first.wav",0.1),second=tone("second.wav",0.1);
         List<LoudnessScan.Request> requests=new ArrayList<>();for(int i=0;i<100;i++)requests.add(request(i%2==0?first:second,null));
         try(var scanner=new LoudnessScan()){
-            var job=scanner.start("Partial",requests,true);
+            var job=scanner.start("Partial",requests);
             assertTimeoutPreemptively(Duration.ofSeconds(10),()->{while(job.completed()==0)Thread.sleep(1);});
             job.cancel();var report=await(job);assertTrue(report.cancelled());assertFalse(report.rows().isEmpty());assertTrue(report.rows().size()<100);
         }
@@ -94,7 +103,7 @@ class LoudnessScanTest {
             Path file=directory.resolve(name);try(var in=getClass().getResourceAsStream("/audio/"+name)){Files.copy(in,file);}requests.add(request(file,null));
         }
         try(var scanner=new LoudnessScan()){
-            var report=await(scanner.start("Formats",requests,true));assertEquals(1,report.count(LoudnessScan.Source.FAILED));assertEquals(7,report.count(LoudnessScan.Source.SCANNED));
+            var report=await(scanner.start("Formats",requests));assertEquals(1,report.count(LoudnessScan.Source.FAILED));assertEquals(7,report.count(LoudnessScan.Source.SCANNED));
             assertEquals(LoudnessScan.Source.FAILED,report.rows().getFirst().source());
         }
     }

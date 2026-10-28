@@ -53,7 +53,7 @@ public final class NowPlaying {
             }
         }
         if(track!=null&&enabled&&Double.isNaN(shownAt)&&!runtime.engine().paused()
-            &&runtime.engine().trackElapsed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
+            &&runtime.engine().trackPlayed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
         if(nativeSongName!=null&&!nativeShown&&!Double.isNaN(shownAt)&&!runtime.engine().paused()
             &&mc.options.getFinalSoundSourceVolume(SoundSource.MUSIC)>0){
             mc.gui.toastManager().showNowPlayingToast();nativeShown=true;

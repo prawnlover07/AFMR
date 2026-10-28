@@ -1,0 +1,40 @@
+STEP Readable rule summaries
+PASS Time rule shows clock hours
+PASS Area rule shows radius
+STEP Focused song menu button
+PASS Focused row exposes a visible actions button
+PASS Shift+F10 opens song actions
+PASS Left-click opens the existing song menu
+PASS Menu retains multi-selection
+STEP Song action render
+PASS Action applies to both selected songs
+STEP Start source playlist
+STEP Source identity
+PASS Editing selection can differ from playing source
+STEP Playing source render
+STEP Playing song render
+PASS Current song belongs to the marked source
+STEP Gap countdown
+PASS Footer gives a countdown
+STEP Empty playback reason
+PASS Footer explains an empty matching playlist
+STEP Create preview theme
+PASS Themes starts a separate preview
+STEP Edit draft and change page
+PASS Palette previews without changing settings
+PASS Paging does not save the named theme
+PASS Editor Cancel restores its opening preview
+STEP Hide an uncommitted draft
+PASS Hidden preview is suspended
+PASS Reopening retains the uncommitted draft
+STEP Apply theme
+PASS Editor Apply returns directly to Display
+PASS Apply commits both settings and named theme
+PASS Applied preview is released
+STEP Preview built-in and cancel
+PASS Choosing a theme only previews it
+PASS Theme Cancel keeps committed colors
+STEP Invalid draft can be canceled
+PASS Cancel accepts an invalid draft without saving
+STEP Final workspace render
+COMPLETE: 23 passed / 0 failed

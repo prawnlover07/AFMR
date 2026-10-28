@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlaylistVolumeTest {
     private static Context context(boolean incoming,boolean record,boolean dead){
         return new Context("minecraft:overworld",incoming?"test:b":"test:a",true,false,6000,false,15,"world",0,70,0,0,0.8,dead,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private static final class Scenario {
         final Library lib=new Library();
@@ -17,7 +17,7 @@ class PlaylistVolumeTest {
         final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
         final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
         Scenario(){
-            lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;
+            lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;
             a.volume=0.4;b.volume=0.8;b.conditions.biomeEnabled=true;b.conditions.biomes.add("test:b");lib.movePlaylist(b.id,0);
             for(var p:List.of(a,b)){var track=new Track(p.id,"file",p.name,false);lib.tracks.add(track);p.tracks.put(track.id,true);}
         }

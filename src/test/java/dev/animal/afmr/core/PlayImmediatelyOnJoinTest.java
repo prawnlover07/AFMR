@@ -12,7 +12,7 @@ class PlayImmediatelyOnJoinTest {
     @TempDir Path directory;
     private static Context context(String dimension,boolean dead,boolean record){
         return new Context(dimension,"minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,dead,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private static final class Scenario {
         final Library lib=new Library();

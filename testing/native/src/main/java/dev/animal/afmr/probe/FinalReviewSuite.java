@@ -121,7 +121,7 @@ public final class FinalReviewSuite {
         track=new Track("review-do-not-share-track",audio.toString(),"do-not-share song",false);lib.tracks.add(track);target.tracks.put(track.id,true);lib.rebuildTrackIndex();
         check("Disabled automatic playlist accepts a held override",rt.overridePlaylist(target.id,OverrideMode.UNTIL_RELEASED));
         await("Native playback and inspector",FinalReviewSuite::playing,()->{check("Native sound is active",playing());show();});
-        add("Open inspector",()->{click("Inspector");});
+        add("Open inspector",()->{click("Playback status");});
         add("Copy live playback",()->{copy();check("Clipboard captures source and override aliases",copied.contains("source: #"+(lib.playlists.indexOf(target)+1))&&copied.contains("Override: #"+(lib.playlists.indexOf(target)+1)+"; mode: UNTIL_RELEASED"));
             check("Clipboard captures safe location result",copied.contains("Location: configured=false; matches=false (location details omitted)"));shot("inspector");click("Pause music");});
         add("Copy paused playback",()->{copy();check("Clipboard reflects actual pause",copied.contains("reason: PAUSED")&&copied.contains("paused: true"));click("Resume music");
@@ -131,9 +131,9 @@ public final class FinalReviewSuite {
             check("Timing no longer contains rescan or global combat switches",widgets().stream().noneMatch(w->w.getMessage().getString().startsWith("Rescan on launch:")||w.getMessage().getString().startsWith("Combat music:")));
             tooltip("Play immediately on join:","afmr.copy.settings.play_immediately_on_join");});
         add("Timing author tooltip",()->{shot("timing-tooltip");click("Combat settings");check("Combat toggle lives in Combat settings",prefix("Combat music:").active);
-            tooltip("Triggers:","afmr.copy.combatsettings.combat_triggers");});
+            tooltip("Combatants only","afmr.copy.combatsettings.combat_triggers");});
         add("Combat author tooltip",()->{shot("combat-tooltip");click("Save & back");click("Library");
-            check("Rescan switch lives beside repair",prefix("Rescan on launch:").active&&prefix("Repair / missing").active);click("Rescan on launch: off");check("Rescan preference toggles",lib.settings.rescanOnLaunch);
+            check("Rescan switch lives beside repair",prefix("Rescan on launch:").active&&prefix("Repair / missing").active);click("Rescan on launch");check("Rescan preference toggles",lib.settings.rescanOnLaunch);
             click("Display");click("Menus");check("Cleared menu opacity has no empty tooltip",tooltipValue(prefix("Background opacity:"))==null);});
         add("Menu appearance",()->{shot("menus");click("Custom background");check("Cleared sizing explanation has no tooltip",tooltipValue(prefix("Sizing:"))==null);
             check("Cleared image opacity has no tooltip",tooltipValue(prefix("Image opacity:"))==null);rt.menuBackground().choose(Path.of("background-fixtures/disposal.gif"));});

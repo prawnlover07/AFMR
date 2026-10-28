@@ -1,0 +1,30 @@
+PASS Workspace retains independent music library
+PASS Playback area action is visible
+PASS No name and conditions navigation
+PASS Automatic checkbox enables selection
+PASS Automatic checkbox disables selection
+PASS Row toggles condition off
+PASS Negative state survives reenable
+PASS Area edit expands inline
+PASS Edit leaves filter off
+PASS Inline capture saves current world and 90 block radius
+PASS Invalid radius blocks action without loss
+PASS Collapse saves valid radius
+PASS Hide retains invalid inline draft
+PASS Small resize retains invalid draft
+PASS Inline gap and volume apply together
+PASS Minecraft toggle retains functionality
+PASS Exit finish checkbox changes only exit flag
+PASS Entry finish remains independently editable
+PASS Trigger option retained
+PASS Rename opens dedicated screen
+PASS Rename preserves playlist and configuration
+PASS Right-click opens playlist actions
+PASS Duplicate retains assignments and settings
+PASS Hold immediately shows replacement warning
+PASS Tap retains original conditions
+PASS Completed hold replaces only selected playlist conditions
+PASS Area replacement preserves song assignments
+PASS Selected playlist does not force playback
+PASS Empty library viewport is not actionable
+COMPLETE: 29 passed / 0 failed

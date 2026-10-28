@@ -1,5 +1,98 @@
 # Deferred features
 
+The completed feature sections below shipped together in **1.1** on October 28,
+2026. Earlier verification/version statements record their development checkpoints.
+Open future requests and deeper testing remain deferred.
+
+## Transport icons and playlist row menus
+
+Implemented on both targets: primary Play/Pause/Resume and immediate-next icons,
+labelled Skip & wait, hover/focus playlist actions, and Shift+F10. Both full builds pass; packaged clients each pass
+49 native checks. See [the report](docs/testing/2026-10-25-transport-icons.md).
+Version remains 1.0.1.
+
+## Playback navigation pass
+
+Implemented on both targets: seek bar, click-to-locate the playing song,
+selection counts, settings search and consistent checkbox/detail controls.
+Validation: 1,009 / 1,019 regression tests plus component checks and 51 native
+checks per target pass. See [the report](docs/testing/2026-10-25-playback-navigation.md).
+Version remains 1.0.1.
+
+## Player clarity pass
+
+Implemented under Unreleased on both targets: playing-source/song markers,
+hover/focus song actions, readable rule summaries, concise waiting reasons and
+countdowns, and isolated theme drafts with Apply / Cancel. Full builds pass
+989/999 tests and packaged native runs pass 23 checks per target. See
+[the report](docs/testing/2026-10-25-player-clarity.md). Version stays 1.0.1.
+
+## Themes menu
+
+Implemented under Unreleased on both maintained targets: named custom themes,
+editing, rename/delete, and shared .afmrt files. Includes menu colors/opacity and
+widget background color/opacity, with independent snapshots and full-backup
+preservation. Fonts, images, blur, layout and music stay separate. See
+[the report](docs/testing/2026-10-25-themes.md) for build-only verification.
+
+## Playlist workspace follow-up
+
+Implemented under Unreleased on both maintained targets: playlist-only session
+Undo/Redo, drag priority, song context actions, active-rule filtering, opaque
+popups, stable navigation/header geometry and the Fabric background-image fix.
+Menu and widget independently use imported TTF or resource-pack fonts; full
+backups include imported assets. Minecraft mute shows a warning while playback
+continues silently; it does not pause/resume AFMR. The original mute-pause policy
+was removed on October 25. Earlier verification is recorded in
+[the follow-up report](docs/testing/2026-10-24-ui-followup.md). Version stays 1.0.1.
+
+## Playlist import destination and replacement
+
+Implemented on both maintained targets under Unreleased: default to an imported-only
+new profile, with editable name and no automatic activation/binding. Existing-profile
+mode replaces matching names while preserving identity/priority; settings-only keeps
+songs and Import songs replaces assignments. Ambiguous duplicates are rejected.
+
+## Content-based song sharing and repair
+
+Implemented under Unreleased on both maintained targets: newly exported song
+lists carry whole-file content identities; import offers linked-library searches,
+additional folder searches and individual file choices with cancellation.
+Fingerprinted repair supports reorganized/renamed copies and preserves existing
+destination folder settings. Exact byte copies match; retagged/transcoded copies
+and references without recorded identities are not automatically guessed.
+See [the report](docs/testing/2026-10-24-content-matching.md).
+
+## Riding animal
+
+Implemented under Unreleased on both maintained targets: Any/Riding/Not riding,
+using the player's direct Animal mount. Existing condition groups, transitions,
+profiles, sharing and backups apply. Live mount/network checks are tracked in
+[deferred testing](DEFERRED-TESTING.md).
+
+## Player proximity volume
+
+Implemented under Unreleased on both maintained targets: optional near/far
+volume endpoints inside Nearby player, reversal and a separate trigger radius.
+Native/automated verification is recorded in deferred testing and the feature report.
+
+## Custom widget background
+
+Implemented on both maintained targets under Unreleased. Display → Widget →
+Custom background… imports an independent image for the AFMR card, including
+GIF animation, sizing, opacity, preview and removal. Full configuration backups
+include the asset. Native rendering/input checks are tracked in deferred testing.
+
+## Playlist transition exceptions
+
+Implemented on both maintained targets; 24 focused tests and 17 native checks per
+target pass. See [the report](docs/testing/2026-10-23-playlist-transitions.md). Each automatic
+source/destination pair can override finish/interruption, context buffer, fade-out,
+silence range and fade-in, with inheritance per option. Rules follow actual song
+ownership, remain profile-local and travel between jointly exported playlists.
+The current development JAR remains 1.0.1 at the user's request; existing release
+archives/tag are retained. More complex live combinations belong in deferred testing.
+
 ## 1.0.1: song groups and player themes
 
 Implemented on both maintained targets; verification/release status is in the
@@ -111,11 +204,10 @@ information switches, single-line/word-wrap layouts, text scrolling and a settin
 offers background color and opacity settings. Native visual checks
 are tracked in [deferred testing](DEFERRED-TESTING.md).
 
-Add multiplayer structure detection through an optional server-side source of
-structure boundaries. Vanilla servers do not synchronize these. Preserve ordinary
-client-only multiplayer use; an unavailable structure filter cannot match, though
-another enabled filter may satisfy Match any. Singleplayer selection/search and
-radius are implemented.
+Optional server companions now supply multiplayer structure boundaries and mob-target
+retention on both maintained targets. Vanilla/client-only servers retain their
+event timers and unavailable structure data. See DEFERRED-TESTING.md for remaining
+networked validation.
 
 Add multiplayer combat-target retention through optional server-provided target
 data. Singleplayer uses actual mob targets after an attack/damage trigger;

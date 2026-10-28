@@ -18,15 +18,15 @@ final class ScanMessagesScreen extends MusicScreen {
     ScanMessagesScreen(Screen parent,ClientRuntime runtime,List<String> messages){super("Scan messages",parent,runtime);this.messages=messages;}
     @Override protected void init(){
         super.init();guidance=fit(Component.translatable("afmr.copy.scanmessages.guidance").getString(),contentWidth);labels.clear();tooltips.clear();
-        for(String message:messages){labels.put(message,fit(message,contentWidth-18));tooltips.put(message,font.split(Component.literal(message),Math.max(100,Math.min(400,contentWidth))));}
-        var list=addRenderableWidget(new DenseList<String>(left,55,contentWidth,Math.max(28,height-112),
+        for(String message:messages){labels.put(message,fit(message,contentWidth-18));tooltips.put(message,menuFont.split(Component.literal(message),Math.max(100,Math.min(400,contentWidth))));}
+        var list=addRenderableWidget(new DenseList<String>(left,55,contentWidth,Math.max(28,bodyBottom()-112),
             (g,message,x,y,w,hover)->{
-                g.text(font,labels.get(message),x+4,y+3,0xFFFFB0A7,false);
-                if(hover)g.setTooltipForNextFrame(font,tooltips.get(message),mouseX,mouseY);
+                g.text(menuFont,labels.get(message),x+4,y+3,0xFFFFB0A7,false);
+                if(hover)g.setTooltipForNextFrame(menuFont,tooltips.get(message),mouseX,mouseY);
             },(message,event,twice)->{},message->message));list.items(messages);
-        button("Back",left,height-29,contentWidth,this::onClose);
+        button("Back",left,bodyBottom()-29,contentWidth,this::onClose);
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        mouseX=x;mouseY=y;g.text(font,guidance,left,height-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
+        mouseX=x;mouseY=y;g.text(menuFont,guidance,left,bodyBottom()-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
     }
 }

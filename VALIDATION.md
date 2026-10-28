@@ -2,6 +2,88 @@
 
 Target: Minecraft Java 26.3, NeoForge 26.3.0.90, Java 25, Windows 11.
 
+## October 28 — combined 1.1 release
+
+Both numbered builds pass fresh pure regression suites (**1,009 NeoForge / 1,019
+Fabric**), ten packet/audio component checks and 20 copy compiler checks each.
+Packaged clients pass **49 navigation/transport checks each**, with Fabric on
+Java 17; packaged companion server fixtures pass **13 checks each**. Release
+connections, artifact hashes and package audits are recorded in the
+[1.1 release report](docs/testing/2026-10-28-release-1.1.md). Earlier reports below
+retain their own versions, hashes and measured scopes.
+
+## October 25 — player clarity and reversible themes
+
+Both targets retain 1.0.1. Full builds pass **989 NeoForge / 999 Fabric tests**,
+20 copy checks each and 167/165 validated passages. Packaged native runs pass
+**23 checks per target**, including song menu input/Shift+F10, readable rules,
+transport feedback and the isolated theme preview/Apply/Cancel flow. See
+[the report](docs/testing/2026-10-25-player-clarity.md) for hashes, evidence and limits.
+
+## October 25 — themes menu and sharing
+
+Both builds remain 1.0.1 and pass **972 NeoForge / 982 Fabric tests** with 14 new
+snapshot/import/export/backup cases per target, plus 20 copy checks each and
+166/164 validated passages. Native/smoke helpers compile without launching the
+game. See [the build-only report](docs/testing/2026-10-25-themes.md).
+
+## Warning-only Minecraft mute — October 25, 2026
+
+Both full builds and source archives pass **958 NeoForge / 968 Fabric tests**,
+plus 20 copy compiler checks each. Native helpers compile; the updated audio
+sequence was **not run**, at the user's request. Six obsolete pause-controller
+tests per target were deleted with that controller. The muted warning remains;
+no mute-driven pause/resume path remains. See
+[the report](docs/testing/2026-10-25-mute-warning.md).
+
+## October 24 — playlist follow-up, fonts and Minecraft mute
+
+Final packaged native checks pass **38 NeoForge / 40 Fabric**, zero failures.
+Both maintained builds remain 1.0.1 and pass 964 NeoForge / 974 Fabric tests,
+20 copy-compiler checks each, language validation and source packaging. Focused
+packaged native tests verify UI input/rendering and actual sound-channel pause,
+position and resume. See [the report](docs/testing/2026-10-24-ui-followup.md) for
+final native counts, exact JAR hashes and remaining broader coverage.
+
+## October 24 — inline playlist settings
+
+Both maintained targets retain version 1.0.1. Builds pass 930 NeoForge / 940 Fabric
+tests, copy validation and source packaging; the isolated packaged UI runs pass
+30 NeoForge / 29 Fabric checks, including hide/resize drafts, right-click actions,
+independent toggles and completed/cancelled condition replacement holds. See
+[the report](docs/testing/2026-10-24-inline-settings.md) for evidence and limits.
+
+## Cross-computer song matching — October 24, 2026
+
+Both full builds pass **915 NeoForge / 925 Fabric tests**, zero failures/errors,
+with 27 new content-matching cases each and 20 UI-copy compiler checks each.
+Source archives contain the new classes/tests and exclude local workspace data.
+Live picker/UI, network-drive and real cross-computer audio checks remain pending;
+see [the report](docs/testing/2026-10-24-content-matching.md).
+
+## Repair-search cancellation — October 24, 2026
+
+Both full builds pass **888 NeoForge / 898 Fabric tests**, including ten new
+cancellation cases per target, plus 20 UI-copy checks each. Cross-thread stop and
+worker reuse, final-file cancellation and read-only repair planning pass.
+Live repair UI/slow-storage verification remains pending; see
+[the report](docs/testing/2026-10-24-repair-cancellation.md).
+
+## Riding animal — October 24, 2026
+
+Both full builds pass **878 NeoForge / 888 Fabric automated tests**, including
+**17 new riding-condition cases per target**, plus 20 UI-copy compiler checks
+each. Development versions remain 1.0.1. Live mount/UI/multiplayer/native audio
+verification remains pending; see [the report](docs/testing/2026-10-24-riding-animal.md).
+
+## Directional transitions — Unreleased addition to 1.0.1
+
+Both targets pass **24 new transition tests** and **17 focused native checks**.
+Working builds/source archives pass, with reviewed totals **832 NeoForge / 838
+Fabric** and 20 copy checks each; concurrent background work affects totals.
+See [the report](docs/testing/2026-10-23-playlist-transitions.md) for actual scope,
+the preserved release checkpoint and remaining live combinations.
+
 ## 1.0.1 features — October 23, 2026
 
 Both targets pass **804 / 814 automated tests**, 20 copy compiler checks each,
@@ -454,3 +536,9 @@ Verified:
 ## Scope
 
 This release was checked on Windows. The SDL dialog APIs should use native dialogs on other supported systems, but other operating systems were not tested. Multiplayer Home scope is covered by world/dimension matching tests; a live multiplayer server was not exercised. Scan progress was exercised on 12,000 generated files; larger real-world collections, unusual tagging conventions, and interactions with other audio/GUI mods remain untested. The underground detector is a configurable surface-cover heuristic, not a cave-volume classifier.
+
+## Optional server companions — October 25
+
+The current implementation, automated checks and packaged server/client probe
+results are recorded in [the focused report](docs/testing/2026-10-25-server-companions.md).
+Use that report's measured scope rather than older singleplayer-only limitations.

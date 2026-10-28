@@ -25,6 +25,6 @@ final class EditorArtwork {
             finally{if(!registered){if(texture!=null)texture.close();else if(image!=null)image.close();}}
         }));
     }
-    void draw(GuiGraphics g,int x,int y,int size){if(loaded)g.blit(ID,x,y,size,size,0,0,256,256,256,256);else g.drawString(Minecraft.getInstance().font,"♪",x+size/2-3,y+size/2-4,0xFF8DE0BE,false);}
+    void draw(GuiGraphics g,int x,int y,int size){if(loaded)g.blit(ID,x,y,size,size,0,0,256,256,256,256);else g.drawString(MenuAppearance.font(),"♪",x+size/2-3,y+size/2-4,0xFF8DE0BE,false);}
     void close(){generation++;track=null;if(loaded){Minecraft.getInstance().getTextureManager().release(ID);loaded=false;}}
 }

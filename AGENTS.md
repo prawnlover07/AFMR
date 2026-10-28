@@ -16,12 +16,21 @@ ignored `work/` and `outputs/` are archives, not editing targets.
   fixtures and an isolated game profile for state-changing tests.
 - Coordinate native/desktop testing with the user's current authorization and
   computer use. Routine builds and unit tests do not need desktop interaction.
+- Cap every disposable Minecraft probe at 60 FPS from startup. Keep VSync off in
+  probe profiles so the limit is independent of monitor refresh; never apply these
+  test preferences to personal game profiles. The owner reports desktop lag above 60.
 - Record complicated unfinished tests in `DEFERRED-TESTING.md`, and requested
   future features in `BACKLOG.md`. Distinguish measured results from assumptions.
 
 ## Code and performance
 
 - Use Java and NeoForge; the current target is Minecraft 26.3 and Java 25.
+- When adding a feature or condition that would otherwise be singleplayer-only
+  because it needs server-owned state, update the optional server companions for
+  both NeoForge 26.3 and Fabric 1.20.1 in the same change. Verify companion-enabled
+  multiplayer and the fallback without a companion; keep observations scoped,
+  bounded and free of music/library data. Document any unavoidable limitation and
+  remaining work explicitly.
 - Avoid wrappers, shims, adapters, and compatibility layers. Update call sites
   directly. Remove dead or deprecated code when replacing it.
 - Split code by responsibility; aim for source files below 2,000 lines. Avoid

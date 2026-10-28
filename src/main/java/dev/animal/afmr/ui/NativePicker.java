@@ -13,24 +13,29 @@ import static org.lwjgl.sdl.SDLDialog.*;
 
 /** Uses SDL's Windows Explorer dialogs; no AWT or in-game filesystem browser. */
 public final class NativePicker {
-    public enum Kind { FILES, FOLDER, PLAYLISTS, REPAIR_FOLDER, REPAIR_FILE, PRESET_IMPORT, PRESET_EXPORT, PRESET_FOLDER, BACKUP_IMPORT, BACKUP_EXPORT, BACKGROUND }
+    public enum Kind { FILES, FOLDER, PLAYLISTS, REPAIR_FOLDER, REPAIR_FILE, PRESET_IMPORT, PRESET_EXPORT, PRESET_FOLDER, PRESET_FILE, PRESET_SEARCH_FOLDER, BACKUP_IMPORT, BACKUP_EXPORT, BACKGROUND, WIDGET_BACKGROUND, MENU_FONT, WIDGET_FONT, THEME_IMPORT, THEME_EXPORT }
     private static NativePicker active;
     private SDL_DialogFileCallback callback;
     private SDL_DialogFileFilter.Buffer filters;
     private ByteBuffer name,pattern,location;
     private final ClientRuntime runtime;
     private PlaylistPresets.FileData preset;
+    private dev.animal.afmr.core.ColorTheme theme;
     private NativePicker(ClientRuntime runtime){this.runtime=runtime;}
     public static void open(ClientRuntime runtime,Kind kind,String destination){
         if(active!=null){runtime.message("A file picker is already open.");return;}
-        if(kind!=Kind.BACKGROUND&&runtime.scanning()){runtime.message("Wait for the current scan to finish.");return;}
-        if(kind!=Kind.BACKGROUND&&runtime.pendingRepair()!=null){runtime.message("Apply or cancel the pending repair first.");return;}
+        if(kind!=Kind.BACKGROUND&&kind!=Kind.WIDGET_BACKGROUND&&kind!=Kind.MENU_FONT&&kind!=Kind.WIDGET_FONT&&kind!=Kind.THEME_IMPORT&&kind!=Kind.THEME_EXPORT&&runtime.scanning()){runtime.message("Wait for the current scan to finish.");return;}
+        if(kind!=Kind.BACKGROUND&&kind!=Kind.WIDGET_BACKGROUND&&kind!=Kind.MENU_FONT&&kind!=Kind.WIDGET_FONT&&kind!=Kind.THEME_IMPORT&&kind!=Kind.THEME_EXPORT&&runtime.pendingRepair()!=null){runtime.message("Apply or cancel the pending repair first.");return;}
         active=new NativePicker(runtime);active.show(kind,destination);
     }
     public static void savePreset(ClientRuntime runtime,PlaylistPresets.FileData snapshot){
         if(active!=null){runtime.message("A file picker is already open.");return;}
         if(runtime.scanning()||runtime.pendingRepair()!=null){runtime.message("Finish the current scan or repair first.");return;}
         active=new NativePicker(runtime);active.preset=snapshot;active.show(Kind.PRESET_EXPORT,"");
+    }
+    public static void saveTheme(ClientRuntime runtime,dev.animal.afmr.core.ColorTheme snapshot){
+        if(active!=null){runtime.message("A file picker is already open.");return;}
+        active=new NativePicker(runtime);active.theme=snapshot.copy();active.show(Kind.THEME_EXPORT,"");
     }
     private void show(Kind kind,String destination){
         String profileId=runtime.library().profiles.activeId;
@@ -41,7 +46,7 @@ public final class NativePicker {
             Path foobar=Path.of(appData,"foobar2000-v2","playlists-v2.0");
             if(Files.isDirectory(foobar))initial=foobar.toString();
         }
-        location=MemoryUtil.memUTF8(initial+java.io.File.separator+(kind==Kind.BACKUP_EXPORT?"afmr-backup.afmrb":kind==Kind.PRESET_EXPORT?"playlists.afmrp":""));
+        location=MemoryUtil.memUTF8(initial+java.io.File.separator+(kind==Kind.THEME_EXPORT?"theme.afmrt":kind==Kind.BACKUP_EXPORT?"afmr-backup.afmrb":kind==Kind.PRESET_EXPORT?"playlists.afmrp":""));
         callback=SDL_DialogFileCallback.create((unused,files,filter)->{
             List<Path> paths=new ArrayList<>();String failure="";
             try{
@@ -56,14 +61,20 @@ public final class NativePicker {
                 close();
                 if(!error.isBlank())runtime.message(error);
                 else if(!paths.isEmpty()){
-                    if(kind==Kind.REPAIR_FOLDER||kind==Kind.REPAIR_FILE)
+                    if(kind==Kind.THEME_IMPORT)runtime.themes().importFile(paths.getFirst());
+                    else if(kind==Kind.THEME_EXPORT)runtime.themes().exportFile(paths.getFirst(),theme);
+                    else if(kind==Kind.REPAIR_FOLDER||kind==Kind.REPAIR_FILE)
                         runtime.prepareRepair(new dev.animal.afmr.library.LibraryRepair.Request(kind==Kind.REPAIR_FOLDER,destination,paths.getFirst()));
                     else if(kind==Kind.PRESET_FOLDER){if(runtime.pendingPreset()==pending)runtime.locatePresetFolder(destination,paths.getFirst());}
+                    else if(kind==Kind.PRESET_FILE){if(runtime.pendingPreset()==pending)runtime.locatePresetFile(destination,paths.getFirst());}
+                    else if(kind==Kind.PRESET_SEARCH_FOLDER){if(runtime.pendingPreset()==pending)runtime.searchPresetFolder(paths.getFirst());}
                     else if(kind==Kind.PRESET_IMPORT)runtime.preparePresetImport(paths.getFirst(),profileId,destination);
                     else if(kind==Kind.PRESET_EXPORT)runtime.exportPresets(paths.getFirst(),preset);
                     else if(kind==Kind.BACKUP_IMPORT)runtime.prepareBackupImport(paths.getFirst());
                     else if(kind==Kind.BACKUP_EXPORT)runtime.exportBackup(paths.getFirst());
                     else if(kind==Kind.BACKGROUND)runtime.menuBackground().choose(paths.getFirst());
+                    else if(kind==Kind.WIDGET_BACKGROUND)runtime.widgetBackground().choose(paths.getFirst());
+                    else if(kind==Kind.MENU_FONT||kind==Kind.WIDGET_FONT)runtime.fonts().choose(kind==Kind.MENU_FONT?CustomFonts.Target.MENU:CustomFonts.Target.WIDGET,paths.get(0));
                     else if(kind==Kind.PLAYLISTS)runtime.importPlaylists(paths,profileId,destination);
                     else runtime.importPaths(paths,profileId,destination,true);
                 }
@@ -71,15 +82,16 @@ public final class NativePicker {
             });
         });
         try{
-            if(kind==Kind.FOLDER||kind==Kind.REPAIR_FOLDER||kind==Kind.PRESET_FOLDER)SDL_ShowOpenFolderDialog(callback,0,mc.getWindow().handle(),location,false);
+            if(kind==Kind.FOLDER||kind==Kind.REPAIR_FOLDER||kind==Kind.PRESET_FOLDER||kind==Kind.PRESET_SEARCH_FOLDER)SDL_ShowOpenFolderDialog(callback,0,mc.getWindow().handle(),location,false);
             else{
+                boolean themeFile=kind==Kind.THEME_IMPORT||kind==Kind.THEME_EXPORT;
                 boolean backup=kind==Kind.BACKUP_IMPORT||kind==Kind.BACKUP_EXPORT;
                 boolean setup=kind==Kind.PRESET_IMPORT||kind==Kind.PRESET_EXPORT;
-                name=MemoryUtil.memUTF8(backup?"AFMR full backup (*.afmrb)":kind==Kind.BACKGROUND?"Background image (PNG, JPEG, WebP, GIF)":setup?"AFMR playlist setup (*.afmrp)":kind==Kind.PLAYLISTS?"foobar2000 playlists (*.fplite)":"Music (MP3, FLAC, OGG, WAV)");
-                pattern=MemoryUtil.memUTF8(backup?"afmrb":kind==Kind.BACKGROUND?"png;jpg;jpeg;webp;gif":setup?"afmrp":kind==Kind.PLAYLISTS?"fplite":"mp3;flac;ogg;wav");
+                name=MemoryUtil.memUTF8(themeFile?"AFMR theme (*.afmrt)":backup?"AFMR full backup (*.afmrb)":(kind==Kind.MENU_FONT||kind==Kind.WIDGET_FONT)?"TrueType font (*.ttf)":(kind==Kind.BACKGROUND||kind==Kind.WIDGET_BACKGROUND)?"Background image (PNG, JPEG, WebP, GIF)":setup?"AFMR playlist setup (*.afmrp)":kind==Kind.PLAYLISTS?"foobar2000 playlists (*.fplite)":"Music (MP3, FLAC, OGG, WAV)");
+                pattern=MemoryUtil.memUTF8(themeFile?"afmrt":backup?"afmrb":(kind==Kind.MENU_FONT||kind==Kind.WIDGET_FONT)?"ttf":(kind==Kind.BACKGROUND||kind==Kind.WIDGET_BACKGROUND)?"png;jpg;jpeg;webp;gif":setup?"afmrp":kind==Kind.PLAYLISTS?"fplite":"mp3;flac;ogg;wav");
                 filters=SDL_DialogFileFilter.calloc(1);filters.get(0).set(name,pattern);
-                if(kind==Kind.PRESET_EXPORT||kind==Kind.BACKUP_EXPORT)SDL_ShowSaveFileDialog(callback,0,mc.getWindow().handle(),filters,location);
-                else SDL_ShowOpenFileDialog(callback,0,mc.getWindow().handle(),filters,location,kind!=Kind.REPAIR_FILE&&kind!=Kind.PRESET_IMPORT&&kind!=Kind.BACKGROUND&&kind!=Kind.BACKUP_IMPORT);
+                if(kind==Kind.THEME_EXPORT||kind==Kind.PRESET_EXPORT||kind==Kind.BACKUP_EXPORT)SDL_ShowSaveFileDialog(callback,0,mc.getWindow().handle(),filters,location);
+                else SDL_ShowOpenFileDialog(callback,0,mc.getWindow().handle(),filters,location,!themeFile&&kind!=Kind.REPAIR_FILE&&kind!=Kind.PRESET_FILE&&kind!=Kind.PRESET_IMPORT&&kind!=Kind.BACKGROUND&&kind!=Kind.WIDGET_BACKGROUND&&kind!=Kind.MENU_FONT&&kind!=Kind.WIDGET_FONT&&kind!=Kind.BACKUP_IMPORT);
             }
         }catch(Throwable error){close();runtime.message("Native file picker unavailable: "+error.getMessage());}
     }

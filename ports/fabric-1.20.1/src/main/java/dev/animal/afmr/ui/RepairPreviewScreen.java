@@ -23,12 +23,12 @@ final class RepairPreviewScreen extends MusicScreen {
     @Override protected void init(){
         super.init();guidance=fit(plan.merges().isEmpty()?Component.translatable("afmr.copy.repairpreview.guidance").getString()
             :Component.translatable("afmr.copy.repairpreview.details").getString(),contentWidth);labels.clear();tooltipMove=null;
-        var list=addRenderableWidget(new DenseList<LibraryRepair.Move>(left,99,contentWidth,Math.max(28,height-180),
+        var list=addRenderableWidget(new DenseList<LibraryRepair.Move>(left,99,contentWidth,Math.max(28,bodyBottom()-180),
             (g,move,x,y,w,hover)->{
-                g.drawString(font,labels.get(move),x+4,y+3,move.found()?MenuAppearance.color(MenuColor.ACCENT,0xFFB9E5C8):0xFFFFB0A7,false);
+                g.drawString(menuFont,labels.get(move),x+4,y+3,move.found()?MenuAppearance.color(MenuColor.ACCENT,0xFFBCCBFF):0xFFFFB0A7,false);
                 if(hover){
-                    if(tooltipMove!=move){tooltipMove=move;tooltip=font.split(Component.literal(move.before()+"\n→ "+move.replacement().path),Math.max(100,Math.min(400,contentWidth)));}
-                    g.renderTooltip(font,tooltip,mouseX,mouseY);
+                    if(tooltipMove!=move){tooltipMove=move;tooltip=menuFont.split(Component.literal(move.before()+"\n→ "+move.replacement().path),Math.max(100,Math.min(400,contentWidth)));}
+                    g.renderTooltip(menuFont,tooltip,mouseX,mouseY);
                 }
             },
             (move,clickX,clickY,button,twice)->{},move->move.before()+" -> "+move.replacement().path));
@@ -37,19 +37,19 @@ final class RepairPreviewScreen extends MusicScreen {
         }
         list.items(plan.moves());
         int half=(contentWidth-6)/2;
-        button("Cancel",left,height-29,half,this::onClose);
-        button("Apply repair",left+half+6,height-29,half,()->{if(runtime.applyRepair(plan))minecraft.setScreen(parent);});
+        button("Cancel",left,bodyBottom()-29,half,this::onClose);
+        button("Apply repair",left+half+6,bodyBottom()-29,half,()->{if(runtime.applyRepair(plan))minecraft.setScreen(parent);});
     }
     @Override public void onClose(){runtime.cancelRepair(plan);super.onClose();}
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
         mouseX=x;mouseY=y;
-        g.drawString(font,fit(plan.found()+" songs located | "+plan.missing()+" still missing | "+plan.merges().size()+" duplicates merged",contentWidth),left,49,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.drawString(font,fit("New location: "+plan.request().replacement(),contentWidth),left,65,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        g.drawString(font,guidance,left,81,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-        g.drawString(font,fit(runtime.repairStatus(),contentWidth),left,height-64,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-        if(x>=left&&x<left+contentWidth&&y>=height-66&&y<height-50){
-            if(!statusText.equals(runtime.repairStatus())){statusText=runtime.repairStatus();statusTooltip=font.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
-            g.renderTooltip(font,statusTooltip,x,y);
+        g.drawString(menuFont,fit(plan.found()+" songs located | "+plan.missing()+" still missing | "+plan.merges().size()+" duplicates merged",contentWidth),left,49,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        g.drawString(menuFont,fit("New location: "+plan.request().replacement(),contentWidth),left,65,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
+        g.drawString(menuFont,guidance,left,81,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+        g.drawString(menuFont,fit(runtime.repairStatus(),contentWidth),left,bodyBottom()-64,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+        if(x>=left&&x<left+contentWidth&&y>=bodyBottom()-66&&y<bodyBottom()-50){
+            if(!statusText.equals(runtime.repairStatus())){statusText=runtime.repairStatus();statusTooltip=menuFont.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
+            g.renderTooltip(menuFont,statusTooltip,x,y);
         }
     }
 }

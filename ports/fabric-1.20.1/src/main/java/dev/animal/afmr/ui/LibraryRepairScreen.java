@@ -32,17 +32,19 @@ final class LibraryRepairScreen extends MusicScreen {
     LibraryRepairScreen(Screen parent,ClientRuntime runtime){super("Library repair / missing sources",parent,runtime);}
     @Override protected void init(){
         super.init();emptyGuidance=Component.translatable("afmr.copy.libraryrepair.run_check_again_or_rescan_all_to_find_missing_folders_and_songs").getString();report=runtime.sourceHealth();int third=(contentWidth-8)/3;
-        check=button("Check again",left,48,third,runtime::checkLibrary);
+        check=button("Check again",left,48,third,()->{
+            if(runtime.repairSearchActive())runtime.cancelRepairSearch();else runtime.checkLibrary();
+        });
         locate=button("Locate selected...",left+third+4,48,third,this::locate);
         review=button("Review repair",left+2*(third+4),48,third,()->{
             var plan=runtime.pendingRepair();if(plan!=null){shownPlan=plan;minecraft.setScreen(new RepairPreviewScreen(this,runtime,plan));}
             else if(report!=null&&!report.scanErrors().isEmpty())minecraft.setScreen(new ScanMessagesScreen(this,runtime,report.scanErrors()));
         });
         search=edit(query,"Filter missing paths / titles",left,74,contentWidth,value->{query=value;filter();});
-        list=addRenderableWidget(new DenseList<>(left,101,contentWidth,Math.max(28,height-171),this::drawIssue,
+        list=addRenderableWidget(new DenseList<>(left,101,contentWidth,Math.max(28,bodyBottom()-171),this::drawIssue,
             (issue,clickX,clickY,button,twice)->{selected=issue;controls();if(twice)locate();},issue->issue.path()+": "+issue.message()));
         cache();filter();controls();
-        button("Back",left,height-29,contentWidth,this::onClose);
+        button("Back",left,bodyBottom()-29,contentWidth,this::onClose);
     }
     private void cache(){
         labels.clear();tooltipIssue=null;
@@ -61,7 +63,9 @@ final class LibraryRepairScreen extends MusicScreen {
     }
     private void controls(){
         boolean free=!runtime.scanning()&&runtime.pendingRepair()==null;
-        check.active=free;locate.active=free&&selected!=null;review.active=runtime.pendingRepair()!=null||report!=null&&!report.scanErrors().isEmpty();
+        boolean searching=runtime.repairSearchActive(),cancelling=runtime.repairSearchCancelling();
+        check.setMessage(Component.literal(cancelling?"Cancelling...":searching?"Cancel search":"Check again"));
+        check.active=searching?!cancelling:free;locate.active=free&&selected!=null;review.active=runtime.pendingRepair()!=null||report!=null&&!report.scanErrors().isEmpty();
         review.setMessage(Component.literal(runtime.pendingRepair()!=null?"Review repair":"Scan messages"));
     }
     private void locate(){
@@ -69,11 +73,11 @@ final class LibraryRepairScreen extends MusicScreen {
         NativePicker.open(runtime,selected.kind()==LibraryHealth.Kind.FOLDER?NativePicker.Kind.REPAIR_FOLDER:NativePicker.Kind.REPAIR_FILE,selected.id());
     }
     private void drawIssue(GuiGraphics g,Issue issue,int x,int y,int w,boolean hover){
-        if(issue.equals(selected))g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
-        g.drawString(font,labels.get(issue),x+4,y+3,0xFFFFB0A7,false);
+        if(issue.equals(selected))g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF304963));
+        g.drawString(menuFont,labels.get(issue),x+4,y+3,0xFFFFB0A7,false);
         if(hover){
-            if(tooltipIssue!=issue){tooltipIssue=issue;tooltip=font.split(Component.literal(issue.title()+"\n"+issue.path()+"\n"+issue.message()),Math.max(100,Math.min(400,contentWidth)));}
-            g.renderTooltip(font,tooltip,mouseX,mouseY);
+            if(tooltipIssue!=issue){tooltipIssue=issue;tooltip=menuFont.split(Component.literal(issue.title()+"\n"+issue.path()+"\n"+issue.message()),Math.max(100,Math.min(400,contentWidth)));}
+            g.renderTooltip(menuFont,tooltip,mouseX,mouseY);
         }
     }
     @Override public void tick(){
@@ -84,14 +88,14 @@ final class LibraryRepairScreen extends MusicScreen {
     }
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
         mouseX=x;mouseY=y;
-        if(runtime.scanning())ScanProgressView.draw(g,font,runtime.scanProgress(),left,height-66,contentWidth);
+        if(runtime.scanning())ScanProgressView.draw(g,menuFont,runtime.scanProgress(),left,bodyBottom()-66,contentWidth);
         else{
             String text=report==null?emptyGuidance:report.issues().size()+" missing/unavailable | "+report.scanErrors().size()+" scan messages";
-            g.drawString(font,fit(text,contentWidth),left,height-65,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-            g.drawString(font,fit(runtime.repairStatus(),contentWidth),left,height-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-            if(x>=left&&x<left+contentWidth&&y>=height-50&&y<height-36){
-                if(!statusText.equals(runtime.repairStatus())){statusText=runtime.repairStatus();statusTooltip=font.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
-                g.renderTooltip(font,statusTooltip,x,y);
+            g.drawString(menuFont,fit(text,contentWidth),left,bodyBottom()-65,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+            g.drawString(menuFont,fit(runtime.repairStatus(),contentWidth),left,bodyBottom()-48,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+            if(x>=left&&x<left+contentWidth&&y>=bodyBottom()-50&&y<bodyBottom()-36){
+                if(!statusText.equals(runtime.repairStatus())){statusText=runtime.repairStatus();statusTooltip=menuFont.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
+                g.renderTooltip(menuFont,statusTooltip,x,y);
             }
         }
     }

@@ -12,7 +12,7 @@ class CombatDeathTest {
     private PlaybackEngineTest.FakeAudio audio;
     private PlaybackEngine engine;
     private Track combat,ambient;
-    private Context context(boolean busy,boolean dead){return new Context("minecraft:overworld","minecraft:plains",busy,false,6000,false,15,"world",0,64,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private Context context(boolean busy,boolean dead){return new Context("minecraft:overworld","minecraft:plains",busy,false,6000,false,15,"world",0,64,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private void tick(double time,boolean busy,boolean dead){engine.tick(time,library,context(busy,dead),Set.of());}
     @BeforeEach void setup(){
         library=Library.defaults();audio=new PlaybackEngineTest.FakeAudio();engine=new PlaybackEngine(audio,new Random(1));

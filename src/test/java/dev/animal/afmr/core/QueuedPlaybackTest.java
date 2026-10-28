@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class QueuedPlaybackTest {
-    private static Context context(boolean dead,boolean record){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private static Context context(boolean dead,boolean record){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,record,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private static final class Scenario {
         final Library lib=new Library();
         final Playlist automatic=lib.createPlaylist("Automatic"),requests=lib.createPlaylist("Requests");
         final Track a=new Track("a","file","A",false),b=new Track("b","file","B",false),c=new Track("c","file","C",false);
         final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
         final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
-        Scenario(){lib.tracks.addAll(List.of(a,b,c));automatic.tracks.put(a.id,true);requests.manualOnly=true;requests.tracks.put(b.id,true);requests.tracks.put(c.id,true);lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.bufferSeconds=2;}
+        Scenario(){lib.tracks.addAll(List.of(a,b,c));automatic.tracks.put(a.id,true);requests.manualOnly=true;requests.tracks.put(b.id,true);requests.tracks.put(c.id,true);lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.bufferSeconds=2;lib.settings.fadeOutSeconds=0;}
         void tick(double now){engine.tick(now,lib,context(false,false),Set.of());}
         void start(){tick(0);tick(10);assertSame(a,engine.current());}
         void enqueue(Track track){assertTrue(engine.enqueue(track.id,requests.id,lib));}

@@ -1,0 +1,7 @@
+modLoader="javafml"
+loaderVersion="[11,)"
+license="MIT"
+[[mods]]
+modId="afmr_server_probe"
+version="1"
+displayName="AFMR disposable server probe"

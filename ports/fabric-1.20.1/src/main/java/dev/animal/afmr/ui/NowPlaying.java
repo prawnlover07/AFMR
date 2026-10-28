@@ -43,7 +43,7 @@ public final class NowPlaying {
             if(settings.widgetArtwork&&!track.vanilla){pendingCover=current;loadCover();}
         }
         if(track!=null&&enabled&&Double.isNaN(shownAt)&&!runtime.engine().paused()
-            &&runtime.engine().trackElapsed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
+            &&runtime.engine().trackPlayed(runtime.now())>=settings.popupDelaySeconds)shownAt=runtime.now();
     }
     static Component title(Track track){
         return Component.literal(track.title);

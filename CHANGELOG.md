@@ -12,7 +12,132 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
-No changes yet.
+No pending changes.
+
+## 1.1 — October 28, 2026
+
+Combined update for NeoForge 26.3 / Java 25 and Fabric 1.20.1 / Java 17.
+Optional server companions are distributed separately from the client packages.
+
+
+- Uses compact Play/Pause/Resume and immediate-next transport icons with tooltips
+  and accessible labels. Keeps the separate Skip & wait action labelled.
+- Adds hover/focus playlist-row actions, with a reserved ellipsis beside the
+  playing marker, existing opaque context actions, and Shift+F10 access.
+
+- Adds a song-position bar to the workspace and AFMR settings pages, with click/
+  drag seeking, elapsed/total time and keyboard seeking. Paused songs stay paused;
+  seeking preserves playlist, queue, history and notification identity.
+- Fixes decoder buffer ownership during resource-song seeking, preventing a
+  native allocator crash when sound buffers are released.
+- Adds click-to-locate for the current song, affected song counts in context
+  actions, and searchable settings with direct destinations and focus feedback.
+  Uses checkboxes for boolean settings and arrows for details/navigation.
+
+- Keeps song metadata clear of the hover actions button in a reserved right-edge
+  space, including Fabric clipping and a small gap on both targets.
+
+- Adds optional lightweight NeoForge 26.3 and Fabric 1.20.1 server companions for
+  multiplayer structure conditions and mob-target combat retention. Clients on servers
+  without a companion retain their existing behavior.
+
+- Adds repeatable packaged import/repair/theme/widget audits, sustained playback
+  and restart probes, live riding checks, and reliable muted-stream measurements
+  for both maintained targets. Fabric smoke clients can select a Java executable.
+
+- Marks the currently playing song/source playlist separately from editing
+  selection, exposes song actions on hover/focus (also Shift+F10), and uses
+  readable rule summaries plus concise waiting reasons/countdowns.
+- Makes theme selection/editing reversible previews with Apply / Cancel. Paging
+  and unrelated saves cannot commit previews; hiding suspends them. Apply commits
+  the appearance and selected custom theme, while Graphite remains built in.
+
+- Adds Display → Menus → Themes with named custom themes, color/opacity editing,
+  rename/delete and .afmrt import/export between maintained builds. Shares menu
+  colors/opacity and widget background color/opacity; saved themes join full
+  backups. Graphite stays available as the built-in default.
+
+- Makes Graphite the default menu palette: charcoal surfaces, blue selections and
+  soft blue highlights. Reset colors and Reset menu appearance both use Graphite.
+
+- Removes the Black / Gray / Blue / White background preset buttons from Widget
+  settings on both targets. The color picker and RGB field remain available.
+
+- Adds playlist-only Undo/Redo and drag-to-reorder priority, with insertion feedback
+  and edge scrolling. Moves song Preview/Queue/Enable/Disable/Remove into an opaque
+  right-click menu; volume balancing remains in playlist actions. Compact rules
+  show enabled filters, with Show rules when none are enabled.
+- Adds independent menu/widget fonts from imported TTF files or active resource
+  packs, including imported fonts in full backups. Aligns shared navigation tabs
+  across pages and restores custom backgrounds in the Fabric playlist workspace.
+- Shows **Music muted in Minecraft** when Minecraft Music or Master is muted.
+  Playback and scheduling continue silently; changing volume does not pause or
+  resume AFMR. Manual pause remains independent.
+  Fabric retains its native channel through zero-volume settings changes.
+
+- Reworks the playlist workspace around inline **Playlist Settings**. Keeps the
+  area setup action visible, separates condition checkboxes from **Edit**, and
+  puts volume, custom gaps and playback toggles in one scrolling column. Adds a
+  discoverable playlist actions menu and right-click/F2 rename; moves duplicate,
+  priority, export and manual playback actions there. Uses clearer action labels,
+  retains all condition/group/playback controls, and silences unused list space.
+
+- Playlist setup imports now default to a new named profile, created only on
+  confirmation without switching or world binding. Existing-profile imports
+  replace names ignoring capitalization/surrounding spaces while preserving
+  identity and priority. Settings-only replacements keep songs; importing songs
+  replaces assignments. Ambiguous duplicates stop the import; unmatched playlists
+  follow the chosen insertion position.
+
+- Groups every AFMR key binding under its own **AFMR** category in Minecraft's
+  Key Binds menu on both targets, including all eight music override slots.
+  Existing key assignments are preserved.
+
+- Shared song lists now include file-content fingerprints. Import offers
+  **Search linked libraries**, **Search a folder…** and individual file selection,
+  with searchable missing/matched rows, verified counts, search details and Cancel.
+  Identical files can use different filenames/folder layouts; filename/title
+  guesses and retagged/converted copies are not treated as identical. Recorded
+  identities survive saves/backups and enable content-based folder/file repair.
+  Verified repairs can merge an already linked destination while preserving its
+  rescan settings.
+
+- Adds **Cancel search** to the repair menu while checking missing sources or
+  preparing a repair preview. Cancellation stops work between files, preserves
+  the previous report and saved paths, and discards cancelled results.
+
+- Changes fresh playback defaults to a 3-second context buffer and 3-second
+  fade-out on both targets and newly created profiles. Fade-in stays at zero.
+  Saved timings are preserved; Minecraft defaults remains the vanilla-style preset.
+
+- Adds **Riding animal** playlist conditions on both targets, with Any, Riding
+  and Not riding choices. Horses and other Animal mounts use the client's live
+  riding state in singleplayer and multiplayer. Supports nested conditions,
+  normal transitions, profiles, playlist sharing and full backups.
+
+- Adds **Nearby player → Proximity volume…** on both targets: independent near/far
+  distances and volume percentages, live smoothing, reversal and retained settings.
+  Scales the song-source playlist's volume while keeping trigger radius, playback
+  fades and normalization independent. Includes owned copies, profiles, portable
+  playlist sharing and full backups.
+
+- Manual playlist normalization now starts and continues during gameplay and
+  multiplayer. Removes the pause/title-screen gate and automatic singleplayer
+  pause from its progress screen; Back keeps scanning, Cancel retains completed
+  work, and original files remain untouched.
+
+- Adds **Display → Widget → Custom background…** for the AFMR card on both
+  targets: PNG/JPEG/static WebP and animated GIF import, on/off, Fill/Fit/Stretch,
+  image opacity, preview and removal. Originals stay untouched; widget images and
+  settings remain independent of menus and are included in full backups.
+
+- Adds **Playlist → Transitions** with directional exceptions for finishing or
+  interrupting the outgoing song, context buffer, fade-out, silence range and
+  fade-in. Unset controls inherit existing settings; explicit rules override
+  ordinary finish/matching protection and timing for that automatic pair.
+  Manual controls, previews/queues and combat death handling retain precedence.
+  Copies, profiles and backups retain rules; playlist exports reconnect rules
+  between playlists included together.
 
 ## 1.0.1 — October 23, 2026
 

@@ -21,23 +21,23 @@ public final class OverridesScreen extends MusicScreen {
     }
     @Override protected void init(){
         super.init();int third=(contentWidth-8)/3;
-        list=addRenderableWidget(new DenseList<>(left,73,contentWidth,Math.max(28,height-153),
-            (g,p,x,y,w,hover)->{if(p.id.equals(selected)||hover)g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
-                g.text(font,fit(p.name+(p.manualOnly?" [manual]":"")+(p.enabled?"":" [auto off]"),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));},
+        list=addRenderableWidget(new DenseList<>(left,73,contentWidth,Math.max(28,bodyBottom()-153),
+            (g,p,x,y,w,hover)->{if(p.id.equals(selected)||hover)g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF304963));
+                g.text(menuFont,fit(p.name+(p.manualOnly?" [manual]":"")+(p.enabled?"":" [auto off]"),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));},
             (p,e,twice)->{selected=p.id;updateButtons();},p->p.name));
         edit(query,"Find a playlist",left,47,contentWidth-124,value->{query=value;filter();});
         button(slot<0?"Keybind slots...":"Back to slots",left+contentWidth-118,47,118,()->{if(slot<0)minecraft.gui.setScreen(new OverrideBindingsScreen(this,runtime));else onClose();});
-        one=button(slot<0?"Play one song":"Bind: one song",left,height-55,third,()->choose(OverrideMode.ONE_SONG));
-        held=button(slot<0?"Until released":"Bind: until released",left+third+4,height-55,third,()->choose(OverrideMode.UNTIL_RELEASED));
+        one=button(slot<0?"Play one song":"Bind: one song",left,bodyBottom()-55,third,()->choose(OverrideMode.ONE_SONG));
+        held=button(slot<0?"Until released":"Bind: until released",left+third+4,bodyBottom()-55,third,()->choose(OverrideMode.UNTIL_RELEASED));
         var playOneSongHelpText=Component.translatable("afmr.copy.overrides.play_one_song");
         if(!playOneSongHelpText.getString().isBlank())one.setTooltip(Tooltip.create(playOneSongHelpText));
         var untilReleasedHelpText=Component.translatable("afmr.copy.overrides.until_released");
         if(!untilReleasedHelpText.getString().isBlank())held.setTooltip(Tooltip.create(untilReleasedHelpText));
-        button(slot<0?"Automatic":"Clear binding",left+2*(third+4),height-55,third,()->{
+        button(slot<0?"Automatic":"Clear binding",left+2*(third+4),bodyBottom()-55,third,()->{
             if(slot<0){runtime.returnAutomatic();feedback="Automatic selection restored.";}
             else{runtime.library().settings.overrideSlots[slot].playlistId="";runtime.save();onClose();}
         });
-        button("Back",left+contentWidth-104,height-29,104,this::onClose);filter();updateButtons();list.reveal(runtime.library().playlist(selected));
+        button("Back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);filter();updateButtons();list.reveal(runtime.library().playlist(selected));
     }
     private void filter(){String q=query.strip().toLowerCase(Locale.ROOT);list.items(runtime.library().playlists.stream().filter(p->p.name.toLowerCase(Locale.ROOT).contains(q)).toList());list.top();}
     private void updateButtons(){var p=runtime.library().playlist(selected);one.active=p!=null&&(slot>=0||runtime.inWorld());held.active=one.active;}
@@ -46,7 +46,7 @@ public final class OverridesScreen extends MusicScreen {
         else if(runtime.overridePlaylist(selected,mode))onClose();else feedback=runtime.status();
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        if(!feedback.isBlank())g.text(font,fit(feedback,contentWidth),left,height-74,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0));
-        if(slot<0){var p=runtime.library().playlist(runtime.engine().overrideId());g.text(font,fit(p==null?"Mode: automatic":"Override: "+p.name+" / "+runtime.engine().overrideMode(),contentWidth-112),left,height-23,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));}
+        if(!feedback.isBlank())g.text(menuFont,fit(feedback,contentWidth),left,bodyBottom()-74,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF));
+        if(slot<0){var p=runtime.library().playlist(runtime.engine().overrideId());g.text(menuFont,fit(p==null?"Mode: automatic":"Override: "+p.name+" / "+runtime.engine().overrideMode(),contentWidth-112),left,bodyBottom()-23,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));}
     }
 }

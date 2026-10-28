@@ -16,8 +16,9 @@ public final class ConfigBackup {
     private static final Gson GSON=new GsonBuilder().setPrettyPrinting().create();
     private static final int MIB=1024*1024;
     private static final Map<String,Integer> LIMITS=Map.of("library.json",96*MIB,"history.json",2*MIB,
-        "keys.json",64*1024,"menu-background.png",MenuBackgroundImage.MAX_BYTES,"menu-background.gif",MenuBackgroundImage.MAX_BYTES);
-    private static final List<String> INSTALLED=List.of("library.json","history.json","restored-keys.json","menu-background.png","menu-background.gif");
+        "keys.json",64*1024,"menu-background.png",MenuBackgroundImage.MAX_BYTES,"menu-background.gif",MenuBackgroundImage.MAX_BYTES,
+        "widget-background.png",MenuBackgroundImage.MAX_BYTES,"widget-background.gif",MenuBackgroundImage.MAX_BYTES,"menu-font.ttf",FontFiles.MAX_BYTES,"widget-font.ttf",FontFiles.MAX_BYTES);
+    private static final List<String> INSTALLED=List.of("library.json","history.json","restored-keys.json","menu-background.png","menu-background.gif","widget-background.png","widget-background.gif","menu-font.ttf","widget-font.ttf");
     public static final String PENDING="pending-restore.afmrb";
     public record Key(String code,String modifier){}
     public record Data(Map<String,byte[]> files,Library library,Map<String,Key> keys,int historyCount){}
@@ -25,13 +26,18 @@ public final class ConfigBackup {
     public static boolean supported(Path path){return path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".afmrb");}
 
     /** The caller transfers ownership of its library/history/key snapshots to this operation. */
-    public static Data capture(Library library,List<ListeningHistory.Entry> history,Map<String,Key> keys,Path background)throws IOException{
+    public static Data capture(Library library,List<ListeningHistory.Entry> history,Map<String,Key> keys,Path directory)throws IOException{
         var files=new LinkedHashMap<String,byte[]>();
         files.put("library.json",bytes(library));files.put("history.json",bytes(history));files.put("keys.json",bytes(keys));
-        Path installed=MenuBackgroundImage.installed(background);
-        if(Files.exists(installed)){
-            var image=MenuBackgroundImage.read(installed);
-            files.put(image.animated()?"menu-background.gif":"menu-background.png",image.stored());
+        for(String stem:List.of("menu-background","widget-background")){
+            Path installed=MenuBackgroundImage.installed(directory.resolve(stem+".png"));
+            if(Files.exists(installed)){
+                var image=MenuBackgroundImage.read(installed);
+                files.put(stem+(image.animated()?".gif":".png"),image.stored());
+            }
+        }
+        for(String name:List.of("menu-font.ttf","widget-font.ttf"))if(Files.isRegularFile(directory.resolve(name))){
+            files.put(name,FontFiles.read(directory.resolve(name)).bytes());
         }
         return validate(files);
     }
@@ -110,15 +116,23 @@ public final class ConfigBackup {
                 keys.put(e.getKey(),key);
             }
             if(keys.size()!=15)throw new IOException("Incomplete AFMR keybindings in backup.");
-            boolean still=files.containsKey("menu-background.png"),animation=files.containsKey("menu-background.gif");
-            if(library.settings.menuImageEnabled&&!still&&!animation)throw new IOException("Backup is missing its enabled background image.");
-            if(still&&animation)throw new IOException("Backup contains conflicting background images.");
-            if(still||animation){
-                byte[] bytes=files.get(animation?"menu-background.gif":"menu-background.png");
-                var image=MenuBackgroundImage.decode(bytes);
-                if(animation!=image.animated()||(!animation&&(bytes[0]!=(byte)0x89
-                    ||java.nio.ByteBuffer.wrap(bytes).getInt(16)>MenuBackgroundImage.MAX_EDGE||java.nio.ByteBuffer.wrap(bytes).getInt(20)>MenuBackgroundImage.MAX_EDGE)))
-                    throw new IOException("Invalid background image in backup.");
+            for(String stem:List.of("menu-background","widget-background")){
+                boolean still=files.containsKey(stem+".png"),animation=files.containsKey(stem+".gif");
+                boolean enabled=stem.equals("menu-background")?library.settings.menuImageEnabled:library.settings.widgetImageEnabled;
+                if(enabled&&!still&&!animation)throw new IOException("Backup is missing its enabled "+stem+" image.");
+                if(still&&animation)throw new IOException("Backup contains conflicting "+stem+" images.");
+                if(still||animation){
+                    byte[] bytes=files.get(stem+(animation?".gif":".png"));
+                    var image=MenuBackgroundImage.decode(bytes);
+                    if(animation!=image.animated()||(!animation&&(bytes[0]!=(byte)0x89
+                        ||java.nio.ByteBuffer.wrap(bytes).getInt(16)>MenuBackgroundImage.MAX_EDGE||java.nio.ByteBuffer.wrap(bytes).getInt(20)>MenuBackgroundImage.MAX_EDGE)))
+                        throw new IOException("Invalid "+stem+" image in backup.");
+                }
+            }
+            for(String target:List.of("menu","widget")){
+                byte[] font=files.get(target+"-font.ttf");String selected=target.equals("menu")?library.settings.menuFontId:library.settings.widgetFontId;
+                if(font==null&&selected.equals("afmr:custom_"+target))throw new IOException("Backup is missing its selected "+target+" font.");
+                if(font!=null)FontFiles.validate(font);
             }
             return new Data(Collections.unmodifiableMap(new LinkedHashMap<>(files)),library,Map.copyOf(keys),history.length);
         }catch(RuntimeException e){throw new IOException("Invalid AFMR backup: "+e.getMessage(),e);}

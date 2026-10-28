@@ -10,10 +10,18 @@ neoForge {
     runs {
         client {
             client()
+            if (project.hasProperty('ridingAudit')) jvmArguments.add('-Dafmr.probe.ridingAudit=true')
+            if (project.hasProperty('gameplayNormalization')) jvmArguments.add('-Dafmr.probe.normalization=true')
+            if (project.hasProperty('stopServer')) jvmArguments.add('-Dafmr.probe.stopServer=true')
             if (project.hasProperty('keysOnly')) jvmArguments.add('-Dafmr.probe.keysOnly=true')
             if (project.hasProperty('autoExit')) jvmArguments.add('-Dafmr.probe.autoExit=true')
             if (project.hasProperty('skipScan')) jvmArguments.add('-Dafmr.probe.skipScan=true')
-            if (project.hasProperty('fresh')) {
+            if (project.hasProperty('serverCompanion')) {
+                jvmArguments.add('-Dafmr.probe.serverCompanion=true')
+                if (project.hasProperty('noCompanion')) jvmArguments.add('-Dafmr.probe.noCompanion=true')
+                gameDirectory = project.file('run/server-companion')
+                programArguments.addAll '--username', 'AFMRCompanion', '--quickPlayMultiplayer', '127.0.0.1:25585'
+            } else if (project.hasProperty('fresh')) {
                 jvmArguments.addAll '-Dafmr.probe.integration=true', '-Dafmr.probe.fresh=true'
                 gameDirectory = project.file('run/fresh')
                 programArguments.addAll '--username', 'AFMRFresh', '--quickPlaySingleplayer', 'New World'
@@ -28,7 +36,18 @@ neoForge {
                 gameDirectory = project.file('run/integration')
                 programArguments.addAll '--username', 'AFMRIntegration', '--quickPlaySingleplayer', 'New World'
             } else if (project.hasProperty('workspace')) {
+                if (project.hasProperty('soakRestart')) jvmArguments.add('-Dafmr.probe.soakRestart=true')
+                if (project.hasProperty('playbackSoak')) jvmArguments.add('-Dafmr.probe.playbackSoak=true')
+                if (project.hasProperty('pickerAudit')) jvmArguments.add('-Dafmr.probe.pickerAudit=true')
+                if (project.hasProperty('overnightAudit')) jvmArguments.add('-Dafmr.probe.overnightAudit=true')
+                if (project.hasProperty('navigation')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.navigation=true'
+                if (project.hasProperty('clarity')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.clarity=true'
+                if (project.hasProperty('uiFollowup')) jvmArguments.add('-Dafmr.probe.uiFollowup=true')
+                if (project.hasProperty('muteWarning')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.muteWarning=true'
+                if (project.hasProperty('inlineSettings')) jvmArguments.add('-Dafmr.probe.inlineSettings=true')
+                if (project.hasProperty('proximityVolume')) jvmArguments.addAll '-Dafmr.probe.features101=true', '-Dafmr.probe.proximityVolume=true'
                 if (project.hasProperty('features101')) jvmArguments.add('-Dafmr.probe.features101=true')
+                if (project.hasProperty('transitions')) jvmArguments.add('-Dafmr.probe.transitions=true')
                 if (project.hasProperty('finalReview')) jvmArguments.add('-Dafmr.probe.finalReview=true')
                 if (project.hasProperty('reviewRestart')) jvmArguments.add('-Dafmr.probe.reviewRestart=true')
                 if (project.hasProperty('menuColors')) jvmArguments.add('-Dafmr.probe.menuColors=true')
@@ -58,6 +77,26 @@ neoForge {
 }
 dependencies { compileOnly files("../../build/libs/animals-final-music-replacer-${afmrVersion}.jar") }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+// Apply before Minecraft reads options, including first launches and title screens.
+tasks.register('capProbeFps') {
+    doLast {
+        def profile = neoForge.runs.client.gameDirectory.get().asFile.toPath().toAbsolutePath().normalize()
+        def allowed = file('run').toPath().toAbsolutePath().normalize()
+        if (!profile.startsWith(allowed)) throw new GradleException('Probe options must stay under testing/native/run')
+        def options = profile.resolve('options.txt').toFile()
+        def lines = options.isFile() ? options.readLines('UTF-8') : []
+        lines = lines.findAll { !it.startsWith('maxFps:') && !it.startsWith('enableVsync:') }
+        lines.addAll(['maxFps:60', 'enableVsync:false'])
+        def content = lines.join('\n') + '\n'
+        if (!options.isFile() || options.getText('UTF-8') != content) {
+            options.parentFile.mkdirs()
+            options.setText(content, 'UTF-8')
+        }
+        logger.lifecycle("AFMR probe capped at 60 FPS: ${profile}")
+    }
+}
+tasks.named('runClient') { dependsOn tasks.named('capProbeFps') }
 tasks.register('unpackBackgroundProbeLibraries', Sync) {
     from(zipTree(file("../../build/libs/animals-final-music-replacer-${afmrVersion}.jar"))) { include 'META-INF/jarjar/*.jar' }
     into layout.buildDirectory.dir('background-probe-libraries')
@@ -67,4 +106,12 @@ tasks.register('menuBackgroundProbe', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath + files("../../build/libs/animals-final-music-replacer-${afmrVersion}.jar") + fileTree(layout.buildDirectory.dir('background-probe-libraries')) { include '**/*.jar' }
     mainClass = 'dev.animal.afmr.probe.MenuBackgroundProbe'
     jvmArgs '-Djava.awt.headless=true'
+}
+
+if (project.hasProperty('serverCompanion')) {
+    tasks.register('stageCompanionClient', Copy) {
+        from "../../build/libs/animals-final-music-replacer-${afmrVersion}.jar"
+        into 'run/server-companion/mods'
+    }
+    tasks.named('runClient') { dependsOn tasks.named('stageCompanionClient') }
 }

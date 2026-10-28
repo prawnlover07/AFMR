@@ -47,6 +47,12 @@ public final class PlaylistProfiles {
         }
         inactive.add(p);return p.id;
     }
+    /** Takes ownership of playlists prepared by a confirmed import; no templates or active switch. */
+    public String createImported(String name,List<Playlist> playlists){
+        if(inactive.size()+1>=LIMIT)throw new IllegalArgumentException("Maximum "+LIMIT+" profiles.");
+        var profile=new Saved();profile.name=cleanName(name);profile.id="profile:"+UUID.randomUUID();profile.playlists=playlists;
+        inactive.add(profile);return profile.id;
+    }
     public boolean activate(Library lib,String id){
         if(activeId.equals(id))return false;
         Saved next=null;for(var p:inactive)if(p.id.equals(id)){next=p;break;}
@@ -76,7 +82,7 @@ public final class PlaylistProfiles {
         bindings.put(world,id);
     }
     public String forWorld(String world){return bindings.getOrDefault(world,DEFAULT);}
-    private static String cleanName(String name){
+    public static String cleanName(String name){
         String clean=name==null?"":name.replaceAll("\\p{Cc}","").strip();
         if(clean.isBlank()||clean.length()>80)throw new IllegalArgumentException("Use a profile name of 1-80 characters.");return clean;
     }

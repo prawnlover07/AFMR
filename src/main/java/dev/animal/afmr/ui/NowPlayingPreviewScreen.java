@@ -30,13 +30,13 @@ final class NowPlayingPreviewScreen extends MusicScreen {
     }
 
     @Override protected void init(){
-        super.init();guidance=fit(Component.translatable("afmr.copy.nowplayingpreview.guidance").getString(),contentWidth);button("Back",left+contentWidth-100,height-29,100,this::onClose);
+        super.init();guidance=fit(Component.translatable("afmr.copy.nowplayingpreview.guidance").getString(),contentWidth);button("Back",left+contentWidth-100,bodyBottom()-29,100,this::onClose);
     }
 
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         var s=runtime.library().settings;
-        var layout=widget.layout(s,width-16,height-110);
+        var layout=widget.layout(s,width-16,bodyBottom()-110);
         widget.draw(g,s,layout,8,62,1,runtime.engine().current()==track&&runtime.overlay().hasCover(),(System.nanoTime()-started)/1e9);
-        g.text(font,guidance,left,height-46,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0));
+        g.text(menuFont,guidance,left,bodyBottom()-46,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF));
     }
 }

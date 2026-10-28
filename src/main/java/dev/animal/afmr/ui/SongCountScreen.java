@@ -18,14 +18,14 @@ final class SongCountScreen extends MusicScreen {
     }
     @Override protected void init(){
         super.init();
-        if(playlist!=null)button("Override global count: "+(playlist.customSongCount?"on":"off"),left,54,contentWidth,()->{
+        if(playlist!=null)toggle("Override global count",left,54,contentWidth,()->playlist.customSongCount,()->{
             if(apply()){playlist.customSongCount=!playlist.customSongCount;runtime.save();rebuildWidgets();}
         });
         count=edit(Integer.toString(playlist==null?runtime.library().settings.songsBeforeSilence:playlist.songsBeforeSilence),
             "Songs before silence (1-1000)",left,88,contentWidth,null);
         var help=Component.translatable("afmr.copy.songcount.count");
         if(!help.getString().isBlank())count.setTooltip(Tooltip.create(help));
-        button("Save & back",left,height-29,contentWidth,this::onClose);
+        button("Save & back",left,bodyBottom()-29,contentWidth,this::onClose);
     }
     private boolean apply(){
         try{
@@ -38,7 +38,7 @@ final class SongCountScreen extends MusicScreen {
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float dt){
         String state=playlist==null?"Global default":playlist.customSongCount?playlist.name:"Using global count: "+runtime.library().settings.songsBeforeSilence;
-        g.text(font,fit(state,contentWidth),left,119,MenuAppearance.color(MenuColor.ACCENT,0xFFB9D7B7));
-        if(!error.isEmpty())g.text(font,fit(error,contentWidth),left,height-44,0xFFFFA0A0);
+        g.text(menuFont,fit(state,contentWidth),left,119,MenuAppearance.color(MenuColor.ACCENT,0xFFBCBDF8));
+        if(!error.isEmpty())g.text(menuFont,fit(error,contentWidth),left,bodyBottom()-44,0xFFFFA0A0);
     }
 }

@@ -23,18 +23,18 @@ final class ColorPickerScreen extends MusicScreen {
         super(name,parent,runtime);original=rgb&0xFFFFFF;color=new ColorPickerState(original);this.preview=preview;
     }
     @Override protected void init(){
-        super.init();int size=Math.max(40,Math.min(180,Math.min(height-99,contentWidth-164)));
+        super.init();int size=Math.max(40,Math.min(180,Math.min(bodyBottom()-99,contentWidth-164)));
         detailX=left+size+36;detailWidth=Math.max(70,contentWidth-size-36);
         addRenderableWidget(new ColorPickerArea(left,50,size,size,false,color,this::changed));
         addRenderableWidget(new ColorPickerArea(left+size+10,50,14,size,true,color,this::changed));
         hex=edit(String.format(Locale.ROOT,"#%06X",color.rgb()),"#RRGGBB",detailX,63,Math.min(120,detailWidth),null);hex.setMaxLength(7);
         hex.setResponder(value->{if(!updating)try{color.rgb(MenuColor.parse(value));error="";preview.accept(color.rgb());}catch(IllegalArgumentException e){error="Use six hex digits";}});
         for(int i=0;i<PRESETS.length;i++){
-            int rgb=PRESETS[i],y=140+i/4*24;if(y+18>height-47)continue;
+            int rgb=PRESETS[i],y=140+i/4*24;if(y+18>bodyBottom()-47)continue;
             addRenderableWidget(new ColorSwatchButton(String.format(Locale.ROOT,"#%06X",rgb),detailX+i%4*24,y,20,18,()->rgb,()->{color.rgb(rgb);changed();}));
         }
-        button("Cancel",left,height-29,110,this::onClose);
-        button("Apply",left+contentWidth-110,height-29,110,()->{if(saveChanges())minecraft.setScreen(parent);});
+        button("Cancel",left,bodyBottom()-29,110,this::onClose);
+        button("Apply",left+contentWidth-110,bodyBottom()-29,110,()->{if(saveChanges())minecraft.setScreen(parent);});
     }
     private void changed(){
         updating=true;hex.setValue(String.format(Locale.ROOT,"#%06X",color.rgb()));updating=false;error="";preview.accept(color.rgb());
@@ -45,10 +45,10 @@ final class ColorPickerScreen extends MusicScreen {
     }
     @Override public void onClose(){preview.accept(original);runtime.save();super.onClose();}
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
-        g.drawString(font,"Hex",detailX,50,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.drawString(menuFont,"Hex",detailX,50,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
         int half=Math.min(120,detailWidth)/2;
         g.fill(detailX,94,detailX+half,114,0xFF000000|original);g.fill(detailX+half+4,94,detailX+half*2+4,114,0xFF000000|color.rgb());
-        g.drawString(font,"Original",detailX,119,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));g.drawString(font,"New",detailX+half+4,119,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-        if(!error.isBlank())g.drawString(font,fit(error,contentWidth),left,height-44,0xFFFFA0A0);
+        g.drawString(menuFont,"Original",detailX,119,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));g.drawString(menuFont,"New",detailX+half+4,119,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+        if(!error.isBlank())g.drawString(menuFont,fit(error,contentWidth),left,bodyBottom()-44,0xFFFFA0A0);
     }
 }

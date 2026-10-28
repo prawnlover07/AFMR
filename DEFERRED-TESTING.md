@@ -1,5 +1,338 @@
 # AFMR: remaining deeper testing
 
+## 1.1 numbered release — October 28
+
+The combined update is now numbered 1.1. Fresh builds pass 1,009 NeoForge / 1,019
+Fabric pure regressions, ten packet/audio component checks and 20 copy checks each.
+Numbered packaged clients pass 49 navigation/transport checks each; Fabric ran on
+Java 17. Numbered companion headless fixtures pass 13 checks each, actual companion
+connections pass 12 each and vanilla fallback connections pass eight each. Final
+packaging/hashes and the recovered SDL startup incident are recorded in the
+[release report](docs/testing/2026-10-28-release-1.1.md).
+Historical version freezes and measurements below describe their own snapshots.
+
+## Transport icons and playlist actions — October 25
+
+Both builds pass 1,009 / 1,019 regressions plus their component/copy checks.
+Packaged native clients pass **49 checks each**, including hover/keyboard row
+menus, rename/Undo, priority dragging, scroll hit-testing, draft guards and
+Play/Pause/Next/Skip & wait. Screenshots were inspected and source packages
+checked. See [the report](docs/testing/2026-10-25-transport-icons.md). This is a
+focused UI pass, not additional long-duration/modpack certification.
+
+## Playback navigation pass — October 25
+
+Both full builds pass 1,009 / 1,019 pure regression tests and their component
+checks (including three new buffer/frame/cancellation tests per target). Final
+packaged native runs pass **51 checks per target**, with zero failures. See
+[the report](docs/testing/2026-10-25-playback-navigation.md) for measured scope,
+source packaging and exact tested JAR hashes. Version remains 1.0.1.
+
+Native checks use generated WAV data and Minecraft resource music. Seeking in
+every codec/resource pack, multi-hour files, removable/network drives, third-party
+sound mods, unusual fonts and device changes mid-seek remain additional field
+cases, rather than claims from the controlled pass. The allocator crash found
+in an earlier run was fixed; final resource seeks and forced buffer collection
+pass, alongside the decoder-owned storage and cancellation regression cases.
+
+## Optional server companions (Unreleased)
+
+See [the current companion verification report](docs/testing/2026-10-25-server-companions.md)
+and [repeatable isolated commands](testing/SERVER-COMPANIONS.md). New server/client
+observations keep music and playlist configuration local. Natural generated
+structures across modpacks, large mob populations/many clients, and broad
+reconnect/dimension/death/native-audio combinations remain additional field cases.
+Controlled fixture results must not be presented as general modpack or audio QA.
+
+## Overnight combined-tree verification — October 25
+
+**Snapshot boundary:** native results below apply to the recorded pre-companion
+JARs in the overnight report. The separate, active server-companion chat changed
+client networking/observation while final builds were running. Fresh unit builds
+pass on those later sources; they have not inherited this native certification.
+Keep the version unchanged until that work and its validation are complete.
+
+- [x] Later packaged companion tests cover optional-channel negotiation, remote
+  bounds/catalogs and target retention, vanilla fallback, per-player scope and
+  bounded server work. See the companion and 1.1 reports; these do not rewrite
+  the earlier pre-companion evidence.
+- [ ] Extend companion validation to broader stale/disconnected/dimension-switched
+  reply and reconnect/death/native-audio combinations, natural structures and
+  many-client scale. Controlled fixtures do not replace those field cases.
+
+The completed pass has **989 / 999 regression tests**, 20 copy checks per
+target, and **70 native audit checks per target**, including six actual Windows
+file-dialog callbacks each. NeoForge's ten-minute generated-audio/resource soak
+and actual restart pass **12 checks each**. Fabric's Java 17 soak and actual
+restart also pass **12 checks each**, with 242 song starts during its ten-minute run.
+See [the measured scope and results](docs/testing/2026-10-25-overnight.md).
+Both focused batches pass, including **22 / 24 mute**, **27 / 27 live riding**,
+**25 / 22 song-group/player-theme**, **17 / 17 directional-transition** and
+**18 / 18 normalization** checks. NeoForge's broader integration/restart pass
+**83 / 17 checks**, and its separate vanilla-server runs pass **39 general / 28
+riding checks**. The staged 67,812-track catalog benchmark had 60 median FPS;
+opening the large workspace took 405.8 ms on this machine.
+
+This closes the specific import/repair/theme/widget/Controls cases listed in that
+report, not every combination in the historical lists below. Remaining cases
+include actual two-player tracking and camel seating, blocked/removable/network
+storage, controller/Stream Deck/narration, extreme GUI/font combinations and
+extended third-party modpack/device tests. A ten-minute generated-fixture soak
+does not replace a multi-hour Homestead session.
+
+## Player clarity pass — October 25
+
+Both full builds pass **989 NeoForge / 999 Fabric tests**, with 17 new tests per
+target. The final packaged native runs pass **23 checks each**, covering focused
+song actions/Shift+F10, multi-selection, actual source vs editing selection,
+clock/radius summaries, gap/empty-playlist status, named theme creation and
+Apply/Cancel, invalid draft cancellation, paging and hide/reopen. Marker and
+popup screenshots were inspected. See [the report](docs/testing/2026-10-25-player-clarity.md).
+
+- [ ] Wider GUI scales, third-party fonts/resource reload, controller/narration
+  and extended interaction combinations remain separate review.
+- [x] Actual Explorer theme sharing and rename/delete/context-menu keyboard
+  navigation pass in the overnight audit.
+- [ ] Theme imports during music scans and the other Themes combinations below.
+- [ ] Older Workspace/FabricSmoke theme traversals still assume the former
+  commit-on-page-change flow; update those expectations before rerunning the
+  complete deep modes. The dedicated clarity mode tests the current controls.
+
+## Themes menu — October 25
+
+Build-only checks pass **972 NeoForge / 982 Fabric tests**, including 14 new
+appearance snapshot/theme-file cases per target. Both native helper projects
+compile; no Minecraft client or OS picker was opened in that initial pass. The later
+clarity pass above covers the main theme preview/editor flow. See
+[the report](docs/testing/2026-10-25-themes.md).
+
+- [x] Themes rename/delete and theme-menu keyboard/right-click checks pass on
+  both targets in the overnight audit. List selection, Save as, custom editing
+  and Apply/Cancel also passed in the earlier clarity mode.
+- [x] Actual Explorer `.afmrt` import/export/cancellation and repeated/colliding
+  imports pass on both targets in the overnight audit.
+- [ ] Busy/close completion races and a theme import during a separate music scan.
+- [ ] Menu/widget opacity previews, invalid fields across pages/hide/resize and
+  font/resource-reload interactions at narrow GUI sizes.
+
+## Mute warning without automatic pause — October 25
+
+The initial change had build-only verification. The later authorized overnight
+pass runs `-PmuteWarning` (workspace on NeoForge, smoke on Fabric); the initial
+continuation runs pass **15 / 17 native checks**. The extended runs pass
+**22 / 24**, including natural completion/gaps/new native streams at zero effective
+gain under Music and Master mute. See the overnight report above.
+
+Both full builds/source archives pass **958 NeoForge / 968 Fabric tests**, with
+20 copy checks each. The updated native/smoke helpers compile. Six obsolete
+mute-pause tests per target were removed with the controller. See
+[the build-only report](docs/testing/2026-10-25-mute-warning.md).
+
+- [x] Music and Master mute for longer than the former one-second delay: warning
+  remains visible, native audio position advances, source/listener gain is zero,
+  and AFMR stays unpaused. Unmute retains the song and clears the warning.
+- [x] Manual pause stays paused through mute/unmute; explicit resume still works.
+  On Fabric, Master mute still stops ordinary sounds without stopping AFMR's
+  stream, and those ordinary sounds stay stopped after unmute.
+- [x] Song completion, ordinary silent gaps and subsequent new native streams
+  while Music/Master are muted; unmute restores gain. Both ten-minute soaks also
+  completed two resource reloads with mixed muted playback.
+- [ ] Device changes and longer mixed multiplayer/modpack/mute/reload/queue
+  combinations. Earlier pause/resume measurements below concern the superseded
+  mute-pause policy.
+
+## Playlist follow-up, fonts and mute — October 24
+
+Final packaged native checks pass **38 NeoForge / 40 Fabric**, zero failures.
+Both targets pass their full regression builds (964 NeoForge / 974 Fabric).
+Focused packaged checks cover undo/redo, drag priority, active rules, opaque
+song popups, consistent navigation, playlist background rendering, independent
+resource-pack/TTF font metrics and actual OpenAL mute pause/resume. See
+[the report](docs/testing/2026-10-24-ui-followup.md) for final native counts and hashes.
+
+- [ ] Broader friend usability, physical keyboard/narration and extreme GUI scales.
+- [ ] Fonts from varied third-party packs, large Unicode glyph sets and native
+  Explorer font picking. The new native checks exercise ingestion/resource reload
+  directly with an original generated TTF, not the OS picker dialog.
+- [ ] Long device-loss/multiplayer/modpack audio scenarios remain separate coverage.
+- [ ] Older broad Workspace/FabricSmoke palette traversals still need current
+  preview expectations before those complete deep modes are rerun. Integration,
+  transition, normalization and inline helper call sites were refreshed in the
+  overnight pass and their measured modes now pass.
+
+## Inline workspace pass — October 24
+
+Completed 59 focused packaged UI checks across both targets, with 930/940 automated
+tests passing. Area/time/volume/gap controls, right-click rename/duplicate, invalid
+drafts through hide/resize and the held replacement action passed. See
+[the report](docs/testing/2026-10-24-inline-settings.md). This does not close the
+existing longer audio/hardware, multiplayer/modpack and friend usability scenarios.
+
+## Profile-first playlist imports (Unreleased, both targets)
+
+Both builds pass **928 NeoForge / 938 Fabric tests**, including 13 new import-profile
+cases each, plus 20 copy checks per target. See
+[the report](docs/testing/2026-10-24-import-profiles.md).
+
+- [x] Representative disposable native review of the New profile default, filename suggestion,
+  name drafts across resize/hide/song-search screens, destination cycling, profile
+  limit feedback and replacement/addition count. Cancel, settings-only replacement,
+  song-list replacement and ambiguous-name errors through actual UI input; import
+  while a matching playlist is playing. Both native audits pass; the broader
+  NeoForge integration restart also preserves the imported-only profile/location.
+- [ ] Wider actual window/GUI-scale changes, physical keyboard/narration, and
+  deleting/changing destination profiles while a picker/editor is open.
+
+## Dedicated Controls category (Unreleased, both targets)
+
+All 15 AFMR bindings now use a dedicated **AFMR** category. Both targets compile
+and produce updated 1.0.1 JARs; packaged language resources contain the category
+labels and all 15 shortcut labels. No native Controls-menu run was performed.
+
+The October 24 full-build attempt passes 911/915 NeoForge tests. Failures are
+`ContentMatchingTest.linkedLibrarySearchWorksWithoutMatchingFolderNamesOrRelativePaths`,
+`PlaylistPresetsTest.exportAndImportDoNotTraverseTheTrackCatalog`, and
+`PresetSongsTest.rechecksAndRepeatedImportsReuseTracksInsteadOfDuplicatingThem` /
+`existingTracksAreReusedByPathEvenWhenIdsDifferAndOtherPlaylistsAreUntouched`.
+Fabric produces its remapped JAR but test compilation reports missing classes
+including `DiagnosticSummary`, `PlaybackInspector` and `ContentFiles`. These
+failures are outside the changed key-registration/translation files.
+
+- [x] In isolated profiles, Key Binds contains one AFMR category and all 15 actions,
+  including override slots 1–8. Both native lists and heading screenshots were
+  checked in the overnight audit.
+- [ ] Physical rebinding and existing user assignment variations across launches.
+
+## Content-based sharing and repair (Unreleased, both targets)
+
+Both full builds pass **915 NeoForge / 925 Fabric tests**, including 27 new
+content-matching cases each, plus 20 UI-copy compiler checks per build.
+Source packaging passes. See [the report](docs/testing/2026-10-24-content-matching.md).
+
+- [x] In disposable profiles on both targets, export with songs, import into
+  another setup and use Search linked libraries, Find song files, individual
+  Explorer choices and additional folder searches. Verify mismatched-file rejection,
+  all three list views and filtering. The native audits cover mismatched and
+  correct individual choices, retry, import cancellation and draft hide/reopen;
+  actual Explorer song/folder choices pass on both targets.
+- [ ] Cancellation during slow content searches, varied narrow screens/GUI scales,
+  physical keyboard navigation and completion/close races beyond the measured cases.
+- [ ] Real cross-computer transfer with large/compressed music, removable/network
+  drives, permissions, symlinks/junctions, concurrent file edits and native
+  playback after repair. Verify partial/nested repairs, existing linked roots,
+  duplicate entries across profiles/queue/history, older unsigned shares,
+  cancellation during slow reads and export time for very large song lists.
+  File identity reflects bytes checked during the search; external changes after
+  review need another check. Full backups preserve recorded identities; this does
+  not add automatic hashing of every song during ordinary imports or backups.
+
+## Repair-search cancellation (Unreleased, both targets)
+
+Both builds pass **888 NeoForge / 898 Fabric tests**, including ten new
+cancellation cases each, plus 20 UI-copy checks per build. The worker tests cover
+folders, 5,000-song input, final-file cancellation, real cross-thread signalling
+and reuse, shutdown interruption, and discarded repair planning without mutation.
+
+- [x] During a 5,000-entry native Check again, Cancel search preserves the completed
+  report and prevents a late preview/report. Ordinary repair review Cancel/Apply
+  and a successful follow-up check pass on both targets.
+- [ ] Cancel during replacement planning after
+  selecting a replacement folder/file. Verify Cancelling/Check again states,
+  preserved report and paths, no late preview/report on cancellation, Back/hide/
+  reopen, repeated cancellation, retry and ordinary repair Apply. Repeat with slow
+  or unavailable storage, empty input and a completion already queued on the
+  client. Native UI/event-queue timing and blocked operating-system reads have
+  not all been validated. See [the report](docs/testing/2026-10-24-repair-cancellation.md)
+  and the overnight report for the measured subset.
+
+## Riding animal (Unreleased, both targets)
+
+Both builds pass **878 NeoForge / 888 Fabric tests**, plus 20 UI-copy checks each.
+Seventeen new component regressions per target cover state matching, grouped
+conditions, saved/copied settings, profiles, sharing/backups, priority, transitions
+and Inspector. No game window was opened for this addition.
+
+- [x] Paged Riding animal controls, actual mount/dismount of horses/donkeys/mules/
+  camels/pigs/striders, and exclusion of nearby animals/boats/minecarts pass on
+  both targets. Native dimension transfer and death/respawn clear riding state.
+- [ ] Both camel seats with two players, modded mountable Animal subclasses,
+  longer idle riding, nested-group UI/copy combinations and physical controls.
+- [ ] Repeat on a vanilla multiplayer server, including mount loading/tracking,
+  death/respawn, teleport/dimension change and logout/reconnect. Check priority,
+  Play on trigger, entry/exit finish settings, playback pause, native audio fades,
+  saved settings after restart and portable/full-backup transfer.
+  The overnight pass also covers the representative mounts/dismounts, dimension
+  transfer and death/respawn on a separate NeoForge vanilla server. Logout/reconnect
+  passes in the general server suite, but not the entire mixed riding chain above.
+  Physical UI/audio behavior and every combination remain separate. See
+  [the report](docs/testing/2026-10-24-riding-animal.md).
+
+## Player proximity volume (Unreleased, both targets)
+
+Both builds pass **861 NeoForge / 871 Fabric tests**, including 25 focused cases
+per target, plus 20 UI-copy checks each. Packaged runs pass **22 / 22 native
+checks**, including actual OpenAL full/half/zero and reverse gain with a synthetic
+client-side player and an unchanged playback sequence. See
+[the report](docs/testing/2026-10-24-proximity-volume.md).
+
+- [ ] Two real remote players, tracking limits/chunk unload/death/rename and rapid
+  network movement; physical keyboard/narration/extreme GUI scales, actual restart
+  transfer and long mixed native queues/groups/death/jukebox chains. Current native
+  cases use a synthetic tracked player and generated music in singleplayer.
+
+## Manual normalization during gameplay (Unreleased, both targets)
+
+Both builds pass **836 NeoForge / 846 Fabric tests**, plus 20 copy checks each.
+Focused packaged runs pass **18 checks each** in NeoForge unpaused singleplayer,
+NeoForge against a vanilla multiplayer server and Fabric unpaused singleplayer.
+Normalize/Back/Cancel, applied and saved partial results, unchanged generated
+sources and continued active music pass. See [the report](docs/testing/2026-10-24-normalization-gameplay.md).
+
+- [ ] Fabric remote-server run, physical controls/narration/extreme GUI scales,
+  reload/disconnect/profile switching during scans, slow/network disks, very large
+  batches, blocked-I/O shutdown and frame-time/audio latency on lower-core CPUs.
+  No performance measurement is required before allowing explicit manual scans.
+
+## Custom widget background (Unreleased, both targets)
+
+Seven new generated-fixture regression cases per target cover independent image
+installation, failed replacement, appearance snapshots/save/load/profile switches,
+normalization, full-backup transfer/replacement/recovery and invalid archives.
+Both builds pass **835 NeoForge / 845 Fabric tests**, plus 20 copy checks each.
+Source archives include the new classes and exclude the replaced screens, local
+archives, caches, run data and backups; native/smoke test helpers compile.
+The later overnight pass verifies native PNG widget import/Preview, invalid
+replacement, independent sizing, off/on/reset, texture invalidation/reload and
+actual Explorer PNG selection on both targets. Both generated GIF widget soaks
+and real subsequent launches pass, with bounded texture counts.
+
+- [ ] In isolated profiles, import static PNG/JPEG/WebP and animated GIF through
+  Explorer; cancel, replace with corrupt/oversized input, switch on/off, remove and
+  reset. Confirm the menu image and original sources are preserved. Check import
+  completion after leaving the picker page and after resetting in the parent.
+- [ ] Inspect actual card/Preview rendering, transparency, Fill/Fit/Stretch, 0/50/100%
+  image opacity, fade-in/out, artwork/text, wrapping, corners, scaling, narrow windows,
+  hide/reopen and resize. Check native/Hybrid style availability on NeoForge,
+  independent menu controls, texture lifetime on replace/disable/reload/exit and
+  full-backup restart transfer between both targets. Pure tests do not prove GPU
+  rendering, physical input, Explorer behavior or native resource cleanup.
+
+## Directional transition rules (Unreleased addition to 1.0.1)
+
+All **24 new tests per target** and **17 native checks per target** pass. See the
+[measured report](docs/testing/2026-10-23-playlist-transitions.md); combined-suite
+totals also reflect concurrent development and are not a new release freeze.
+
+- [ ] Physical keyboard/narration, narrow/extreme GUI scales and long playlist
+  names in both-column selection and paged timing drafts; editing/deleting profiles
+  or destinations while an editor is hidden; native Explorer transfer/restart with
+  rules shared alongside optional song matching. Pure persistence tests cover
+  copied rules, identity remapping, validation and full-backup transfer.
+- [ ] Longer live chains with combat death, jukebox holds, retained songs, nested
+  time fitting, rapidly changing destinations and source removal during decode.
+  Once an automatic fade has started it completes; the latest destination controls
+  the pending gap/fade-in. Measure real audio gain/offset and mixed modpack behavior.
+
 ## 1.0.1: song groups and player themes
 
 Both regression builds pass **804 / 814 tests**, plus 20 copy checks each.
@@ -594,13 +927,14 @@ the historical baseline above; they do not validate every remaining UI/hardware 
 
 - [ ] **New loudness scanner (0.6):** In the isolated profile, verify the
   Normalize playlist button/progress/results at small and large GUI scales, signed
-  dB rows and peak-limit details, Cancel and reopening reports. Confirm singleplayer
-  pauses while scanning, resuming gameplay suspends analysis, and completed measurements
-  persist after cancellation/restart. Multiplayer waiting/resume now passes separately.
+  dB rows and peak-limit details, Cancel and reopening reports. Manual scans now
+  continue during active gameplay and multiplayer; completed measurements should
+  persist after cancellation/restart. The old wait-until-paused restriction is removed.
   Listen
   to normalized generated quiet/loud fixtures through native audio, verify the
   normalization switch and next-song timing, and verify vanilla gain is unchanged.
-  Benchmark actual gameplay impact before enabling scans during active play. The
+  Measure frame-time/audio behavior on slower storage/CPUs during manual scans;
+  gameplay benchmarks are diagnostic, not a prerequisite for manual functionality. The
   [automated/component checks](docs/testing/2026-10-21-loudness.md) do not establish
   these native/UI behaviors.
 

@@ -14,7 +14,7 @@ class PvpConditionsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(boolean combat,boolean pvp,boolean dead){
-        return new Context("minecraft:overworld","minecraft:plains",combat,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,dead?0:10,pvp,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context("minecraft:overworld","minecraft:plains",combat,false,6000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,dead?0:10,pvp,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions players(){var c=new PlaylistConditions();c.combat=State.YES;c.combatPlayersOnly=true;return c;}
 
@@ -46,7 +46,7 @@ class PvpConditionsTest {
     @Test void pvpSongReceivesCombatDeathPolicyAndFallbackPriority(){
         var lib=Library.defaults();var p=lib.createPlaylist("PvP");p.conditions=players();lib.movePlaylist(p.id,0);
         var song=new Track("pvp","file","PvP",false);var mob=new Track("mob","file","Mob",false);lib.tracks.addAll(List.of(song,mob));p.tracks.put(song.id,true);lib.playlist("combat").tracks.put(mob.id,true);
-        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;lib.settings.combatDeathMusic=DeathMusic.CUT;
+        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;lib.settings.combatDeathMusic=DeathMusic.CUT;
         var engine=new PlaybackEngine(new PlaybackEngineTest.FakeAudio(),new Random(1));engine.tick(0,lib,context(true,false,false),Set.of());assertSame(mob,engine.current());
         engine.tick(1,lib,context(true,true,false),Set.of());assertSame(song,engine.current());
         engine.tick(2,lib,context(false,false,true),Set.of());assertNull(engine.current());

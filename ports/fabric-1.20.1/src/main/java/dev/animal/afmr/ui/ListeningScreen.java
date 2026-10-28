@@ -31,19 +31,19 @@ final class ListeningScreen extends MusicScreen {
         super.init();int half=(contentWidth-6)/2;
         var queue=button("Queue",left,47,half,()->tab(false));queue.selected=!showHistory;
         var history=button("History",left+half+6,47,half,()->tab(true));history.selected=showHistory;
-        list=addRenderableWidget(new DenseList<>(left,76,contentWidth,Math.max(28,height-185),(g,row,x,y,w,hover)->{
-            if(row.id()==chosen||hover)g.fill(x,y,x+w,y+14,row.id()==chosen?MenuAppearance.color(MenuColor.SELECTION,0xFF35594E):MenuAppearance.color(MenuColor.HOVER,0xFF2C373A));
-            g.drawString(font,fit(row.label(),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFDCE6E0));
-            if(hover)g.renderTooltip(font,row.tooltip(),x+8,y+14);
+        list=addRenderableWidget(new DenseList<>(left,76,contentWidth,Math.max(28,bodyBottom()-185),(g,row,x,y,w,hover)->{
+            if(row.id()==chosen||hover)g.fill(x,y,x+w,y+14,row.id()==chosen?MenuAppearance.color(MenuColor.SELECTION,0xFF304963):MenuAppearance.color(MenuColor.HOVER,0xFF2C303E));
+            g.drawString(menuFont,fit(row.label(),w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED));
+            if(hover)g.renderTooltip(menuFont,row.tooltip(),x+8,y+14);
         },(row,clickX,clickY,button,twice)->{chosen=row.id();controls();},Row::label));
         int quarter=(contentWidth-12)/4,thirdWidth=(contentWidth-8)/3;
         if(showHistory){
-            first=button("Play now",left,height-101,thirdWidth,this::replay);
-            second=button("Queue",left+thirdWidth+4,height-101,thirdWidth,this::enqueueHistory);
-            third=button("Add to playlist",left+2*(thirdWidth+4),height-101,thirdWidth,()->{
+            first=button("Play now",left,bodyBottom()-101,thirdWidth,this::replay);
+            second=button("Queue",left+thirdWidth+4,bodyBottom()-101,thirdWidth,this::enqueueHistory);
+            third=button("Add to playlist",left+2*(thirdWidth+4),bodyBottom()-101,thirdWidth,()->{
                 var row=selected();if(row!=null)minecraft.setScreen(new TrackPlaylistScreen(this,runtime,row.played().trackId(),row.played().title()));
             });
-            fourth=button("Clear history",left,height-77,contentWidth,()->{runtime.clearHistory();chosen=-1;refresh();});
+            fourth=button("Clear history",left,bodyBottom()-77,contentWidth,()->{runtime.clearHistory();chosen=-1;refresh();});
             var historyPlayNowHelpText=Component.translatable("afmr.copy.listening.history_play_now");
             if(!historyPlayNowHelpText.getString().isBlank())first.setTooltip(Tooltip.create(historyPlayNowHelpText));
             var historyQueueHelpText=Component.translatable("afmr.copy.listening.history_queue");
@@ -51,18 +51,18 @@ final class ListeningScreen extends MusicScreen {
             var historyAddToPlaylistHelpText=Component.translatable("afmr.copy.listening.history_add_to_playlist");
             if(!historyAddToPlaylistHelpText.getString().isBlank())third.setTooltip(Tooltip.create(historyAddToPlaylistHelpText));
         }else{
-            first=button("Up",left,height-101,quarter,()->move(-1));
-            second=button("Down",left+quarter+4,height-101,quarter,()->move(1));
-            third=button("Remove",left+2*(quarter+4),height-101,quarter,()->{var row=selected();if(row!=null){runtime.engine().queue().remove(row.id());chosen=-1;refresh();}});
-            fourth=button("Clear queue",left+3*(quarter+4),height-101,quarter,()->{runtime.engine().queue().clear();chosen=-1;refresh();});
+            first=button("Up",left,bodyBottom()-101,quarter,()->move(-1));
+            second=button("Down",left+quarter+4,bodyBottom()-101,quarter,()->move(1));
+            third=button("Remove",left+2*(quarter+4),bodyBottom()-101,quarter,()->{var row=selected();if(row!=null){runtime.engine().queue().remove(row.id());chosen=-1;refresh();}});
+            fourth=button("Clear queue",left+3*(quarter+4),bodyBottom()-101,quarter,()->{runtime.engine().queue().clear();chosen=-1;refresh();});
             var clearQueueHelpText=Component.translatable("afmr.copy.listening.clear_queue");
             if(!clearQueueHelpText.getString().isBlank())fourth.setTooltip(Tooltip.create(clearQueueHelpText));
-            useQueue=button("Use queue next",left,height-77,half,()->{runtime.engine().useQueueNext();controls();});
+            useQueue=button("Use queue next",left,bodyBottom()-77,half,()->{runtime.engine().useQueueNext();controls();});
             var useQueueNextHelpText=Component.translatable("afmr.copy.listening.use_queue_next");
             if(!useQueueNextHelpText.getString().isBlank())useQueue.setTooltip(Tooltip.create(useQueueNextHelpText));
-            button("Next song now",left+half+6,height-77,half,runtime::nextSong);
+            button("Next song now",left+half+6,bodyBottom()-77,half,runtime::nextSong);
         }
-        button("Back",left+contentWidth-104,height-29,104,this::onClose);refresh();
+        button("Back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);refresh();
     }
     private void tab(boolean history){showHistory=history;chosen=-1;useQueue=null;rebuildWidgets();}
     private Row selected(){for(var row:rows)if(row.id()==chosen)return row;return null;}
@@ -74,14 +74,14 @@ final class ListeningScreen extends MusicScreen {
                 String origin=entry.origin().name().toLowerCase(java.util.Locale.ROOT);
                 String label=when+" | "+entry.title()+(entry.artist().isBlank()?"":" — "+entry.artist());
                 String detail=label+"\nAlbum: "+entry.album()+"\nSource: "+(entry.playlistName().isBlank()?origin:entry.playlistName())+" / "+origin+"\n"+entry.reason();
-                result.add(new Row(entry.id(),label,entry.trackId(),null,entry,font.split(Component.literal(detail),Math.min(480,contentWidth))));
+                result.add(new Row(entry.id(),label,entry.trackId(),null,entry,menuFont.split(Component.literal(detail),Math.min(480,contentWidth))));
             }
             revision=engine.history().revision();
         }else{
             int position=0;
             for(var entry:engine.queue().snapshot()){
                 String label=(++position)+". "+entry.title()+(entry.artist().isBlank()?"":" — "+entry.artist())+" | "+entry.playlistName();
-                result.add(new Row(entry.id(),label,entry.trackId(),entry,null,font.split(Component.literal(label),Math.min(480,contentWidth))));
+                result.add(new Row(entry.id(),label,entry.trackId(),entry,null,menuFont.split(Component.literal(label),Math.min(480,contentWidth))));
             }
             revision=engine.queue().revision();
         }
@@ -112,8 +112,8 @@ final class ListeningScreen extends MusicScreen {
         var engine=runtime.engine();String status=showHistory?rows.size()+" / "+ListeningHistory.LIMIT+" saved entries"
             :engine.queueWaitingForOverride()?"Queue waiting for playlist override":engine.queue().size()+" queued / normal silence between songs";
         if(!showHistory&&!engine.queueMessage().isBlank())status+=" | "+engine.queueMessage();
-        g.drawString(font,fit(status,contentWidth),left,height-49,MenuAppearance.color(MenuColor.ACCENT,0xFFB9D7B7));
-        if(x>=left&&x<left+contentWidth&&y>=height-51&&y<height-38)
-            g.renderTooltip(font,Component.literal(status),x,y);
+        g.drawString(menuFont,fit(status,contentWidth),left,bodyBottom()-49,MenuAppearance.color(MenuColor.ACCENT,0xFFBCBDF8));
+        if(x>=left&&x<left+contentWidth&&y>=bodyBottom()-51&&y<bodyBottom()-38)
+            g.renderTooltip(menuFont,Component.literal(status),x,y);
     }
 }

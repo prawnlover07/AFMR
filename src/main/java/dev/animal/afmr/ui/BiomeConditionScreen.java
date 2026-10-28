@@ -33,19 +33,18 @@ final class BiomeConditionScreen extends MusicScreen {
         super.init();available.clear();
         if(minecraft.level!=null)for(var id:minecraft.level.registryAccess().lookupOrThrow(Registries.BIOME).keySet())available.add(id.toString());
         int half=(contentWidth-6)/2;
-        toggle=button("Filter: "+(enabled?"on":"off"),left,47,half,()->{enabled=!enabled;updateToggle();});
+        toggle=toggle("Filter",left,47,half,()->enabled,()->{enabled=!enabled;});
         button("Add current biome",left+half+6,47,half,()->add(runtime.context().biome())).active=runtime.inWorld();
-        list=addRenderableWidget(new DenseList<>(left,97,contentWidth,Math.max(14,height-155),
-            (g,item,x,y,w,hover)->g.text(font,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
-                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0)),
-            (item,event,twice)->{if(!selected.remove(item.id())){selected.add(item.id());enabled=true;}error="";updateToggle();},Entry::label));
+        list=addRenderableWidget(new DenseList<>(left,97,contentWidth,Math.max(14,bodyBottom()-155),
+            (g,item,x,y,w,hover)->g.text(menuFont,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
+                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED)),
+            (item,event,twice)->{if(!selected.remove(item.id())){selected.add(item.id());enabled=true;}error="";},Entry::label));
         search=edit(query,"Search biomes or enter namespace:id",left,71,contentWidth-82,value->{query=value;filter();});
         button("Add ID",left+contentWidth-76,71,76,()->add(search.getValue().strip()));
-        button("Clear / any",left,height-29,100,()->{selected.clear();enabled=false;error="";updateToggle();});
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Clear / any",left,bodyBottom()-29,100,()->{selected.clear();enabled=false;error="";});
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
         rebuildEntries();
     }
-    private void updateToggle(){toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));}
     private void rebuildEntries(){
         var ids=new TreeSet<>(available);ids.addAll(selected);
         entries=ids.stream().map(id->{
@@ -61,7 +60,7 @@ final class BiomeConditionScreen extends MusicScreen {
     private void add(String value){
         var id=Identifier.tryParse(value);
         if(id==null||value.isBlank()){error="Enter an ID such as minecraft:plains.";return;}
-        selected.add(id.toString());enabled=true;error="";updateToggle();
+        selected.add(id.toString());enabled=true;error="";
         query="";search.setValue("");rebuildEntries();
         for(var entry:entries)if(entry.id().equals(id.toString())){list.reveal(entry);break;}
     }
@@ -71,6 +70,6 @@ final class BiomeConditionScreen extends MusicScreen {
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         String status=!error.isEmpty()?error:selected.size()+" selected";
-        g.text(font,fit(status,contentWidth),left,height-51,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0):0xFFFFA0A0);
+        g.text(menuFont,fit(status,contentWidth),left,bodyBottom()-51,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF):0xFFFFA0A0);
     }
 }

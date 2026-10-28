@@ -26,7 +26,7 @@ final class RangeConditionScreen extends MusicScreen {
     }
     @Override protected void init(){
         super.init();var c=conditions;int half=(contentWidth-6)/2;
-        toggle=button("Filter: "+(enabled?"on":"off"),left,47,contentWidth,()->{enabled=!enabled;toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));});
+        toggle=toggle("Filter",left,47,contentWidth,()->enabled,()->{enabled=!enabled;});
         String min=switch(kind){case TIME->""+c.startTime;case ELEVATION->""+c.minY;case TEMPERATURE->""+c.minTemperature;case LIGHT->""+c.minLight;};
         String max=switch(kind){case TIME->""+c.endTime;case ELEVATION->""+c.maxY;case TEMPERATURE->""+c.maxTemperature;case LIGHT->""+c.maxLight;};
         minimum=edit(min,"Minimum",left,90,half,null);maximum=edit(max,"Maximum",left+half+6,90,half,null);
@@ -45,15 +45,15 @@ final class RangeConditionScreen extends MusicScreen {
             case LIGHT->{button("Dark (0-4)",left,120,half,()->range("0","4"));button("Bright (8-15)",left+half+6,120,half,()->range("8","15"));}
         }
         if(kind==Kind.TIME){
-            fitToggle=button("Fit songs to time window: "+(fitSongs?"on":"off"),left,145,contentWidth,()->{
-                fitSongs=!fitSongs;fitToggle.setMessage(Component.literal("Fit songs to time window: "+(fitSongs?"on":"off")));
+            fitToggle=toggle("Fit songs to time window",left,145,contentWidth,()->fitSongs,()->{
+                fitSongs=!fitSongs;
             });
             var fitSongsToTimeWindowHelpText=Component.translatable("afmr.copy.rangecondition.fit_songs_to_time_window");
             if(!fitSongsToTimeWindowHelpText.getString().isBlank())fitToggle.setTooltip(Tooltip.create(fitSongsToTimeWindowHelpText));
         }
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
-    private void range(String min,String max){minimum.setValue(min);maximum.setValue(max);enabled=true;toggle.setMessage(Component.literal("Filter: on"));}
+    private void range(String min,String max){minimum.setValue(min);maximum.setValue(max);enabled=true;}
     @Override public void onClose(){
         try{
             var c=conditions;
@@ -72,10 +72,10 @@ final class RangeConditionScreen extends MusicScreen {
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         int half=(contentWidth-6)/2;
-        g.text(font,kind==Kind.TIME?"Start tick (inclusive)":"Minimum (inclusive)",left,76,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.text(font,kind==Kind.TIME?"End tick (inclusive)":"Maximum (inclusive)",left+half+6,76,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.text(menuFont,kind==Kind.TIME?"Start tick (inclusive)":"Minimum (inclusive)",left,76,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        g.text(menuFont,kind==Kind.TIME?"End tick (inclusive)":"Maximum (inclusive)",left+half+6,76,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
         var c=runtime.context();String current=runtime.inWorld()?switch(kind){case TIME->"Current tick: "+c.timeOfDay();case ELEVATION->"Current block Y: "+runtime.currentBlockY();case TEMPERATURE->String.format(Locale.ROOT,"Current biome: %s / %.3f",c.biome(),c.biomeTemperature());case LIGHT->"Current local light: "+c.lightLevel();}:"Not in world";
-        g.text(font,fit(current,contentWidth),left,170,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
+        g.text(menuFont,fit(current,contentWidth),left,170,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
+        g.text(menuFont,fit(error,contentWidth),left,bodyBottom()-48,0xFFFFA0A0);
     }
 }

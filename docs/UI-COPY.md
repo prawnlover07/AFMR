@@ -58,11 +58,11 @@ port can still be built independently after extraction.
 > Targets: Both targets
 > Where: Conditions: combat — Hover text
 > Placeholders: None
-> Reference behavior: Any disables this condition. Qualifying attack/damage events start combat. Mob-target retention is singleplayer only: hostile or angered combat-capable mobs targeting you sustain an existing fight. Multiplayer uses the attack/damage timeout.
+> Reference behavior: Any disables this condition. Qualifying attack/damage events start combat. Mob-target retention works in singleplayer and on servers with the AFMR companion: hostile or angered combat-capable mobs targeting you sustain an existing fight. Servers without the companion use the attack/damage timeout.
 
 **Text to edit:**
 
-In singleplayer, attack/damage starts combat; mob-target retention sustains it. In multiplayer, controlled by attack/damage timer.
+Attack/damage starts combat. In singleplayer or on an AFMR companion server, mob targeting sustains it. Other servers use the attack/damage timer.
 
 ### Players only
 
@@ -167,11 +167,11 @@ total condition nodes per playlist.
 > Targets: Both targets
 > Where: Conditions: structures — Hover text
 > Placeholders: None
-> Reference behavior: Singleplayer only. Select the loaded generated structures you are currently inside.
+> Reference behavior: Singleplayer or an AFMR companion server. Select the loaded generated structures you are currently inside.
 
 **Text to edit:**
 
-!! Singleplayer only !!
+Requires singleplayer or the AFMR server companion.
 
 ### Structure search
 
@@ -179,11 +179,11 @@ total condition nodes per playlist.
 > Targets: Both targets
 > Where: Conditions: structures — Hover text
 > Placeholders: None
-> Reference behavior: Singleplayer only. Search the loaded singleplayer world's structures. IDs can be entered manually for later use.
+> Reference behavior: Singleplayer or an AFMR companion server. Search the current world's structures. IDs can be entered manually for later use.
 
 **Text to edit:**
 
-!! Singleplayer only !! Use structure name or ID
+Requires singleplayer or the AFMR server companion. Use structure name or ID
 
 ### Structure radius
 
@@ -191,11 +191,11 @@ total condition nodes per playlist.
 > Targets: Both targets
 > Where: Conditions: structures — Hover text
 > Placeholders: None
-> Reference behavior: Singleplayer only. Extra spherical distance outside the structure's full bounding box, including vertical distance. 0 = inside only; maximum 128 blocks.
+> Reference behavior: Singleplayer or an AFMR companion server. Extra spherical distance outside the structure's full bounding box, including vertical distance. 0 = inside only; maximum 128 blocks.
 
 **Text to edit:**
 
-!! Singleplayer only !! Play when near a structure. 0 = within bounds, max 128 blocks.
+Requires singleplayer or the AFMR server companion. Play when near a structure. 0 = within bounds, max 128 blocks.
 
 ## Conditions: time and numeric ranges
 
@@ -589,7 +589,7 @@ Word wrap moves words to additional rows within chosen width. Overwide words scr
 
 
 
-## Display: custom background
+## Display: custom menu or widget background
 
 ### Choose image
 
@@ -609,7 +609,7 @@ PNG/JPEG/WEBP (static)/GIF. Max 20MiB & 512 GIF frames.
 > Targets: Both targets
 > Where: Display: custom background — Hover text
 > Placeholders: None
-> Reference behavior: Fill: centered crop. Fit: show the whole image. Stretch: fill the screen without cropping.
+> Reference behavior: Fill: centered crop. Fit: show the whole image. Stretch: fill the target screen/card without cropping. Widget transparent pixels and Fit gaps show the game.
 
 **Text to edit:**
 
@@ -621,7 +621,7 @@ PNG/JPEG/WEBP (static)/GIF. Max 20MiB & 512 GIF frames.
 > Targets: Both targets
 > Where: Display: custom background — Hover text
 > Placeholders: None
-> Reference behavior: Image transparency. Menu panel opacity is controlled separately in Display → Menus.
+> Reference behavior: Image transparency for the selected menu or widget image. Menu panel opacity and solid widget background opacity are separate. Widget text/artwork remain visible; the popup fade multiplies image opacity.
 
 **Text to edit:**
 
@@ -645,7 +645,7 @@ PNG/JPEG/WEBP (static)/GIF. Max 20MiB & 512 GIF frames.
 
 > ID: afmr.copy.menucolors.hex_color_field
 > Targets: Both targets
-> Where: Display: menu colors — Hover text
+> Where: Display: Themes → Edit colors — Hover text
 > Placeholders: None
 > Reference behavior: Six-digit RGB color; # is optional. Valid edits preview immediately. Shades follow this color. Text and highlights stay opaque.
 
@@ -657,7 +657,7 @@ PNG/JPEG/WEBP (static)/GIF. Max 20MiB & 512 GIF frames.
 
 > ID: afmr.copy.menucolors.reset_menu_colors
 > Targets: Both targets
-> Where: Display: menu colors — Hover text
+> Where: Display: Themes → Edit colors — Hover text
 > Placeholders: None
 > Reference behavior: Restore AFMR's original menu colors. Keeps background opacity, blur, image and widget settings.
 
@@ -1084,7 +1084,7 @@ Keep this playlist active until released. The bound key toggles the override.
 
 ## Playlists and library workspace
 
-### Clone playlist
+### Duplicate playlist
 
 > ID: afmr.copy.library.clone_playlist
 > Targets: Both targets
@@ -1164,7 +1164,7 @@ new tags.
 
 > ID: afmr.copy.library.preview
 > Targets: Both targets
-> Where: Playlists and library workspace — Hover text
+> Where: Playlist song right-click menu — Hover text
 > Placeholders: None
 > Reference behavior: Play the last selected song, including disabled songs. Cancels any playlist override.
 
@@ -1176,7 +1176,7 @@ Play the last selected song, including disabled songs. Cancels any playlist over
 
 > ID: afmr.copy.library.queue
 > Targets: Both targets
-> Where: Playlists and library workspace — Hover text
+> Where: Playlist song right-click menu — Hover text
 > Placeholders: None
 > Reference behavior: Append selected enabled songs in table order without interrupting playback. Normal silence applies. Manage requests in Queue / history.
 
@@ -1188,7 +1188,7 @@ Append selected enabled songs without interrupting playback. Normal silence appl
 
 > ID: afmr.copy.library.disable_songs
 > Targets: Both targets
-> Where: Playlists and library workspace — Hover text
+> Where: Playlist song right-click menu — Hover text
 > Placeholders: None
 > Reference behavior: Exclude selected songs from this playlist, including manual overrides. Preview remains available.
 
@@ -1201,7 +1201,7 @@ available.
 
 > ID: afmr.copy.library.remove_assignments
 > Targets: Both targets
-> Where: Playlists and library workspace — Hover text
+> Where: Playlist song right-click menu — Hover text
 > Placeholders: None
 > Reference behavior: Remove selected assignments from this playlist. Keeps library entries and music files; Minecraft songs may remain included automatically.
 
@@ -1214,7 +1214,7 @@ Minecraft songs may remain included automatically.
 
 > ID: afmr.copy.library.normalize_playlist
 > Targets: Both targets
-> Where: Playlists and library workspace — Hover text
+> Where: Playlist actions / right-click menu — Balance song volumes hover text
 > Placeholders: None
 > Reference behavior: Measure loudness for local songs in this playlist. Results are cached separately; audio files are unchanged.
 
@@ -1247,18 +1247,17 @@ Pause or resume AFMR playback and its timers.
 Play the next queued song, or effective playlist if no queue is ready. Skip silence
 and fade-out; fade-in still applies.
 
-### Skip or play
+### Skip & wait
 
-> ID: afmr.copy.library.skip_or_play
+> ID: afmr.copy.library.skip_wait
 > Targets: Both targets
 > Where: Playlists and library workspace — Hover text
 > Placeholders: None
-> Reference behavior: While playing: stop and wait the normal silence. While waiting: end the silence; the context buffer still applies.
+> Reference behavior: Stop the current song and wait the normal silence. Disabled when no song is playing; Play now belongs to the primary transport button.
 
 **Text to edit:**
 
-While playing: stop and wait the normal silence. While waiting: end the silence; the
-context buffer still applies.
+Stop and wait the normal silence.
 
 ### Return to Automatic
 
@@ -1384,13 +1383,13 @@ protection; manual controls and combat death rules take precedence.
 On automatic playlist entry, skip the context buffer and silence. Current music fades
 normally; finish-song controls still apply. Later songs use normal timing.
 
-## Playlists: Autoplay here
+## Playlists: Set playback area here
 
-### Autoplay here
+### Set playback area here
 
 > ID: afmr.copy.autoplayhere.autoplay_here
 > Targets: Both targets
-> Where: Playlists: Autoplay here — Hover text
+> Where: Playlists: Set playback area here — Hover text
 > Placeholders: None
 > Reference behavior: Hold for one second to replace this playlist's conditions with a 64-block zone here and enable automatic selection. Songs and playback switches are kept.
 
@@ -1549,6 +1548,16 @@ enabled attack/damage triggers and quiet period.
 Underwater requires the player to be submerged, rather than just standing in water. Any
 disables this filter.
 
+### Riding animal
+
+> ID: afmr.copy.playlistconditions.riding_animal
+> Targets: Both targets
+> Where: Playlists: condition selection — Hover text
+> Placeholders: None
+> Reference behavior: Any disables this condition. Riding matches while the player's direct vehicle is an animal, including horses, donkeys, mules, llamas, camels, pigs and striders; modded mounts inheriting Minecraft's Animal class also qualify. Not riding matches on foot or in non-animal vehicles such as boats and minecarts. Multiplayer uses the client's synchronized riding state. Nested All/Any/Not groups and normal playlist priority and transitions apply.
+
+**Text to edit:**
+
 ### Biomes
 
 > ID: afmr.copy.playlistconditions.biomes
@@ -1567,12 +1576,12 @@ Match any selected biome. An enabled filter needs at least one selection.
 > Targets: Both targets
 > Where: Playlists: condition selection — Hover text
 > Placeholders: None
-> Reference behavior: Singleplayer only. Match loaded generated structure bounds, including height and the configured radius. Multiplayer structure detection is unavailable.
+> Reference behavior: Requires singleplayer or the AFMR server companion. Match loaded generated structure bounds, including height and the configured radius. Servers without the companion cannot provide structure data.
 
 **Text to edit:**
 
-Singleplayer only. Match loaded generated structure bounds, including height and the
-configured radius. Multiplayer structure detection is unavailable.
+Requires singleplayer or the AFMR server companion. Match loaded generated structure bounds, including height and the
+configured radius. Servers without the companion cannot provide structure data.
 
 ### Weather
 
@@ -1640,7 +1649,7 @@ Combine nested All/Any/Not groups with the filters on this page.
 
 > ID: afmr.copy.playlistsilence.custom_silence_switch
 > Targets: Both targets
-> Where: Playlists: silence — Hover text
+> Where: Playlist Settings: inline Playback gaps — Hover text
 > Placeholders: None
 > Reference behavior: Override Timing's silence range for this playlist. Off uses global timing and keeps the custom values. Changing playlists during silence counts time already waited toward the incoming range.
 
@@ -1654,7 +1663,7 @@ incoming range.
 
 > ID: afmr.copy.playlistsilence.minimum_silence
 > Targets: Both targets
-> Where: Playlists: silence — Hover text
+> Where: Playlist Settings: inline Playback gaps — Hover text
 > Placeholders: None
 > Reference behavior: Shortest gap, 0-86400 seconds. Use the same minimum and maximum for a fixed gap.
 
@@ -1666,7 +1675,7 @@ Shortest gap, 0-86400 seconds. Use the same minimum and maximum for a fixed gap.
 
 > ID: afmr.copy.playlistsilence.maximum_silence
 > Targets: Both targets
-> Where: Playlists: silence — Hover text
+> Where: Playlist Settings: inline Playback gaps — Hover text
 > Placeholders: None
 > Reference behavior: Longest gap, at least the minimum and up to 86400 seconds. Manual play controls, Play on trigger and Play immediately on join still skip silence.
 
@@ -1677,11 +1686,11 @@ trigger and Play immediately on join still skip silence.
 
 ## Playlists: volume
 
-### Live volume slider
+### Inline volume
 
 > ID: afmr.copy.playlistvolume.live_volume_slider
 > Targets: Both targets
-> Where: Playlists: volume — Hover text
+> Where: Playlist Settings: inline Playback volume — Hover text
 > Placeholders: None
 > Reference behavior: Changes the source playlist's playing song live, including queues and overrides. 0% is silent; 100% is normal volume. Library previews use normal volume.
 
@@ -2011,13 +2020,13 @@ damage source. Players-only playlist conditions still require another player.
 > Targets: Both targets
 > Where: Timing: combat settings — Hover text
 > Placeholders: None
-> Reference behavior: Leave combat this many seconds after the last qualifying attack/damage event. Mob-target retention is singleplayer only: the countdown starts after the last target is lost. Targeting cannot start combat. PvP and multiplayer keep their event timeout. Range: 1-600.
+> Reference behavior: Leave combat this many seconds after the last qualifying attack/damage event. Mob-target retention works in singleplayer and on servers with the AFMR companion: the countdown starts after the last target is lost. Targeting cannot start combat. PvP and servers without the companion keep their event timeout. Range: 1-600.
 
 **Text to edit:**
 
 Leave combat this many seconds after the last qualifying attack/damage event. Mob-target
-retention is singleplayer only: the countdown starts after the last target is lost.
-Targeting cannot start combat. PvP and multiplayer keep their event timeout. Range:
+retention works in singleplayer or with the AFMR server companion: the countdown starts after the last target is lost.
+Targeting cannot start combat. PvP and servers without the companion keep their event timeout. Range:
 1-600.
 
 ### Death fade
@@ -2095,3 +2104,151 @@ Play this many automatic or held-override songs back-to-back, then wait the norm
 **Text to edit:**
 
 Enter a player name and radius in blocks, or select an online player below.
+
+### Playlist transition rules
+
+> ID: afmr.copy.transitions.rules
+> Targets: Both targets
+> Where: Playlist transitions — How rules work hover text
+> Placeholders: None
+> Reference behavior: Directional automatic transitions use the playlist that started the song. Explicit options override ordinary entry/exit and matching protection, Play on trigger timing and global timing only for this pair. Manual controls, queue/preview and combat death policies take precedence. Export both playlists to share their rule.
+
+**Text to edit:**
+
+Choose the playlist the song comes from, then its destination. Rules apply only in that direction during automatic playback. Unset options inherit normal settings. Manual controls and combat death settings keep precedence. Export both playlists to share their rule.
+
+### Transition timing fields
+
+> ID: afmr.copy.transitions.numeric
+> Targets: Both targets
+> Where: Transition rule — Numeric field hover text
+> Placeholders: None
+> Reference behavior: Blank fields inherit existing timing; zero is an explicit override. Buffer and fades accept 0–60 seconds. Silence accepts 0–86400 seconds with both fields filled or both blank and maximum at least minimum. Only the first incoming song uses transition fades and silence; later songs use normal settings.
+
+**Text to edit:**
+
+Leave blank to inherit normal timing. Enter 0 for an immediate change. Buffer and fades allow 0–60 seconds; silence allows 0–86400 with both fields filled or both blank. These timings affect this transition, not later songs.
+
+## Player proximity volume
+
+### Open player proximity volume
+
+> ID: afmr.copy.nearbyplayer.proximity_volume
+> Targets: Both targets
+> Where: Nearby player condition — Hover text
+> Placeholders: None
+> Reference behavior: Adjust this playlist's volume with the selected player's distance. The trigger radius remains independent. Nearby player must be on for the volume adjustment to apply.
+
+**Text to edit:**
+
+Adjust this playlist's volume with the selected player's distance. The trigger radius remains independent. Nearby player must be on for the volume adjustment to apply.
+
+### Proximity volume switch
+
+> ID: afmr.copy.proximityvolume.enabled
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: Scale the source playlist's volume by the selected player's distance. Off keeps the values. Enabled nearby rules in nested groups use the quietest result; disabled groups are ignored.
+
+**Text to edit:**
+
+Scale the source playlist's volume by the selected player's distance. Off keeps the values. Enabled nearby rules in nested groups use the quietest result; disabled groups are ignored.
+
+### Near distance
+
+> ID: afmr.copy.proximityvolume.near_distance
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: At or inside this distance, use Near volume. Blocks, 0-1024; must be smaller than Far distance. Volume blends between the two distances.
+
+**Text to edit:**
+
+At or inside this distance, use Near volume. Blocks, 0-1024; must be smaller than Far distance. Volume blends between the two distances.
+
+### Far distance
+
+> ID: afmr.copy.proximityvolume.far_distance
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: At or outside this distance, use Far volume. Blocks, up to 1024; must exceed Near distance. An offline or untracked player also uses Far volume. Only players tracked by your client can be measured.
+
+**Text to edit:**
+
+At or outside this distance, use Far volume. Blocks, up to 1024; must exceed Near distance. An offline or untracked player also uses Far volume. Only players tracked by your client can be measured.
+
+### Near volume
+
+> ID: afmr.copy.proximityvolume.near_volume
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: Percentage of the source playlist's existing volume at the near distance, 0-100. Set this below Far volume to get quieter as the player approaches. Fade and normalization still apply.
+
+**Text to edit:**
+
+Percentage of the source playlist's existing volume at the near distance, 0-100. Set this below Far volume to get quieter as the player approaches. Fade and normalization still apply.
+
+### Far volume
+
+> ID: afmr.copy.proximityvolume.far_volume
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: Percentage of the source playlist's existing volume at the far distance, 0-100. A zero endpoint mutes the song without stopping it or selecting another song.
+
+**Text to edit:**
+
+Percentage of the source playlist's existing volume at the far distance, 0-100. A zero endpoint mutes the song without stopping it or selecting another song.
+
+### Reverse volumes
+
+> ID: afmr.copy.proximityvolume.reverse
+> Targets: Both targets
+> Where: Player proximity volume — Hover text
+> Placeholders: None
+> Reference behavior: Swap Near and Far volume while keeping both distances. Changes are applied smoothly to the source playlist's playing song, including playlist overrides and queued songs. Library previews use normal volume.
+
+**Text to edit:**
+
+Swap Near and Far volume while keeping both distances. Changes are applied smoothly to the source playlist's playing song, including playlist overrides and queued songs. Library previews use normal volume.
+
+### Playlist import destination
+
+> ID: afmr.copy.presetimport.destination
+> Targets: Both targets
+> Where: Import playlist setup — Destination hover text
+> Placeholders: None
+> Reference behavior: Default to a new named profile containing only imported playlists, created on confirmation without activation or world binding. Existing-profile mode replaces names ignoring capitalization and surrounding spaces, retains IDs/priority, and stops ambiguous duplicates. Settings-only replacement keeps songs; importing songs replaces assignments.
+
+**Text to edit:**
+
+New profile keeps the import separate and lets you choose its name. Select an existing profile to replace matching playlist names and add unmatched ones. Matching ignores capitalization and surrounding spaces; ambiguous duplicates stop the import. Settings-only imports keep existing songs. Turning Import songs on replaces their assignments.
+
+## Display: themes
+
+### Shared theme settings
+
+> ID: afmr.copy.themes.scope
+> Targets: Both targets
+> Where: Display: Themes — Theme list hover text
+> Placeholders: None
+> Reference behavior: Select a theme to preview its ten menu colors, menu opacity, widget background color and widget opacity. Apply commits it; Cancel discards the preview. Themes do not contain images, fonts, layout, music or playlists. Save as creates an independent named copy. Imported names are made unique without replacing saved themes.
+
+**Text to edit:**
+
+Themes include menu colors and opacity, plus widget background color and opacity. Select to preview; Apply keeps the changes.
+
+### Song actions
+
+> ID: afmr.copy.library.song_actions
+> Targets: Both targets
+> Where: Playlist workspace — Hovered/focused song action button
+> Placeholders: None
+> Reference behavior: Opens the existing song context menu. A selected row retains its multi-selection. Right-click and Shift+F10 also open the menu.
+
+**Text to edit:**
+
+Song actions. Right-click or press Shift+F10 with the song list focused.

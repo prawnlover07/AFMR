@@ -11,6 +11,75 @@ world and coordinate desktop testing with the user. Do not use a personal game p
 
 ## Prepare
 
+All disposable clients run capped at **60 FPS**, with VSync off, at the owner's
+request because higher rates cause desktop lag. `runClient` depends on
+`capProbeFps`, which updates only the selected test profile's two video options
+before Minecraft reads them. This covers title screens, first launches and every
+native mode. `prepare_fixtures.py` also seeds new options with the cap. Fabric's
+`-Psmoke` launch applies the same policy to `run-smoke`. Other saved options and
+personal game profiles are preserved. Do not uncap performance probes without a
+new explicit request. Earlier uncapped performance reports remain historical.
+
+For warning-only Minecraft mute behavior, use `runClient -Pworkspace -PmuteWarning`.
+Fabric uses `-Psmoke -PpackagedSmoke -PmuteWarning runClient`. These focused checks
+expect silent position advancement, exact zero source/listener gain, retained mute
+warning and independent manual pause; results go to `mute-warning-results.txt`.
+The former automatic pause policy has been removed. The October 25 overnight pass
+ran the warning/continuation checks on both targets; the focused mode also checks
+natural completion, silence and new native streams while muted. Coordinate future
+desktop runs with the owner.
+
+For the recent import/repair/theme/widget/Controls audit, run
+`runClient -Pworkspace -PovernightAudit`. Add `-PpickerAudit` only when an operator
+can drive the actual Windows dialogs: the helper writes each requested generated
+path to `run/workspace/audit-fixtures/picker-request.txt` and waits for the dialog
+callback. It never automates the operating system itself. The final October 25
+audits passed 70 checks on each target, including six real picker callbacks.
+
+For additional live mounts, use `runClient -Pworkspace -PridingAudit`.
+It checks the paged Riding animal control, horses/donkeys/mules/camels/pigs/striders,
+boats/minecarts, dimension transfer and death/respawn. The same NeoForge mode can
+use `-Pmultiplayer -PridingAudit` with the existing disposable loopback server.
+Results use `riding-audit-results.txt` in singleplayer and
+`riding-multiplayer-audit-results.txt` on the separate vanilla server.
+
+For sustained native audio/resource ownership, use
+`runClient -Pworkspace -PplaybackSoak`. It runs ten minutes of generated short
+music, folder artwork and an animated widget image, with muted starts, ordinary
+gaps, queue requests, manual pauses, profile swaps and two real resource reloads.
+It records post-GC heap and direct-buffer observations, channel/texture bounds and
+the 100-entry history limit. A short soak does not establish behavior in every
+modpack or rule out every long-session leak. Immediately follow it with
+`runClient -Pworkspace -PplaybackSoak -PsoakRestart` to verify actual restart
+persistence and fresh native playback of the saved fixtures. Run restart before
+another mode replaces the disposable configuration.
+
+Fabric equivalents use `-Psmoke -PpackagedSmoke` instead of `-Pworkspace`.
+`-PsmokeJava=/absolute/path/to/java.exe` selects the client runtime independently
+of Gradle's Java; use Java 17 for the Fabric minimum-runtime check. The image-only
+`artworkMemoryProbe` and `menuBackgroundProbe` tasks accept `-PartworkJava=...`.
+Both targets retain the 60 FPS cap with these modes.
+
+For player proximity volume, use `runClient -Pworkspace -PproximityVolume`.
+This focused Feature101 mode uses generated audio and one synthetic client-side
+RemotePlayer, checks editor input and independent trigger radius, and measures
+actual OpenAL full/half/zero, reverse, untracked fallback and retained off/on gain
+without restarting the song. Results are `proximity-volume-results.txt`; the
+editor screenshot is `features-101-proximity-volume.png`. No second server player
+is simulated by a network connection. Master gain affects the targets differently,
+so endpoint checks compare against the measured full reference gain.
+
+For manual normalization during gameplay, prepare a profile and run
+`runClient -Pworkspace -PgameplayNormalization` for singleplayer or
+`runClient -Pmultiplayer -PgameplayNormalization` against the existing loopback vanilla
+server. The focused helper tests actual Normalize/Back/Cancel controls, unpaused
+completion, continued music, partial results, unchanged source bytes and saved
+measurements. Results use `normalization-singleplayer-results.txt` and
+`normalization-multiplayer-results.txt`. If a server was launched without an
+interactive console, `-Pmultiplayer -PgameplayNormalization -PstopServer` joins solely to
+send the vanilla operator stop command and closes the helper; it does not rerun
+or overwrite the measured checks. Restrict this helper to the disposable server.
+
 For per-playlist silence, build and prepare the workspace, then run
 `runClient -Pworkspace -PplaylistSilence`. The focused mode creates a playlist from
 an existing generated long WAV, checks range validation and retained drafts, and
@@ -249,8 +318,8 @@ disconnects/reconnects and closes itself. Results are `results/multiplayer-resul
 and `results/multiplayer-complete.txt`. Stop the server normally with `stop` afterward.
 The current suite has 39 checks; its attack case calls AFMR's observation API, whereas damage
 and death come from real server updates. Physical input and UI layout remain separate
-checks. The normalization case verifies waiting online and completing after logout;
-it does not benchmark background analysis during gameplay.
+checks. The normalization case verifies manual analysis completes online and its
+measurements survive logout. It does not benchmark gameplay performance.
 
 The extended profile checks bind an inactive copy, reconnect to activate it,
 verify independent playlist volume, travel between dimensions without switching
@@ -320,9 +389,54 @@ and adds `-PreviewRestart` for the second process. Its fixture belongs in
 
 ## Song groups and player themes
 
+For directional playlist transitions, add `-Ptransitions` to the commands below.
+That selects a focused generated-audio/menu sequence and writes separate
+`transitions-results.txt` evidence. It retains the disposable-profile requirement
+and needs current authorization to take desktop focus.
+
 After staging the current packaged AFMR JAR in the disposable workspace profile,
 run `runClient -Pworkspace -Pfeatures101` from this test project. The generated
 fixture helper checks grouped real audio, delayed notifications, assignment/count
 editors and a synthetic client-visible player. Fabric's independent equivalent is
 `-Psmoke -PpackagedSmoke -Pfeatures101 runClient` from its port project. Coordinate
 desktop use first. See the 1.0.1 feature report for results and untested network cases.
+
+## Inline playlist settings
+
+Use the disposable workspace profile and generated fixtures:
+
+```powershell
+python testing/native/prepare_fixtures.py --workspace
+.\gradlew.bat -p testing/native runClient -Pworkspace -PinlineSettings
+```
+
+The separate `InlineSettingsSuite` checks real screen input, checkbox/edit
+separation, negative-condition restoration, area capture, invalid numeric drafts,
+hide/resize retention, inline timing/volume, independent finish flags, right-click
+rename/duplicate and the one-second replacement hold. Results are in
+`testing/native/results/inline-settings-results.txt`; screenshots stay in the
+ignored workspace profile. It does not use personal music or the desktop pointer
+API. For Fabric, use `-Psmoke -PpackagedSmoke -PinlineSettings runClient` from its
+project directory; results are in `run-smoke/inline-settings-results.txt`.
+
+## Playlist follow-up, fonts and mute
+
+After building/staging the runtime JAR, `runClient -Pworkspace -PuiFollowup`
+selects the dedicated UiFollowupSuite. It uses generated WAV/PNG/TTF fixtures,
+checks current workspace input and native font-resource reloads, then samples
+actual OpenAL pause state and offsets on Minecraft's sound executor. Fabric's
+matching mode is `runClient -Psmoke -PpackagedSmoke -PuiFollowup` from the port.
+It excludes the ordinary workspace/smoke driver to avoid competing inputs.
+Results use `ui-followup-results.txt`; screenshots use `ui-followup-*.png`.
+The fixture font is original, generated by `testing/generate_font_fixture.py`.
+See the October 24 follow-up report for measured results and coverage limits.
+
+## Player clarity and reversible themes
+
+`runClient -Pworkspace -Pclarity` selects the focused clarity checks inside
+UiFollowupSuite. Fabric uses `runClient -Psmoke -PpackagedSmoke -Pclarity`.
+The mode uses the generated long WAV and a disposable profile capped at 60 FPS.
+It checks song actions, source/editing distinction, readable rules, waiting labels
+and the current ThemePreview flow. Results use `clarity-results.txt`; rendered
+screenshots use `ui-followup-clarity-*.png`. It does not rerun the older broad
+workspace or mute-warning scenarios.

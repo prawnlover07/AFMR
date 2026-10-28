@@ -10,9 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlaybackDefaultsTest {
     @TempDir Path directory;
-    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
-    @Test void newSettingsUseNormalMinecraftGameTiming(){
-        var s=new Settings();assertEquals(600,s.silenceMinSeconds);assertEquals(1200,s.silenceMaxSeconds);assertEquals(0,s.fadeInSeconds);assertEquals(0,s.bufferSeconds);
+    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
+    @Test void newSettingsAndProfilesUseThreeSecondTransitions(){
+        var s=new Settings();assertEquals(600,s.silenceMinSeconds);assertEquals(1200,s.silenceMaxSeconds);assertEquals(0,s.fadeInSeconds);assertEquals(3,s.fadeOutSeconds);assertEquals(3,s.bufferSeconds);
+        var lib=Library.defaults();lib.settings.fadeOutSeconds=9;lib.settings.bufferSeconds=12;
+        String profile=lib.profiles.create(lib,"Fresh",null);lib.profiles.activate(lib,profile);
+        assertEquals(3,lib.settings.fadeOutSeconds);assertEquals(3,lib.settings.bufferSeconds);
     }
     @Test void resetOnlyChangesTheFourPlaybackTimingValues(){
         var lib=Library.defaults();var p=lib.createPlaylist("Keep me");p.tracks.put("a",false);p.finishCurrentSong=true;p.finishCurrentSongOnExit=true;p.conditions.biomeEnabled=true;p.conditions.biomes.add("minecraft:forest");
@@ -28,8 +31,8 @@ class PlaybackDefaultsTest {
         assertTrue(p.finishCurrentSongOnExit);
     }
     @Test void loadingExistingTimingDoesNotAutomaticallyResetIt() throws Exception {
-        var lib=Library.defaults();lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=3;lib.settings.bufferSeconds=3;lib.settings.silenceMinSeconds=5;lib.settings.silenceMaxSeconds=10;
-        try(var store=new LibraryStore(directory.resolve("library.json"))){store.save(lib);var restored=store.load();assertEquals(3,restored.settings.fadeInSeconds);assertEquals(3,restored.settings.bufferSeconds);assertEquals(5,restored.settings.silenceMinSeconds);assertEquals(10,restored.settings.silenceMaxSeconds);}
+        var lib=Library.defaults();lib.settings.fadeInSeconds=7;lib.settings.fadeOutSeconds=0;lib.settings.bufferSeconds=0;lib.settings.silenceMinSeconds=5;lib.settings.silenceMaxSeconds=10;
+        try(var store=new LibraryStore(directory.resolve("library.json"))){store.save(lib);var restored=store.load();assertEquals(7,restored.settings.fadeInSeconds);assertEquals(0,restored.settings.fadeOutSeconds);assertEquals(0,restored.settings.bufferSeconds);assertEquals(5,restored.settings.silenceMinSeconds);assertEquals(10,restored.settings.silenceMaxSeconds);}
     }
     @Test void replayGainDefaultsOnAndItsSavedSwitchIsIndependent() throws Exception {
         var lib=Library.defaults();assertTrue(lib.settings.replayGainEnabled);lib.settings.replayGainEnabled=false;var copy=lib.snapshot();lib.settings.replayGainEnabled=true;

@@ -4,6 +4,20 @@
   "version": "1.0.0",
   "name": "AFMR disposable smoke checks",
   "environment": "client",
-  "entrypoints": { "client": ["dev.animal.afmr.smoke.FabricSmoke", "dev.animal.afmr.smoke.FinalReviewSuite", "dev.animal.afmr.smoke.Feature101Suite"] },
-  "depends": { "afmr": "*" }
+  "entrypoints": {
+    "client": [
+      "dev.animal.afmr.smoke.PlaybackSoakSuite",
+      "dev.animal.afmr.smoke.OvernightSuite",
+      "dev.animal.afmr.smoke.UiFollowupSuite",
+      "dev.animal.afmr.smoke.InlineSettingsSuite",
+      "dev.animal.afmr.smoke.FabricSmoke",
+      "dev.animal.afmr.smoke.NormalizationSuite",
+      "dev.animal.afmr.smoke.FinalReviewSuite",
+      "dev.animal.afmr.smoke.Feature101Suite",
+      "dev.animal.afmr.smoke.CompanionSuite"
+    ]
+  },
+  "depends": {
+    "afmr": "*"
+  }
 }

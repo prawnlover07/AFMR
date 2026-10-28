@@ -9,7 +9,7 @@ class PlaybackInspectorTest {
     private final Library lib=Library.defaults();
     private final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
     private final PlaybackEngine engine=new PlaybackEngine(audio,new Random(1));
-    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:forest",false,false,day?6000:18000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private Context context(boolean day,boolean dead){return new Context("minecraft:overworld","minecraft:forest",false,false,day?6000:18000,false,15,"world",0,80,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private void song(Playlist p,String id){lib.tracks.add(new Track(id,"file",id,false));p.tracks.put(id,true);}
     private PlaybackInspector.Entry row(String id,Context c){return PlaybackInspector.inspect(lib,c,Set.of(),engine).stream().filter(e->e.id().equals(id)).findFirst().orElseThrow();}
     @Test void disabledManualOnlyAndUnmatchedStatesHaveSeparateExplanations(){
@@ -34,7 +34,7 @@ class PlaybackInspectorTest {
         engine.tick(4,lib,context(false,false),Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),8).contains("No available playlist"));
     }
     @Test void retainedSongsExplainExitAndEntryProtection(){
-        var day=lib.playlist("day_outside");var night=lib.playlist("night_outside");song(day,"day");song(night,"night");lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;day.finishCurrentSongOnExit=true;
+        var day=lib.playlist("day_outside");var night=lib.playlist("night_outside");song(day,"day");song(night,"night");lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;day.finishCurrentSongOnExit=true;
         engine.tick(0,lib,context(true,false),Set.of());engine.tick(1,lib,context(false,false),Set.of());
         assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),1).contains("exit setting"));day.finishCurrentSongOnExit=false;night.finishCurrentSong=true;
         assertTrue(PlaybackInspector.waiting(engine,lib,context(false,false),Set.of(),1).contains("entry setting"));

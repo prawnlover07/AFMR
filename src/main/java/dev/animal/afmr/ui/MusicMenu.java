@@ -12,6 +12,7 @@ public final class MusicMenu {
     private MusicMenu() {}
 
     public static Screen reopen(Screen parent, ClientRuntime runtime) {
+        runtime.themes().suspendPreview(false);
         if (saved == null) saved = new LibraryScreen(parent, runtime, "day_outside");
         Screen root = saved;
         while (root instanceof MusicScreen page && (page.parent instanceof MusicScreen || page.parent instanceof LibraryScreen)) root = page.parent;
@@ -25,7 +26,9 @@ public final class MusicMenu {
 
     public static boolean hide(Screen screen) {
         if (!(screen instanceof LibraryScreen) && !(screen instanceof MusicScreen)) return false;
+        if(screen instanceof MusicScreen page)page.cancelSeek();
         remember(screen);
+        ClientRuntime.get().themes().suspendPreview(true);
         Screen root = screen;
         while (root instanceof MusicScreen page && (page.parent instanceof MusicScreen || page.parent instanceof LibraryScreen)) root = page.parent;
         Minecraft.getInstance().gui.setScreen(root instanceof LibraryScreen library ? library.parent : ((MusicScreen) root).parent);

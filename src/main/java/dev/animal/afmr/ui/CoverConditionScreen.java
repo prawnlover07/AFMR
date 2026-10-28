@@ -25,7 +25,7 @@ final class CoverConditionScreen extends MusicScreen {
         depth=edit(""+conditions.minCoverDepth,"Minimum cover depth",left+contentWidth-100,91,100,null);
         var minimumCoverDepthHelpText=Component.translatable("afmr.copy.covercondition.minimum_cover_depth");
         if(!minimumCoverDepthHelpText.getString().isBlank())depth.setTooltip(Tooltip.create(minimumCoverDepthHelpText));
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     @Override public void onClose(){
         try{if(state==State.YES){double value=Double.parseDouble(depth.getValue());if(!Double.isFinite(value)||value<0||value>4096)throw new NumberFormatException();conditions.minCoverDepth=value;}
@@ -33,9 +33,9 @@ final class CoverConditionScreen extends MusicScreen {
         catch(NumberFormatException e){error="Minimum solid cover depth: 0-4096 blocks.";}
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        g.text(font,fit("Minimum depth when covered",contentWidth-108),left,97,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
+        g.text(menuFont,fit("Minimum depth when covered",contentWidth-108),left,97,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
         var c=runtime.context();String current=runtime.inWorld()?"Current: "+(c.covered()?"covered":"open")+" / depth "+(int)Math.max(0,c.coverDepth()):"Not in world";
-        g.text(font,fit(current,contentWidth),left,168,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
+        g.text(menuFont,fit(current,contentWidth),left,168,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
+        g.text(menuFont,fit(error,contentWidth),left,bodyBottom()-48,0xFFFFA0A0);
     }
 }

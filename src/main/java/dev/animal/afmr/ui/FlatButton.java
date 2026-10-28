@@ -12,7 +12,7 @@ import net.minecraft.client.input.*;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.platform.InputConstants;
 class FlatButton extends AbstractWidget {
-    protected final Runnable action;boolean selected;
+    protected final Runnable action;boolean selected,opaque;
     private final WidgetTooltipHolder help=new WidgetTooltipHolder();
     private ScreenRectangle tooltipBounds;
     private final float scale;
@@ -21,7 +21,7 @@ class FlatButton extends AbstractWidget {
         this.scale=scale;
         tooltipBounds=new ScreenRectangle(Math.round(x*scale),Math.round(y*scale),Math.max(1,Math.round(w*scale)),Math.max(1,Math.round(h*scale)));
         help.setDelay(java.time.Duration.ofMillis(350));
-        if(Minecraft.getInstance().font.width(label)>w-8)help.set(Tooltip.create(getMessage()));
+        if(MenuAppearance.font().width(label)>w-8)help.set(Tooltip.create(getMessage()));
     }
     @Override public void setTooltip(Tooltip tooltip){help.set(tooltip);}
     @Override public void setTooltipDelay(java.time.Duration delay){help.setDelay(delay);}
@@ -33,11 +33,12 @@ class FlatButton extends AbstractWidget {
         help.refreshTooltipForNextRenderPass(g,Math.round(mx*scale),Math.round(my*scale),isHovered(),isFocused(),tooltipBounds);
     }
     @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mx,int my,float dt){
-        g.fill(getX(),getY(),getX()+width,getY()+height,selected?MenuAppearance.background(MenuColor.SELECTION,0x35594E):isHoveredOrFocused()?MenuAppearance.background(MenuColor.HOVER,0x3B4949):MenuAppearance.background(MenuColor.CONTROLS,0x283236));
-        if(selected)g.fill(getX(),getY()+height-2,getX()+width,getY()+height,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
-        var font=Minecraft.getInstance().font;g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-8),getX()+4,getY()+(height-8)/2,active?(labelTextColor==null?MenuAppearance.color(MenuColor.TEXT,0xFFE1ECE6):labelTextColor):MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF6D7976),false);
+        int background=selected?MenuAppearance.background(MenuColor.SELECTION,0x304963):isHoveredOrFocused()?MenuAppearance.background(MenuColor.HOVER,0x3B424D):MenuAppearance.background(MenuColor.CONTROLS,0x2C3038);
+        g.fill(getX(),getY(),getX()+width,getY()+height,opaque?background|0xFF000000:background);
+        if(selected)g.fill(getX(),getY()+height-2,getX()+width,getY()+height,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
+        var font=MenuAppearance.font();g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-8),getX()+4,getY()+(height-8)/2,active?(labelTextColor==null?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):labelTextColor):MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF6F7185),false);
     }
     @Override public void onClick(MouseButtonEvent e,boolean twice){action.run();}
-    @Override public boolean keyPressed(KeyEvent e){if(isFocused()&&active&&(e.key()==InputConstants.KEY_RETURN||e.key()==InputConstants.KEY_SPACE)){action.run();return true;}return false;}
+    @Override public boolean keyPressed(KeyEvent e){if(isFocused()&&active&&(e.key()==InputConstants.KEY_RETURN||e.key()==InputConstants.KEY_SPACE)){playDownSound(Minecraft.getInstance().getSoundManager());action.run();return true;}return false;}
     @Override protected void updateWidgetNarration(NarrationElementOutput out){out.add(NarratedElementType.TITLE,getMessage());help.updateNarration(out);}
 }

@@ -15,7 +15,7 @@ class HeldItemConditionsTest {
     private final Settings settings=new Settings();
     private Context context(String main,String off){
         return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,main,off,GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,main,off,GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions fishing(){var c=new PlaylistConditions();c.heldItemEnabled=true;c.heldItems.add(ROD);return c;}
     @Test void eitherHandAcceptsTheRodInEitherSlotAndRejectsEmptyHands(){

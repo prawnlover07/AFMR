@@ -12,7 +12,6 @@ import net.minecraft.client.input.KeyEvent;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -28,51 +27,49 @@ final class NowPlayingSettingsScreen extends MusicScreen {
     private final List<Label> labels=new ArrayList<>();
 
     NowPlayingSettingsScreen(Screen parent,ClientRuntime runtime){super("Display settings",parent,runtime);}
+    NowPlayingSettingsScreen(Screen parent,ClientRuntime runtime,boolean menus){this(parent,runtime);page=menus?1:0;}
 
     @Override protected void init(){
         super.init();var s=runtime.library().settings;
         delay=duration=scale=widgetWidth=backgroundColor=opacity=null;controls.clear();labels.clear();
         int half=(contentWidth-6)/2;
-        button("Widget",left,47,half,()->{if(apply()){page=0;rebuildWidgets();}}).active=page!=0;
-        button("Menus",left+half+6,47,half,()->{if(apply()){page=1;rebuildWidgets();}}).active=page!=1;
+        button("Widget",left,47,half,()->{if(apply()){page=0;scroll=0;rebuildWidgets();}}).active=page!=0;
+        button("Menus",left+half+6,47,half,()->{if(apply()){page=1;scroll=0;rebuildWidgets();}}).active=page!=1;
+        int first=children().size();
         if(page==0){
-            int first=children().size();buildWidget();
-            for(int i=first;i<children().size();i++)if(children().get(i) instanceof AbstractWidget control)
-                controls.add(new Positioned(control,(control.getY()-TOP)/ROW));
-            rows=Math.max(1,(height-53-TOP+4)/ROW);scroll=Math.max(0,Math.min(scroll,Math.max(0,totalRows-rows)));
-            positionControls();
-            addRenderableWidget(new SettingsScrollbar(left+contentWidth-8,TOP,rows*ROW-4,Math.max(0,totalRows-rows),rows,()->scroll,this::scrollTo));
+            buildWidget();
         }else{
-            var menuOpacity=addRenderableWidget(new AbstractSliderButton(left,79,contentWidth,20,
-                Component.literal("Background opacity: "+Math.round(s.menuBackgroundOpacity*100)+"%"),s.menuBackgroundOpacity){
-                @Override protected void updateMessage(){setMessage(Component.literal("Background opacity: "+Math.round(value*100)+"%"));}
-                @Override protected void applyValue(){s.menuBackgroundOpacity=value;}
-            });
+            var menuOpacity=addRenderableWidget(new OpacitySlider("Background opacity",left,79,contentWidth,s.menuBackgroundOpacity,value->s.menuBackgroundOpacity=value));
             var menuOpacityHelpText=Component.translatable("afmr.copy.nowplayingsettings.menu_opacity");
             if(!menuOpacityHelpText.getString().isBlank())menuOpacity.setTooltip(Tooltip.create(menuOpacityHelpText));
-            var menuBlurHelpControl=button("Blur background: "+(s.menuBlur?"on":"off"),left,107,contentWidth,()->change(()->s.menuBlur=!s.menuBlur));
+            var menuBlurHelpControl=toggle("Blur background",left,103,contentWidth,()->s.menuBlur,()->change(()->s.menuBlur=!s.menuBlur));
             var menuBlurHelpText=Component.translatable("afmr.copy.nowplayingsettings.menu_blur");
             if(!menuBlurHelpText.getString().isBlank())menuBlurHelpControl.setTooltip(Tooltip.create(menuBlurHelpText));
-            button("Custom background…",left,135,half,()->{if(apply())minecraft.gui.setScreen(new MenuBackgroundScreen(this,runtime));});
-            button("Menu colors…",left+half+6,135,half,()->{if(apply())minecraft.gui.setScreen(new MenuColorsScreen(this,runtime));});
-            button("Reset menu appearance",left,159,contentWidth,()->change(()->{s.menuColors=MenuColor.defaults();s.menuBackgroundOpacity=0.80;s.menuBlur=true;s.menuImageOpacity=1;s.menuImageFit=dev.animal.afmr.core.MenuImageLayout.Fit.FILL;runtime.menuBackground().enabled(false);}));
+            button("Custom background >",left,127,half,()->{if(apply())minecraft.gui.setScreen(new CustomBackgroundScreen(this,runtime,CustomBackground.Target.MENU));});
+            button("Themes >",left+half+6,127,half,()->{if(apply())minecraft.gui.setScreen(new ThemesScreen(this,runtime));});
+            button("Reset menu appearance",left,151,contentWidth,()->change(()->{s.menuColors=MenuColor.defaults();s.menuBackgroundOpacity=0.80;s.menuBlur=true;s.menuImageOpacity=1;s.menuImageFit=dev.animal.afmr.core.MenuImageLayout.Fit.FILL;runtime.menuBackground().enabled(false);}));
+            button("Menu font: "+runtime.fonts().name(CustomFonts.Target.MENU)+" >",left,175,contentWidth,()->{if(apply())minecraft.gui.setScreen(new FontSettingsScreen(this,runtime,CustomFonts.Target.MENU));});
 
         }
+        if(page==1)totalRows=5;
+        for(int i=first;i<children().size();i++)if(children().get(i) instanceof AbstractWidget control)controls.add(new Positioned(control,(control.getY()-TOP)/ROW));
+        rows=Math.max(1,(bodyBottom()-53-TOP+4)/ROW);scroll=Math.max(0,Math.min(scroll,Math.max(0,totalRows-rows)));positionControls();
+        addRenderableWidget(new SettingsScrollbar(left+contentWidth-8,TOP,rows*ROW-4,Math.max(0,totalRows-rows),rows,()->scroll,this::scrollTo));
         if(page==0){
-            var preview=button("Preview widget",left,height-29,half,()->{
+            var preview=button("Preview widget",left,bodyBottom()-29,half,()->{
                 if(apply()){runtime.overlay().refresh();minecraft.gui.setScreen(new NowPlayingPreviewScreen(this,runtime));}
             });
             preview.active=s.nowPlayingStyle!=NowPlayingStyle.MINECRAFT;
             var previewWidgetHelpText=Component.translatable("afmr.copy.nowplayingsettings.preview_widget");
             if(!previewWidgetHelpText.getString().isBlank())preview.setTooltip(Tooltip.create(previewWidgetHelpText));
         }
-        button("Save & back",page==1?left:left+half+6,height-29,page==1?contentWidth:half,this::onClose);
+        button("Save & back",page==1?left:left+half+6,bodyBottom()-29,page==1?contentWidth:half,this::onClose);
     }
 
     private void buildWidget(){
         var s=runtime.library().settings;boolean custom=s.nowPlayingStyle!=NowPlayingStyle.MINECRAFT,afmr=s.nowPlayingStyle==NowPlayingStyle.AFMR;
         int body=contentWidth-12,half=(body-6)/2,right=left+half+6,row=0;
-        button("Now playing: "+(s.nowPlaying?"on":"off"),left,TOP,half,()->change(()->s.nowPlaying=!s.nowPlaying));
+        toggle("Now playing",left,TOP,half,()->s.nowPlaying,()->change(()->s.nowPlaying=!s.nowPlaying));
         var widgetCornerHelpControl=button("Corner: "+s.widgetCorner.label(),right,TOP,half,()->change(()->s.widgetCorner=WidgetCorner.values()[(s.widgetCorner.ordinal()+1)%WidgetCorner.values().length]));
         var widgetCornerHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_corner");
         if(!widgetCornerHelpText.getString().isBlank())widgetCornerHelpControl.setTooltip(Tooltip.create(widgetCornerHelpText));
@@ -97,7 +94,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
         widgetWidth=number("Width",Integer.toString(s.widgetWidth),"Width",left,TOP+row*ROW,half,custom);
         var widgetWidthHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_width");
         if(!widgetWidthHelpText.getString().isBlank())widgetWidth.setTooltip(Tooltip.create(widgetWidthHelpText));
-        var textLayout=button("Text: "+(s.widgetWrap?"word wrap":"single line"),right,TOP+row++*ROW,half,()->change(()->s.widgetWrap=!s.widgetWrap));
+        var textLayout=toggle("Wrap text",right,TOP+row++*ROW,half,()->s.widgetWrap,()->change(()->s.widgetWrap=!s.widgetWrap));
         textLayout.active=custom;var textLayoutHelpText=Component.translatable("afmr.copy.nowplayingsettings.text_layout");
         if(!textLayoutHelpText.getString().isBlank())textLayout.setTooltip(Tooltip.create(textLayoutHelpText));
         toggle("Artwork / note",s.widgetArtwork,left,TOP+row*ROW,half,custom,()->s.widgetArtwork=!s.widgetArtwork);
@@ -116,12 +113,9 @@ final class NowPlayingSettingsScreen extends MusicScreen {
         opacity=number("Opacity (%)",Double.toString(s.widgetBackgroundOpacity*100),"Background opacity percent",right,TOP+row++*ROW,half,afmr);
         var cardOpacityHelpText=Component.translatable("afmr.copy.nowplayingsettings.card_opacity");
         if(!cardOpacityHelpText.getString().isBlank())opacity.setTooltip(Tooltip.create(cardOpacityHelpText));
-        String[] names={"Black","Gray","Blue","White"},colors={"#000000","#303030","#102030","#FFFFFF"};int presetWidth=(body-12)/4;
-        for(int i=0;i<names.length;i++){
-            String color=colors[i];button(names[i],left+i*(presetWidth+4),TOP+row*ROW,presetWidth,()->{backgroundColor.setValue(color);if(apply())rebuildWidgets();}).active=afmr;
-        }
-        row++;
-        button("Reset appearance",left,TOP+row++*ROW,body,()->{backgroundColor.setValue("#000000");opacity.setValue("92");if(apply())rebuildWidgets();}).active=afmr;
+        button("Widget font: "+runtime.fonts().name(CustomFonts.Target.WIDGET)+" >",left,TOP+row++*ROW,body,()->{if(apply())minecraft.gui.setScreen(new FontSettingsScreen(this,runtime,CustomFonts.Target.WIDGET));}).active=custom;
+        button("Custom background >",left,TOP+row++*ROW,body,()->{if(apply())minecraft.gui.setScreen(new CustomBackgroundScreen(this,runtime,CustomBackground.Target.WIDGET));}).active=afmr;
+        button("Reset appearance",left,TOP+row++*ROW,body,()->{backgroundColor.setValue("#000000");opacity.setValue("92");if(apply()){runtime.widgetBackground().fit(dev.animal.afmr.core.MenuImageLayout.Fit.FILL);runtime.widgetBackground().opacity(1);runtime.widgetBackground().enabled(false);rebuildWidgets();}}).active=afmr;
         totalRows=row;
     }
     private EditBox number(String label,String value,String hint,int x,int y,int width,boolean active){
@@ -135,18 +129,19 @@ final class NowPlayingSettingsScreen extends MusicScreen {
             if(!control.visible&&control.isFocused()){control.setFocused(false);if(getFocused()==control)setFocused(null);}
         }
     }
+    @Override protected void revealControl(AbstractWidget control){for(var position:controls)if(position.control()==control){scrollTo(position.row());break;}}
     private void scrollTo(int target){scroll=Math.max(0,Math.min(target,Math.max(0,totalRows-rows)));positionControls();}
     @Override public boolean mouseScrolled(double x,double y,double dx,double dy){
-        if(page==0&&dy!=0&&x>=left&&x<left+contentWidth&&y>=TOP&&y<TOP+rows*ROW){
+        if(dy!=0&&x>=left&&x<left+contentWidth&&y>=TOP&&y<TOP+rows*ROW){
             scrollTo(scroll-(int)Math.copySign(Math.max(1,Math.ceil(Math.abs(dy)*3)),dy));return true;
         }
         return super.mouseScrolled(x,y,dx,dy);
     }
     @Override public boolean keyPressed(KeyEvent event){
-        if(page==0){
+        {
             if(event.key()==InputConstants.KEY_PAGEUP){scrollTo(scroll-rows);return true;}
             if(event.key()==InputConstants.KEY_PAGEDOWN){scrollTo(scroll+rows);return true;}
-            if(!(getFocused() instanceof EditBox)){
+            if(!(getFocused() instanceof EditBox)&&!(getFocused() instanceof SeekBar)){
                 if(event.key()==InputConstants.KEY_HOME){scrollTo(0);return true;}
                 if(event.key()==InputConstants.KEY_END){scrollTo(totalRows);return true;}
             }
@@ -155,7 +150,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
     }
 
     private void toggle(String label,boolean value,int x,int y,int width,boolean active,Runnable action){
-        var control=button(label+": "+(value?"on":"off"),x,y,width,()->change(action));
+        var control=toggle(label,x,y,width,()->value,()->change(action));
         control.active=active;
         var toggleHelpText=label.equals("Scroll long text")?Component.translatable("afmr.copy.nowplayingsettings.scroll_long_text"):Component.translatable("afmr.copy.nowplayingsettings.information_field",label,value?"on":"off");
         if(!toggleHelpText.getString().isBlank())control.setTooltip(Tooltip.create(toggleHelpText));
@@ -207,7 +202,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         if(page==0)for(var label:labels)if(label.field().visible)
-            g.text(font,label.text(),label.x(),label.field().getY()+6,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        if(!error.isBlank())g.text(font,fit(error,contentWidth),left,height-44,0xFFFFA0A0);
+            g.text(menuFont,label.text(),label.x(),label.field().getY()+6,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        if(!error.isBlank())g.text(menuFont,fit(error,contentWidth),left,bodyBottom()-44,0xFFFFA0A0);
     }
 }

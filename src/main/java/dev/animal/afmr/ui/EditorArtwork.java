@@ -18,6 +18,6 @@ final class EditorArtwork {
             try{Minecraft.getInstance().getTextureManager().register(ID,new DynamicTexture(()->"AFMR selected cover",NativeImage.read(data)));loaded=true;}catch(Exception ignored){}
         }));
     }
-    void draw(GuiGraphicsExtractor g,int x,int y,int size){if(loaded)g.blit(RenderPipelines.GUI_TEXTURED,ID,x,y,0,0,size,size,256,256,256,256);else g.text(Minecraft.getInstance().font,"♪",x+size/2-3,y+size/2-4,0xFF8DE0BE,false);}
+    void draw(GuiGraphicsExtractor g,int x,int y,int size){if(loaded)g.blit(RenderPipelines.GUI_TEXTURED,ID,x,y,0,0,size,size,256,256,256,256);else g.text(MenuAppearance.font(),"♪",x+size/2-3,y+size/2-4,0xFF8DE0BE,false);}
     void close(){generation++;track=null;if(loaded){Minecraft.getInstance().getTextureManager().release(ID);loaded=false;}}
 }

@@ -13,7 +13,7 @@ class HealthConditionsTest {
     @TempDir Path directory;
     private final Settings settings=new Settings();
     private Context context(double hearts,int time){
-        return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,hearts,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,hearts,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions low(){var c=new PlaylistConditions();c.healthEnabled=true;return c;}
 
@@ -64,7 +64,7 @@ class HealthConditionsTest {
         var lib=Library.defaults();var p=lib.createPlaylist("Low health");p.conditions=low();lib.movePlaylist(p.id,0);
         var low=new Track("low","file","Low",false);var normal=new Track("normal","file","Normal",false);lib.tracks.addAll(List.of(low,normal));
         p.tracks.put(low.id,true);lib.playlist("day_outside").tracks.put(normal.id,true);
-        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;
+        lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;
         var engine=new PlaybackEngine(new PlaybackEngineTest.FakeAudio(),new Random(1));
         engine.tick(0,lib,context(10,6000),Set.of());assertSame(normal,engine.current());
         engine.tick(1,lib,context(4,6000),Set.of());assertSame(low,engine.current());

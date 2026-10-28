@@ -12,7 +12,7 @@ class LibraryIndexTest {
         @Override public Iterator<Track> iterator() { if(locked)throw new AssertionError("Steady playback iterated the full library");return super.iterator(); }
         @Override public Spliterator<Track> spliterator() { if(locked)throw new AssertionError("Steady playback streamed the full library");return super.spliterator(); }
     }
-    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+    private final Context outside=new Context("minecraft:overworld","minecraft:forest",false,false,6000,false,15,"",0,64,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     @Test void steadyPlaybackAndPoolUseAssignmentsWithoutWalkingSeventyThousandTracks() {
         Library library=Library.defaults();GuardedTracks tracks=new GuardedTracks();library.tracks=tracks;
         for(int i=0;i<70000;i++)tracks.add(new Track("file:"+i,"path"+i,"Song "+i,false));

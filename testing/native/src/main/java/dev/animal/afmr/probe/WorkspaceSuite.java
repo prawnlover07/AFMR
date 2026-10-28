@@ -110,6 +110,9 @@ public final class WorkspaceSuite {
         var screen=mc.gui.screen();
         if(screen.getClass().getSimpleName().equals("NowPlayingSettingsScreen"))for(int i=0;!control.visible&&i<20;i++)
             screen.mouseScrolled(control.getX(),90,0,control.getY()<79?1:-1);
+        if(screen instanceof LibraryScreen&& !control.visible){
+            Object panel=field(editor,"settingsPanel");try{var scroll=panel.getClass().getDeclaredMethod("scrollTo",int.class);scroll.setAccessible(true);for(int i=0;i<80&&!control.visible;i++)scroll.invoke(panel,i);}catch(Exception ex){throw new RuntimeException(ex);}
+        }
         if(!control.visible)throw new IllegalStateException("Hidden control: "+control.getMessage().getString());
     }
     private static void row(String listField,int index,boolean twice){
@@ -127,6 +130,8 @@ public final class WorkspaceSuite {
     }
     private static void shot(String name){Screenshot.grab(mc.gameDirectory,"workspace-"+name+".png",mc.gameRenderer.mainRenderTarget(),1,message->{});}
     @SubscribeEvent public static void tick(ClientTickEvent.Post ignored){
+        if(Boolean.getBoolean("afmr.probe.uiFollowup")||Boolean.getBoolean("afmr.probe.ridingAudit")||Boolean.getBoolean("afmr.probe.playbackSoak")||Boolean.getBoolean("afmr.probe.overnightAudit"))return;
+        if(Boolean.getBoolean("afmr.probe.normalization")||Boolean.getBoolean("afmr.probe.inlineSettings"))return;
         if(Boolean.getBoolean("afmr.probe.finalReview")||Boolean.getBoolean("afmr.probe.features101"))return;
         if(!Boolean.getBoolean("afmr.probe.workspace")||finished)return;
         mc=Minecraft.getInstance();
@@ -143,6 +148,17 @@ public final class WorkspaceSuite {
             }
             steps.get(step++).run();
         }catch(Throwable e){failed++;log("FAIL step "+step+": "+e);Afmr.LOG.error("Workspace checks",e);if(!started){finished=true;mc.stop();}}
+    }
+    private static void openConditionEditor(){
+        try{var type=Class.forName("dev.animal.afmr.ui.PlaylistConditionsScreen");var ctor=type.getDeclaredConstructors()[0];ctor.setAccessible(true);mc.gui.setScreen((Screen)ctor.newInstance(editor,rt,lib.playlist((String)field(editor,"playlistId")),lib.playlist((String)field(editor,"playlistId")).conditions,0));}catch(Exception ex){throw new RuntimeException(ex);}
+    }
+    private static void editConditionRow(String label){
+        var row=prefix(label);click(widgets().stream().filter(w->w.getMessage().getString().equals("Edit")&&w.getY()==row.getY()).findFirst().orElseThrow());
+    }
+    private static void playlistAction(String label){
+        click("Playlist actions ...");
+        @SuppressWarnings("unchecked") var menu=(List<AbstractWidget>)field(editor,"menuButtons");
+        click(menu.stream().filter(w->w.getMessage().getString().startsWith(label)).findFirst().orElseThrow());
     }
     private static void showPlaylist(String id){editor=new LibraryScreen(null,rt,id);mc.gui.setScreen(editor);}
     @SuppressWarnings("unchecked") private static List<Track> songRows(){return (List<Track>)field(editor,"songRows");}
@@ -206,7 +222,7 @@ public final class WorkspaceSuite {
         throw new IllegalStateException("No control: "+label);
     }
     private static void pressAutoplay(){
-        var w=button("Autoplay here");hover(w);float scale=(float)field(editor,"scale");
+        var w=button("Set playback area here");hover(w);float scale=(float)field(editor,"scale");
         heldEvent=new MouseButtonEvent((w.getX()+w.getWidth()/2d)*scale,(w.getY()+w.getHeight()/2d)*scale,new MouseButtonInfo(InputConstants.MOUSE_BUTTON_LEFT,0));
         editor.mouseClicked(heldEvent,false);
     }
@@ -241,10 +257,10 @@ public final class WorkspaceSuite {
             check("Widget opacity unchanged",lib.settings.widgetBackgroundOpacity==0.92);click("Playlists");});
         steps.add(()->{shot("menu-workspace-default");mc.options.pauseOnLostFocus=pauseOnLostFocus;rt.save();});
     }
-    @SuppressWarnings("unchecked") private static Map<MenuColor,EditBox> colorFields(){return (Map<MenuColor,EditBox>)field(mc.gui.screen(),"fields");}
+    @SuppressWarnings("unchecked") private static Map<String,EditBox> colorFields(){return (Map<String,EditBox>)field(mc.gui.screen(),"fields");}
     private static final int[] PURPLE_COLORS={0x22142B,0x30203B,0x473150,0x604268,0x624176,0xDD92EE,0xF3E7F6,0xBFA8C9,0x79568A,0xAE77BB};
     private static void editColorPage(){
-        colorFields().forEach((role,box)->box.setValue(String.format(Locale.ROOT,"#%06X",PURPLE_COLORS[role.ordinal()])));
+        for(var role:MenuColor.values()){var box=colorFields().get(role.name());if(box!=null)box.setValue(String.format(Locale.ROOT,"#%06X",PURPLE_COLORS[role.ordinal()]));}
     }
     private static void reflowColorEditor(int height){
         var screen=mc.gui.screen();screen.height=height;
@@ -266,25 +282,25 @@ public final class WorkspaceSuite {
     private static void menuColorChecks(){
         lib.settings.menuColors=MenuColor.defaults();lib.settings.menuBackgroundOpacity=0.5;lib.settings.menuImageEnabled=false;
         lib.settings.menuImageOpacity=0.4;lib.settings.widgetBackgroundColor=0x123456;
-        steps.add(()->{click("Display");click("Menus");click("Menu colors…");check("Menu color editor opens",mc.gui.screen().getClass().getSimpleName().equals("MenuColorsScreen"));
+        steps.add(()->{click("Display");click("Menus");click("Themes…");click("Edit colors…");check("Menu color editor opens",mc.gui.screen().getClass().getSimpleName().equals("ThemeEditorScreen"));
             check("Color fields fit the screen",widgets().stream().allMatch(w->w.getY()>=0&&w.getBottom()<=mc.gui.screen().height));
-            var field=colorFields().get(MenuColor.BACKGROUND);field.setValue("#123");var screen=mc.gui.screen();click("Save & back");check("Invalid RGB blocks navigation",mc.gui.screen()==screen);
+            var field=colorFields().get("BACKGROUND");field.setValue("#123");var screen=mc.gui.screen();click("Save & back");check("Invalid RGB blocks navigation",mc.gui.screen()==screen);
             field.setValue("#22142B");check("Valid RGB previews immediately",lib.settings.menuColors.get(MenuColor.BACKGROUND)==0x22142B);editColorPage();
         });
         steps.add(()->{shot("menu-colors-editor");click(">");editColorPage();
             check("All menu color families are editable",Arrays.stream(MenuColor.values()).allMatch(role->lib.settings.menuColors.get(role)==PURPLE_COLORS[role.ordinal()]));
-            var accent=colorFields().get(MenuColor.ACCENT);accent.setValue("bad");click("<");check("Invalid RGB blocks page change",colorFields().containsKey(MenuColor.ACCENT));accent.setValue("DD92EE");
-            MusicMenu.hide(mc.gui.screen());mc.gui.setScreen(MusicMenu.reopen(null,rt));check("Hidden color draft retained",colorFields().get(MenuColor.ACCENT).getValue().equals("DD92EE"));
+            var accent=colorFields().get("ACCENT");accent.setValue("bad");click("<");check("Invalid RGB blocks page change",colorFields().containsKey("ACCENT"));accent.setValue("DD92EE");
+            MusicMenu.hide(mc.gui.screen());mc.gui.setScreen(MusicMenu.reopen(null,rt));check("Hidden color draft retained",colorFields().get("ACCENT").getValue().equals("DD92EE"));
             int oldHeight=mc.gui.screen().height;reflowColorEditor(oldHeight+220);
-            check("Resize retains drafts by color family",colorFields().get(MenuColor.ACCENT).getValue().equals("DD92EE")&&colorFields().get(MenuColor.BACKGROUND).getValue().equals("#22142B"));
-            reflowColorEditor(oldHeight);if(!colorFields().containsKey(MenuColor.ACCENT))click(">");
+            check("Resize retains drafts by color family",colorFields().get("ACCENT").getValue().equals("DD92EE")&&colorFields().get("BACKGROUND").getValue().equals("#22142B"));
+            reflowColorEditor(oldHeight);if(!colorFields().containsKey("ACCENT"))click(">");
             check("Resize does not remap palette values",Arrays.stream(MenuColor.values()).allMatch(role->lib.settings.menuColors.get(role)==PURPLE_COLORS[role.ordinal()]));checkPaletteRender(false);
         });
         steps.add(()->{shot("menu-colors-text");click("Save & back");click("Playlists");checkPaletteRender(true);});
-        steps.add(()->{shot("menu-colors-workspace");click("Timing");checkPaletteRender(false);click("Display");if(button("Menus").active)click("Menus");click("Menu colors…");
-            colorFields().get(MenuColor.BACKGROUND).setValue("bad");click("Reset colors");check("Reset colors recovers invalid input",lib.settings.menuColors.equals(MenuColor.defaults()));
+        steps.add(()->{shot("menu-colors-workspace");click("Timing");checkPaletteRender(false);click("Display");if(button("Menus").active)click("Menus");click("Themes…");click("Edit colors…");
+            colorFields().get("BACKGROUND").setValue("bad");click("Reset menu colors");check("Reset colors recovers invalid input",lib.settings.menuColors.equals(MenuColor.defaults()));
             check("Reset colors preserves opacity image and widget settings",lib.settings.menuBackgroundOpacity==0.5&&lib.settings.menuImageOpacity==0.4&&lib.settings.widgetBackgroundColor==0x123456);
-            click("Save & back");click("Reset menu appearance");check("Full menu reset restores palette and opacity",lib.settings.menuColors.equals(MenuColor.defaults())&&lib.settings.menuBackgroundOpacity==0.80);
+            click("Save & back");click("Back");click("Reset menu appearance");check("Full menu reset restores palette and opacity",lib.settings.menuColors.equals(MenuColor.defaults())&&lib.settings.menuBackgroundOpacity==0.80);
             mc.options.pauseOnLostFocus=pauseOnLostFocus;rt.save();
         });
     }
@@ -298,13 +314,13 @@ public final class WorkspaceSuite {
     }
     private static void colorPickerChecks(){
         lib.settings.menuColors=MenuColor.defaults();lib.settings.menuBackgroundOpacity=0.5;lib.settings.widgetBackgroundColor=0x123456;
-        steps.add(()->{click("Display");click("Menus");click("Menu colors…");
+        steps.add(()->{click("Display");click("Menus");click("Themes…");click("Edit colors…");
             for(var role:MenuColor.values()){
                 findPage("Pick "+role.label);click("Pick "+role.label);
                 check(role.label+" opens a seeded picker",mc.gui.screen().getClass().getSimpleName().equals("ColorPickerScreen")&&((ColorPickerState)field(mc.gui.screen(),"color")).rgb()==role.defaultRgb);
                 click("Cancel");
             }
-            while(!colorFields().containsKey(MenuColor.BACKGROUND))click("<");click("Pick Background");
+            while(!colorFields().containsKey("BACKGROUND"))click("<");click("Pick Background");
             check("Picker controls fit the screen",widgets().stream().allMatch(w->w.getX()>=0&&w.getRight()<=mc.gui.screen().width&&w.getY()>=0&&w.getBottom()<=mc.gui.screen().height));
             pickerHex().setValue("#FF0000");check("Picker hex previews the menu",lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF0000);
             choosePickerArea(1,0.5,1/3d,false);check("Hue strip selects green",lib.settings.menuColors.get(MenuColor.BACKGROUND)==0x00FF00);
@@ -316,8 +332,8 @@ public final class WorkspaceSuite {
             screen.setFocused(area);screen.keyPressed(new net.minecraft.client.input.KeyEvent(InputConstants.KEY_UP,0,0));check("Focused arrows adjust the picker",lib.settings.menuColors.get(MenuColor.BACKGROUND)>0);
             pickerHex().setValue("#12");click("Apply");check("Invalid hex blocks Apply",mc.gui.screen()==screen);
             click("Cancel");check("Cancel restores original menu color",lib.settings.menuColors.get(MenuColor.BACKGROUND)==MenuColor.BACKGROUND.defaultRgb);
-            colorFields().get(MenuColor.BACKGROUND).setValue("bad");click("Pick Background");click("#FF4040");click("Apply");
-            check("Picker can recover invalid parent hex",lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF4040&&colorFields().get(MenuColor.BACKGROUND).getValue().equals("#FF4040"));
+            colorFields().get("BACKGROUND").setValue("bad");click("Pick Background");click("#FF4040");click("Apply");
+            check("Picker can recover invalid parent hex",lib.settings.menuColors.get(MenuColor.BACKGROUND)==0xFF4040&&colorFields().get("BACKGROUND").getValue().equals("#FF4040"));
             check("Picker preserves panel opacity",lib.settings.menuBackgroundOpacity==0.5);
             click("Save & back");lib.settings.nowPlayingStyle=NowPlayingStyle.MINECRAFT;click("Widget");check("Unsupported widget style disables picker",!button("Pick Background color").active);
             lib.settings.nowPlayingStyle=NowPlayingStyle.AFMR;click("Menus");click("Widget");click("Pick Background color");pickerHex().setValue("#00A0C0");
@@ -375,12 +391,12 @@ public final class WorkspaceSuite {
     private static void gameModeChecks(){
         steps.add(()->{
             mc.options.pauseOnLostFocus=false;originalMode=rt.context().gameMode();showPlaylist(target.id);
-            click("Name & conditions");findPage("Gamemode:");click(prefix("Gamemode:"));
+            openConditionEditor();findPage("Gamemode");editConditionRow("Gamemode");
             check("Gamemode editor reachable",mc.gui.screen().getClass().getSimpleName().equals("GameModeConditionScreen"));
-            check("All four gamemodes visible",List.of("Survival: on","Creative: off","Adventure: off","Spectator: off").stream().allMatch(s->button(s).active));
-            click("Filter: off");click("Survival: on");click("Creative: off");click("Spectator: off");
+            check("All four gamemodes visible",List.of("Survival","Creative","Adventure","Spectator").stream().allMatch(s->button(s).active));
+            click("Filter");click("Survival");click("Creative");click("Spectator");
             var draft=mc.gui.screen();MusicMenu.hide(draft);mc.gui.setScreen(MusicMenu.reopen(null,rt));
-            check("Gamemode draft survives hide/reopen",mc.gui.screen()==draft&&button("Creative: on").active&&button("Spectator: on").active);
+            check("Gamemode draft survives hide/reopen",mc.gui.screen()==draft&&button("Creative").active&&button("Spectator").active);
         });
         steps.add(()->{shot("gamemode-choices");click("Save & back");click("Save & back");
             check("Multiple gamemode choices saved",target.conditions.gameModeEnabled&&target.conditions.gameModes.equals(Set.of(GameMode.CREATIVE,GameMode.SPECTATOR)));
@@ -394,11 +410,11 @@ public final class WorkspaceSuite {
         steps.add(()->{check("Server Creative observed",rt.context().gameMode()==GameMode.CREATIVE);check("Creative starts gamemode playlist",rt.engine().automaticSelected()==target&&target.id.equals(rt.engine().sourcePlaylistId()));NativeSuite.command("gamemode adventure @s");});
         steps.add(()->{check("Server Adventure observed",rt.context().gameMode()==GameMode.ADVENTURE);check("Adventure returns to fallback",rt.engine().automaticSelected()==modeFallback&&modeFallback.id.equals(rt.engine().sourcePlaylistId()));NativeSuite.command("gamemode spectator @s");});
         steps.add(()->{check("Server Spectator observed",rt.context().gameMode()==GameMode.SPECTATOR);check("Spectator starts gamemode playlist",rt.engine().automaticSelected()==target&&target.id.equals(rt.engine().sourcePlaylistId()));
-            showPlaylist(target.id);click("Name & conditions");findPage("Gamemode:");click(prefix("Gamemode:"));click("Filter: on");click("Save & back");click("Save & back");NativeSuite.command("gamemode survival @s");});
+            showPlaylist(target.id);openConditionEditor();findPage("Gamemode");editConditionRow("Gamemode");click("Filter");click("Save & back");click("Save & back");NativeSuite.command("gamemode survival @s");});
         steps.add(()->{check("Filter off keeps choices and matches Survival",!target.conditions.gameModeEnabled&&target.conditions.gameModes.size()==2&&rt.engine().automaticSelected()==target);
-            click("Name & conditions");findPage("Gamemode:");click(prefix("Gamemode:"));click("Filter: off");click("Creative: on");click("Spectator: on");click("Save & back");click("Save & back");});
+            openConditionEditor();findPage("Gamemode");editConditionRow("Gamemode");click("Filter");click("Creative");click("Spectator");click("Save & back");click("Save & back");});
         steps.add(()->{check("Enabled empty selection falls through",target.conditions.gameModeEnabled&&target.conditions.gameModes.isEmpty()&&rt.engine().automaticSelected()==modeFallback);
-            click("Name & conditions");findPage("Gamemode:");click(prefix("Gamemode:"));check("Saved empty selection reopens",button("Filter: on").active&&button("Survival: off").active&&button("Creative: off").active&&button("Adventure: off").active&&button("Spectator: off").active);
+            openConditionEditor();findPage("Gamemode");editConditionRow("Gamemode");check("Saved empty selection reopens",button("Filter").active&&button("Survival").active&&button("Creative").active&&button("Adventure").active&&button("Spectator").active);
             click("Save & back");click("Save & back");NativeSuite.command("gamemode "+originalMode.name().toLowerCase(Locale.ROOT)+" @s");
         });
         steps.add(()->{target.enabled=modeFallback.enabled=false;rt.engine().reset();mc.options.pauseOnLostFocus=pauseOnLostFocus;rt.save();});
@@ -421,21 +437,21 @@ public final class WorkspaceSuite {
             check("Outgoing source remains during trigger fade",modeFallback.id.equals(rt.engine().sourcePlaylistId()));shot("play-on-trigger-fade");});
         steps.add(()->{check("Triggered song starts without ten-second silence",target.id.equals(rt.engine().sourcePlaylistId())&&rt.now()-triggerAt<5);
             check("Native trigger audio starts without error",rt.engine().current()!=null&&rt.engine().error().isBlank());triggerSequence=rt.engine().playbackSequence();});
-        steps.add(()->{check("Matching ticks do not restart triggered song",rt.engine().playbackSequence()==triggerSequence);shot("play-on-trigger");click("Skip / play");});
+        steps.add(()->{check("Matching ticks do not restart triggered song",rt.engine().playbackSequence()==triggerSequence);shot("play-on-trigger");click("Skip & wait");});
         steps.add(()->{check("Manual skip still uses normal silence",rt.engine().current()==null&&rt.engine().remainingSilence(rt.now())>8);
-            click("Name & conditions");findPage("Time:");click(prefix("Time:"));
-            var fields=widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList();fields.get(1).setValue("18000");click("Fit songs to time window: off");});
+            openConditionEditor();findPage("Time of day");editConditionRow("Time of day");
+            var fields=widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList();fields.get(1).setValue("18000");click("Fit songs to time window");});
         steps.add(()->{shot("time-window-fit");click("Save & back");click("Save & back");
             check("Time-window fit saves through editor",target.conditions.fitSongsToTimeWindow&&target.conditions.endTime==18000);
             lib.track("file:workspace_a").durationSeconds=0;rt.playNow();});
         steps.add(()->{});
         steps.add(()->{check("Missing generated WAV duration is cached",lib.track("file:workspace_a").durationSeconds>89&&lib.track("file:workspace_a").durationSeconds<91);
             check("Fitting generated WAV starts automatically",target.id.equals(rt.engine().sourcePlaylistId()));
-            click("Name & conditions");findPage("Time:");click(prefix("Time:"));
+            openConditionEditor();findPage("Time of day");editConditionRow("Time of day");
             widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList().get(1).setValue("14020");click("Save & back");click("Save & back");rt.skip();rt.playNow();});
         steps.add(()->{check("No fitting song keeps playlist priority",rt.engine().automaticSelected()==target&&rt.engine().selected()==target);
             check("No fitting song remains silent",rt.engine().current()==null&&rt.engine().waitingForTimeFit());
-            click("Name & conditions");findPage("Time:");click(prefix("Time:"));
+            openConditionEditor();findPage("Time of day");editConditionRow("Time of day");
             widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList().get(1).setValue("18000");click("Save & back");click("Save & back");rt.playNow();});
         steps.add(()->{check("Wider window resumes a fitting song",target.id.equals(rt.engine().sourcePlaylistId()));target.enabled=modeFallback.enabled=false;rt.engine().reset();NativeSuite.command("time resume");mc.options.pauseOnLostFocus=pauseOnLostFocus;rt.save();});
     }
@@ -480,15 +496,15 @@ public final class WorkspaceSuite {
             mc.options.getSoundSourceOptionInstance(SoundSource.RECORDS).set(recordVolume);lib.settings.jukeboxMode=JukeboxMode.OFF;modeFallback.enabled=false;rt.engine().reset();mc.options.pauseOnLostFocus=pauseOnLostFocus;mc.options.save();rt.save();});
     }
     private static void templateChecks(){
-        steps.add(()->{showPlaylist("day_outside");click("Name & conditions");name("Day template edited");click("Save & back");check("Default name is editable",lib.playlist("day_outside").name.equals("Day template edited"));});
-        steps.add(()->{showPlaylist("dark_exploration");click("Name & conditions");findPage("Groups:");click(prefix("Groups:"));check("Default groups reachable",mc.gui.screen().getClass().getSimpleName().equals("ConditionGroupsScreen"));
+        steps.add(()->{showPlaylist("day_outside");playlistAction("Rename playlist");name("Day template edited");click("Rename");check("Default name is editable",lib.playlist("day_outside").name.equals("Day template edited"));});
+        steps.add(()->{showPlaylist("dark_exploration");openConditionEditor();findPage("Condition groups:");click(prefix("Condition groups:"));check("Default groups reachable",mc.gui.screen().getClass().getSimpleName().equals("ConditionGroupsScreen"));
             var list=widgets().stream().filter(w->w.getClass().getSimpleName().equals("DenseList")).findFirst().orElseThrow();
             var event=new MouseButtonEvent(list.getX()+20,list.getY()+21,new MouseButtonInfo(InputConstants.MOUSE_BUTTON_LEFT,0));mc.gui.screen().mouseClicked(event,true);mc.gui.screen().mouseReleased(event);
-            click(prefix("Group:"));click("Save & back");check("Dimension branch editable",lib.playlist("dark_exploration").conditions.groups.get(1).enabled);click("Back");click("Save & back");});
-        steps.add(()->{lib.playlist("dark_exploration").tracks.put("file:workspace_a",false);click("Clone");name("Workspace branch");click("Clone");branch=lib.playlist((String)field(editor,"playlistId"));
+            click("Group enabled");click("Save & back");check("Dimension branch editable",lib.playlist("dark_exploration").conditions.groups.get(1).enabled);click("Back");click("Save & back");});
+        steps.add(()->{lib.playlist("dark_exploration").tracks.put("file:workspace_a",false);playlistAction("Duplicate playlist");name("Workspace branch");click("Duplicate");branch=lib.playlist((String)field(editor,"playlistId"));
             check("Clone selected and independent",branch!=lib.playlist("dark_exploration")&&branch.conditions!=lib.playlist("dark_exploration").conditions&&Boolean.FALSE.equals(branch.tracks.get("file:workspace_a")));
             check("Clone keeps nested branch",branch.conditions.groups.get(1).enabled);branch.manualOnly=true;oldConditions=branch.conditions;
-            click("Autoplay here");check("Autoplay tap does not change conditions",branch.conditions==oldConditions);pressAutoplay();});
+            click("Set playback area here");check("Autoplay tap does not change conditions",branch.conditions==oldConditions);pressAutoplay();});
         steps.add(()->{shot("autoplay-partial");check("Hold warning replaces label",button("Are you sure? Replaces conditions").getMessage().getString().contains("Replaces"));releaseAutoplay();check("Short hold cancels",branch.conditions==oldConditions);});
         steps.add(()->{pressAutoplay();hoverX=hoverY=0;});
         steps.add(()->{});
@@ -500,9 +516,9 @@ public final class WorkspaceSuite {
             check("Autoplay keeps assignments and original template",Boolean.FALSE.equals(branch.tracks.get("file:workspace_a"))&&lib.playlist("dark_exploration").conditions.groups.size()==3);
             oldConditions=branch.conditions;pressAutoplay();click("Timing");});
         steps.add(()->{hovering=false;click("Playlists");check("Navigation cancels an armed hold",branch.conditions==oldConditions);showPlaylist(target.id);row("songs",0,false);rt.preview(lib.track("file:workspace_a"));});
-        steps.add(()->{check("Artwork fixture loaded",(boolean)field(field(editor,"art"),"loaded"));click("Skip / play");});
+        steps.add(()->{check("Artwork fixture loaded",(boolean)field(field(editor,"art"),"loaded"));click("Skip & wait");});
         steps.add(()->{check("Silent gap clears current track and cover",rt.engine().current()==null&&field(field(editor,"art"),"track")==null&&!(boolean)field(field(editor,"art"),"loaded"));check("Preview selection is retained",field(editor,"inspected")==lib.track("file:workspace_a"));shot("footer-cleared");rt.preview(lib.track("file:workspace_b"));});
-        steps.add(()->{check("No-cover song does not inherit artwork",rt.engine().current()==lib.track("file:workspace_b")&&field(field(editor,"art"),"track")==lib.track("file:workspace_b")&&!(boolean)field(field(editor,"art"),"loaded"));shot("footer-no-cover");click("Preview");});
+        steps.add(()->{check("No-cover song does not inherit artwork",rt.engine().current()==lib.track("file:workspace_b")&&field(field(editor,"art"),"track")==lib.track("file:workspace_b")&&!(boolean)field(field(editor,"art"),"loaded"));shot("footer-no-cover");click("Preview song");});
         steps.add(()->{check("Selected preview still works",rt.engine().current()==lib.track("file:workspace_a"));click("Display");var seen=EnumSet.noneOf(WidgetCorner.class);for(int i=0;i<5;i++){seen.add(lib.settings.widgetCorner);click(prefix("Corner:"));}check("Corner selector exposes all corners and default",seen.size()==5);mc.gui.setScreen(null);lib.settings.nowPlayingStyle=NowPlayingStyle.AFMR;lib.settings.popupSeconds=60;lib.settings.widgetCorner=WidgetCorner.TOP_LEFT;rt.overlay().refresh();});
         for(var corner:new WidgetCorner[]{WidgetCorner.TOP_LEFT,WidgetCorner.TOP_RIGHT,WidgetCorner.BOTTOM_LEFT,WidgetCorner.BOTTOM_RIGHT}){
             steps.add(()->{lib.settings.widgetCorner=corner;rt.overlay().refresh();});
@@ -578,25 +594,14 @@ public final class WorkspaceSuite {
         var track=lib.tracks.stream().filter(t->!t.vanilla&&t.durationSeconds>=30&&Files.isRegularFile(Path.of(t.path))).findFirst().orElseThrow();
         target=lib.createPlaylist("Silence fixture");target.includeVanilla=false;target.tracks.put(track.id,true);lib.movePlaylist(target.id,0);
         showPlaylist(target.id);
-        check("Volume and silence share one row without overlap",button("Silence: default").getX()>=prefix("Volume:").getRight());
-        click("Silence: default");
-        check("Playlist silence editor opens with inherited default",mc.gui.screen().getClass().getSimpleName().equals("PlaylistSilenceScreen")&&!target.customSilence&&button("Custom silence: off").active);
-        check("Small-window controls fit without overlap",widgetBounds());
-        widgetField("minimum").setValue("600");widgetField("maximum").setValue("600");click("Custom silence: off");
-        check("Fixed ten-minute custom gap can be enabled",target.customSilence&&target.silenceMinSeconds==600&&target.silenceMaxSeconds==600);
-        widgetField("minimum").setValue("invalid");var screen=mc.gui.screen();click("Save & back");
-        check("Invalid draft blocks saving",mc.gui.screen()==screen&&target.silenceMinSeconds==600);
-        click("Custom silence: on");check("Invalid draft also blocks toggling",target.customSilence);
-        widgetField("minimum").setValue("601");click("Save & back");check("Reversed range blocks saving",mc.gui.screen()==screen);
-        widgetField("minimum").setValue("600");widgetField("maximum").setValue("86401");click("Save & back");check("Over-limit range blocks saving",mc.gui.screen()==screen);
-        widgetField("maximum").setValue("600");MusicMenu.hide(screen);mc.gui.setScreen(MusicMenu.reopen(null,rt));
-        check("Hide and reopen retains fields",mc.gui.screen()==screen&&widgetField("maximum").getValue().equals("600"));
-        int originalHeight=screen.height;widgetReflow(screen,originalHeight+20);check("Resize retains numeric drafts",widgetField("minimum").getValue().equals("600")&&widgetField("maximum").getValue().equals("600"));widgetReflow(screen,originalHeight);
-        click("Custom silence: on");click("Custom silence: off");
-        steps.add(()->{shot("playlist-silence-editor");click("Save & back");check("Workspace label reflects custom timing",button("Silence: custom").active);});
-        steps.add(()->{shot("playlist-silence-workspace");click("Silence: custom");click("Custom silence: on");check("Disabling keeps the saved range",!target.customSilence&&target.silenceMinSeconds==600&&target.silenceMaxSeconds==600);
-            click("Save & back");check("Workspace label returns to default",button("Silence: default").active);click("Silence: default");click("Custom silence: off");
-            widgetField("minimum").setValue("3");widgetField("maximum").setValue("3");click("Save & back");rt.overridePlaylist(target.id,OverrideMode.UNTIL_RELEASED);});
+        var panel=field(editor,"settingsPanel");
+        @SuppressWarnings("unchecked") var fields=(Map<String,EditBox>)field(panel,"fields");
+        try{var scroll=panel.getClass().getDeclaredMethod("scrollTo",int.class);scroll.setAccessible(true);scroll.invoke(panel,10);}catch(Exception ex){throw new RuntimeException(ex);}
+        click("Custom gap between songs");panel=field(editor,"settingsPanel");
+        @SuppressWarnings("unchecked") var gapFields=(Map<String,EditBox>)field(panel,"fields");
+        gapFields.get("min").setValue("3");gapFields.get("max").setValue("3");click("Include Minecraft music");
+        check("Inline custom gap applies without a separate editor",target.customSilence&&target.silenceMinSeconds==3&&target.silenceMaxSeconds==3);
+        target.includeVanilla=false;rt.overridePlaylist(target.id,OverrideMode.UNTIL_RELEASED);
         steps.add(()->{check("Manual override starts generated music despite custom gap",rt.engine().current()!=null&&target.id.equals(rt.engine().sourcePlaylistId()));triggerSequence=rt.engine().playbackSequence();rt.skip();});
         steps.add(()->check("Skip waits inside the custom three-second gap",rt.engine().current()==null&&rt.engine().remainingSilence(rt.now())>0&&rt.engine().remainingSilence(rt.now())<=3));
         steps.add(()->{});steps.add(()->{});steps.add(()->{});steps.add(()->{});
@@ -616,7 +621,7 @@ public final class WorkspaceSuite {
         click("Menus");check("Invalid widget draft blocks tab navigation",mc.gui.screen()==screen&&(int)field(screen,"page")==0);duration.setValue("9");
         widgetField("scale").setValue("125");widgetField("widgetWidth").setValue("360");
         click("Menus");check("Switching tabs saves all widget fields",lib.settings.popupSeconds==9&&lib.settings.widgetScale==1.25&&lib.settings.widgetWidth==360);
-        check("Menus contains only menu controls",widgets().stream().noneMatch(EditBox.class::isInstance)&&button("Custom background…").active&&button("Menu colors…").active);
+        check("Menus contains only menu controls",widgets().stream().noneMatch(EditBox.class::isInstance)&&button("Custom background…").active&&button("Themes…").active);
         check("Menus controls fit without overlap",widgetBounds());click("Widget");
         var before=lib.settings.widgetCorner;click(prefix("Corner:"));check("Corner remains configurable",lib.settings.widgetCorner!=before);
         click(prefix("Style:"));check("Minecraft style keeps native controls and disables custom fields",lib.settings.nowPlayingStyle==NowPlayingStyle.MINECRAFT&&!widgetField("duration").active&&!widgetField("scale").active&&!button("Pick Background color").active&&!button("Preview widget").active&&widgets().stream().anyMatch(w->w instanceof net.minecraft.client.gui.components.CycleButton<?> &&w.active));
@@ -662,14 +667,14 @@ public final class WorkspaceSuite {
         var background=rt.menuBackground();
         background.enabled(false);lib.settings.menuImageName="";lib.settings.menuImageOpacity=1;lib.settings.menuBackgroundOpacity=0.25;
         try{
-            var constructor=Class.forName("dev.animal.afmr.ui.MenuBackgroundScreen").getDeclaredConstructor(Screen.class,ClientRuntime.class);
-            constructor.setAccessible(true);mc.gui.setScreen((Screen)constructor.newInstance(null,rt));
+            var constructor=Class.forName("dev.animal.afmr.ui.CustomBackgroundScreen").getDeclaredConstructor(Screen.class,ClientRuntime.class,dev.animal.afmr.ui.CustomBackground.Target.class);
+            constructor.setAccessible(true);mc.gui.setScreen((Screen)constructor.newInstance(null,rt,dev.animal.afmr.ui.CustomBackground.Target.MENU));
         }catch(Exception e){throw new RuntimeException(e);}
         background.choose(Path.of("background-fixtures/lossless.webp"));
         steps.add(()->{
             check("Packaged WebP decoder imports through actual menu worker",!background.busy()&&background.status().isBlank()&&(boolean)field(background,"uploaded"));
             check("Static WebP uploads one texture",((Object[])field(background,"textures")).length==1&&lib.settings.menuImageName.equals("lossless.webp"));
-            check("Fast import refreshes enabled and remove controls",button("Image: on").active&&button("Remove image").active);
+            check("Fast import refreshes enabled and remove controls",button("Image").active&&button("Remove image").active);
             shot("background-webp");background.choose(Path.of("background-fixtures/disposal.gif"));
         });
         steps.add(()->{
@@ -747,15 +752,15 @@ public final class WorkspaceSuite {
         target=lib.createPlaylist("Workspace regression");target.enabled=false;target.includeVanilla=false;
         editor=new LibraryScreen(null,rt,target.id);mc.gui.setScreen(editor);
         steps.add(()->{
-            check("Six direct navigation controls",List.of("Playlists","Library","Timing","Display","Keys","Inspector").stream().allMatch(t->widgets().stream().anyMatch(w->w.getMessage().getString().equals(t))));
+            check("Six direct navigation controls",List.of("Playlists","Library","Timing","Display","Shortcuts","Playback status").stream().allMatch(t->widgets().stream().anyMatch(w->w.getMessage().getString().equals(t))));
             ((EditBox)field(editor,"librarySearch")).setValue("Workspace tone");
             check("Library below priority",((AbstractWidget)field(editor,"folders")).getY()>((AbstractWidget)field(editor,"priorities")).getY()+((AbstractWidget)field(editor,"priorities")).getHeight());
         });
-        steps.add(()->{check("Scaled workspace tooltip fixture",(float)field(editor,"scale")<1);hover(prefix("Finish song on exit:"));});
+        steps.add(()->{check("Scaled workspace tooltip fixture",(float)field(editor,"scale")<1);revealWidget(prefix("Finish songs before switching away"));hover(prefix("Finish songs before switching away"));});
         // The first rendered tooltip can be delayed by world/renderer startup work.
         steps.add(()->{});
         steps.add(()->checkHover("tooltip-right-edge"));
-        steps.add(()->hover(button("Automatic")));
+        steps.add(()->hover(button("Use automatic playlists")));
         steps.add(()->checkHover("tooltip-bottom-edge"));
         steps.add(()->{click("Timing");hover(widgets().stream().filter(EditBox.class::isInstance).findFirst().orElseThrow());});
         steps.add(()->{checkHover("tooltip-timing-field");click("Display");hover(button("Preview widget"));});
@@ -763,23 +768,23 @@ public final class WorkspaceSuite {
         steps.add(()->{row("folders",1,true);check("Double click assigns a library song",target.tracks.containsKey("file:workspace_a"));});
         steps.add(()->{row("folders",2,false);click("Add selected / folder ->");check("Selected song assigned on same screen",target.tracks.size()==2);});
         steps.add(()->{row("songs",0,false);click("Disable");check("Bulk disable",Boolean.FALSE.equals(target.tracks.get("file:workspace_a")));click("Enable");check("Bulk enable",Boolean.TRUE.equals(target.tracks.get("file:workspace_a")));});
-        steps.add(()->{click(prefix("Finish song on entry:"));check("Entry independent",target.finishCurrentSong&&!target.finishCurrentSongOnExit);click(prefix("Finish song on exit:"));check("Exit independent",target.finishCurrentSong&&target.finishCurrentSongOnExit);});
-        steps.add(()->{click("Top");check("Priority top",lib.playlists.getFirst()==target);click("Down");check("Priority down",lib.playlists.get(1)==target);click("Last");check("Priority last",lib.playlists.getLast()==target);});
-        steps.add(()->{click("Until released");check("Held override with Automatic off",target.id.equals(rt.engine().overrideId())&&rt.engine().overrideMode()==OverrideMode.UNTIL_RELEASED);});
+        steps.add(()->{click(prefix("Let the previous song finish"));check("Entry independent",target.finishCurrentSong&&!target.finishCurrentSongOnExit);click(prefix("Finish songs before switching away"));check("Exit independent",target.finishCurrentSong&&target.finishCurrentSongOnExit);});
+        steps.add(()->{playlistAction("Move to top");check("Priority top",lib.playlists.getFirst()==target);playlistAction("Move down");check("Priority down",lib.playlists.get(1)==target);playlistAction("Move to bottom");check("Priority last",lib.playlists.getLast()==target);});
+        steps.add(()->{playlistAction("Keep this playlist playing");check("Held override with Automatic off",target.id.equals(rt.engine().overrideId())&&rt.engine().overrideMode()==OverrideMode.UNTIL_RELEASED);});
         steps.add(()->check("Generated fixture actually starts",rt.engine().current()!=null&&target.id.equals(rt.engine().sourcePlaylistId())&&rt.engine().error().isBlank()));
-        steps.add(()->{click("Pause");check("Pause control",rt.engine().paused());click("Next");check("Next keeps held override",target.id.equals(rt.engine().overrideId()));});
-        steps.add(()->{click("Resume");check("Resume control",!rt.engine().paused());click("Automatic");check("Release override",rt.engine().overrideId()==null);});
-        steps.add(()->{shot("main");click("Play one song");check("One-song override",rt.engine().overrideMode()==OverrideMode.ONE_SONG);click("Automatic");});
+        steps.add(()->{click("Pause");check("Pause control",rt.engine().paused());click("Next song now");check("Next keeps held override",target.id.equals(rt.engine().overrideId()));});
+        steps.add(()->{click("Resume");check("Resume control",!rt.engine().paused());click("Use automatic playlists");check("Release override",rt.engine().overrideId()==null);});
+        steps.add(()->{shot("main");playlistAction("Play one song now");check("One-song override",rt.engine().overrideMode()==OverrideMode.ONE_SONG);click("Use automatic playlists");});
         steps.add(()->{click("Timing");timing=mc.gui.screen();check("Timing direct navigation",timing.getClass().getSimpleName().equals("SettingsScreen"));var fields=widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList();fields.getFirst().setValue("invalid");click("Display");check("Invalid timing blocks navigation",mc.gui.screen()==timing);});
         steps.add(()->{check("Hide settings",MusicMenu.hide(timing));mc.gui.setScreen(MusicMenu.reopen(null,rt));check("Draft page retained",mc.gui.screen()==timing);var fields=widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).toList();check("Invalid draft retained",fields.getFirst().getValue().equals("invalid"));fields.getFirst().setValue("12");fields.get(1).setValue("34");click("Display");check("Timing saved on navigation",lib.settings.silenceMinSeconds==12&&lib.settings.silenceMaxSeconds==34);});
         steps.add(()->{shot("display");check("Display direct navigation",mc.gui.screen().getClass().getSimpleName().equals("NowPlayingSettingsScreen"));click(prefix("Style:"));check("Display style changes",lib.settings.nowPlayingStyle==NowPlayingStyle.HYBRID);check("Widget numeric controls remain",widgets().stream().filter(EditBox.class::isInstance).count()==5);check("All metadata switches remain",List.of("Artwork / note:","Song title:","Artist:","Album:","Song length:","Source playlist:","Scroll long text:").stream().allMatch(t->widgets().stream().anyMatch(w->w.getMessage().getString().startsWith(t))));});
-        steps.add(()->{click("Keys");check("Keys direct navigation",mc.gui.screen().getClass().getSimpleName().equals("OverrideBindingsScreen"));click("Minecraft key binds");check("Physical key bindings reachable",mc.gui.screen().getClass().getSimpleName().equals("KeyBindsScreen"));mc.gui.screen().onClose();});
+        steps.add(()->{click("Shortcuts");check("Keys direct navigation",mc.gui.screen().getClass().getSimpleName().equals("OverrideBindingsScreen"));click("Minecraft key binds");check("Physical key bindings reachable",mc.gui.screen().getClass().getSimpleName().equals("KeyBindsScreen"));mc.gui.screen().onClose();});
         steps.add(()->{Set<Integer> slots=new HashSet<>();for(int page=0;page<8;page++){for(var w:widgets()){String label=w.getMessage().getString();if(label.length()>3&&label.charAt(0)>='1'&&label.charAt(0)<='8'&&label.charAt(2)=='[')slots.add(Integer.parseInt(label.substring(0,1)));}var next=button(">");if(!next.active)break;click(next);}check("All eight override slots reachable",slots.size()==8);click("Playlists");});
         steps.add(()->{click("Add music");check("Unified import dialog",mc.gui.screen().getTitle().getString().equals("Add music"));click("Library only");check("Files/folders can import without assignment",button("Files").active&&button("Folder").active&&!button("Foobar playlist").active);click("Back");});
-        steps.add(()->{click("Name & conditions");check("Custom condition editor reachable",mc.gui.screen().getClass().getSimpleName().equals("PlaylistConditionsScreen"));check("Match all/any reachable",prefix("Conditions: match ").active);click("Save & back");});
+        steps.add(()->{openConditionEditor();check("Custom condition editor reachable",mc.gui.screen().getClass().getSimpleName().equals("PlaylistConditionsScreen"));check("Match all/any reachable",prefix("Match ").active);click("Save & back");});
         steps.add(()->{row("songs",0,false);click("Remove");check("Remove keeps library file",target.tracks.size()==1&&lib.track("file:workspace_a")!=null);row("folders",0,false);click("Add selected / folder ->");check("Whole-folder assignment",target.tracks.size()==2);click("Normalize");check("Normalization progress reachable",mc.gui.screen().getClass().getSimpleName().equals("LoudnessScreen"));check("Normalization report/cancel retained",button("Back").active);click("Back");});
-        steps.add(()->{click("Inspector");check("Inspector direct navigation",mc.gui.screen().getClass().getSimpleName().equals("PlaybackInspectorScreen"));check("Retry failed retained",button("Retry failed").active);click("Details");check("Inspector details retained",mc.gui.screen().getClass().getSimpleName().equals("InspectorDetailsScreen"));mc.gui.screen().onClose();click("Playlists");});
-        steps.add(()->{int before=lib.playlists.size();click("New");widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).findFirst().orElseThrow().setValue("Workspace created");click("Create");check("Create in workspace",lib.playlists.size()==before+1&&mc.gui.screen()==editor);click("Delete");click("Yes");check("Delete custom playlist",lib.playlists.size()==before);});
+        steps.add(()->{click("Playback status");check("Inspector direct navigation",mc.gui.screen().getClass().getSimpleName().equals("PlaybackInspectorScreen"));check("Retry failed retained",button("Retry failed").active);click("Details");check("Inspector details retained",mc.gui.screen().getClass().getSimpleName().equals("InspectorDetailsScreen"));mc.gui.screen().onClose();click("Playlists");});
+        steps.add(()->{int before=lib.playlists.size();click("New playlist");widgets().stream().filter(EditBox.class::isInstance).map(EditBox.class::cast).findFirst().orElseThrow().setValue("Workspace created");click("Create");check("Create in workspace",lib.playlists.size()==before+1&&mc.gui.screen()==editor);playlistAction("Delete playlist");click("Yes");check("Delete custom playlist",lib.playlists.size()==before);});
         steps.add(()->{check("Library search preserved",((EditBox)field(editor,"librarySearch")).getValue().equals("Workspace tone"));MusicMenu.hide(editor);mc.gui.setScreen(MusicMenu.reopen(null,rt));check("Workspace instance retained",mc.gui.screen()==editor);check("Two library and song viewports remain",field(editor,"folders")!=null&&field(editor,"songs")!=null);shot("retained");});
         templateChecks();
         menuAppearanceChecks();

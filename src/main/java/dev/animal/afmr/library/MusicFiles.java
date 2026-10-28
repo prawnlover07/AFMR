@@ -18,7 +18,7 @@ public final class MusicFiles {
     public record Found(Track track,String playlistId,Path sourcePath) {}
     public record Result(List<Found> found,List<String> errors,List<String> playlists,int skipped,int duplicates,int reused) {}
     private record WorkFile(Path path,String playlistId,boolean reuseMetadata) {}
-    public enum ScanStage { DISCOVERING, READING_TAGS, CHECKING, REPAIRING, READING_PRESET, WRITING_PRESET, FINALIZING }
+    public enum ScanStage { DISCOVERING, HASHING, READING_TAGS, CHECKING, REPAIRING, READING_PRESET, WRITING_PRESET, FINALIZING }
     /** Immutable snapshots can be published directly from the scanner to the render thread. */
     public record ScanProgress(ScanStage stage, int discovered, int processed, String currentPath) {
         public static ScanProgress starting() { return new ScanProgress(ScanStage.DISCOVERING, 0, 0, ""); }

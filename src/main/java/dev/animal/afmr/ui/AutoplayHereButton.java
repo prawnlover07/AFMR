@@ -9,14 +9,14 @@ import net.minecraft.network.chat.Component;
 
 /** A destructive action requires one continuous, cancellable hold. */
 final class AutoplayHereButton extends FlatButton {
-    private static final Component LABEL=Component.literal("Autoplay here");
+    private static final Component LABEL=Component.literal("Set playback area here");
     private static final Component WARNING=Component.literal("Are you sure? Replaces conditions");
     private static final long HOLD_NANOS=1_000_000_000L;
     private long pressedAt;
     private boolean holding,latched,keyboard,pointerInside;
     private int heldKey;
     AutoplayHereButton(int x,int y,int w,int h,float scale,Runnable action){
-        super("Autoplay here",x,y,w,h,scale,action);
+        super("Set playback area here",x,y,w,h,scale,action);
         var autoplayHereHelpText=Component.translatable("afmr.copy.autoplayhere.autoplay_here");
         if(!autoplayHereHelpText.getString().isBlank())setTooltip(Tooltip.create(autoplayHereHelpText));
     }

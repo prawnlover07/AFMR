@@ -5,11 +5,11 @@ import java.util.Map;
 
 /** Menu color families retain their shade differences around a configurable base RGB. */
 public enum MenuColor {
-    BACKGROUND("Background",0x141B1B), PANELS("Panels",0x1D2727),
-    CONTROLS("Buttons",0x283236), HOVER("Hover",0x3B4949),
-    SELECTION("Selection",0x35594E), ACCENT("Highlights",0x8DE0BE),
-    TEXT("Text",0xE1ECE6), MUTED_TEXT("Secondary text",0xA9BDB3),
-    BORDERS("Borders",0x3C4D49), SCROLLBARS("Scrollbars",0x637B75);
+    BACKGROUND("Background",0x17191D), PANELS("Panels",0x202329),
+    CONTROLS("Buttons",0x2C3038), HOVER("Hover",0x3B424D),
+    SELECTION("Selection",0x304963), ACCENT("Highlights",0x90C6FF),
+    TEXT("Text",0xEBEEF3), MUTED_TEXT("Secondary text",0xABB5C2),
+    BORDERS("Borders",0x3B424C), SCROLLBARS("Scrollbars",0x66778B);
 
     public final String label;
     public final int defaultRgb;
@@ -29,7 +29,7 @@ public enum MenuColor {
     public int rgb(Map<MenuColor,Integer> colors){
         Integer rgb=colors==null?null:colors.get(this);return rgb==null?defaultRgb:rgb;
     }
-    /** Original shades define relative channel offsets; default bases reproduce the exact existing palette. */
+    /** Graphite shades define relative channel offsets around each configurable family base. */
     public int argb(Map<MenuColor,Integer> colors,int original,double opacity){
         int chosen=rgb(colors),rgb=0;
         for(int shift=0;shift<=16;shift+=8){

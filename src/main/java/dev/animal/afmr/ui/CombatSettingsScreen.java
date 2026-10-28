@@ -15,15 +15,16 @@ final class CombatSettingsScreen extends MusicScreen {
     private int page;
     private String error="";
     CombatSettingsScreen(Screen parent,ClientRuntime runtime){super("Combat settings",parent,runtime);}
+    CombatSettingsScreen(Screen parent,ClientRuntime runtime,boolean death){this(parent,runtime);page=death?1:0;}
     @Override protected void init(){
         super.init();var s=runtime.library().settings;int half=(contentWidth-6)/2;
         if(page==0){
-            var combatMusicHelpControl=button("Combat music: "+(s.combatEnabled?"on":"off"),left,47,contentWidth,()->flip(()->s.combatEnabled=!s.combatEnabled));
+            var combatMusicHelpControl=toggle("Combat music",left,47,contentWidth,()->s.combatEnabled,()->flip(()->s.combatEnabled=!s.combatEnabled));
             var combatMusicHelpText=Component.translatable("afmr.copy.combatsettings.combat_music");
             if(!combatMusicHelpText.getString().isBlank())combatMusicHelpControl.setTooltip(Tooltip.create(combatMusicHelpText));
-            button("On attack: "+(s.combatOnAttack?"on":"off"),left,75,half,()->flip(()->s.combatOnAttack=!s.combatOnAttack));
-            button("On damage: "+(s.combatOnDamage?"on":"off"),left+half+6,75,half,()->flip(()->s.combatOnDamage=!s.combatOnDamage));
-            var combatTriggersHelpControl=button("Triggers: "+(s.combatThreatsOnly?"combatants only":"any entity / any damage"),left,103,contentWidth,()->flip(()->s.combatThreatsOnly=!s.combatThreatsOnly));
+            toggle("On attack",left,75,half,()->s.combatOnAttack,()->flip(()->s.combatOnAttack=!s.combatOnAttack));
+            toggle("On damage",left+half+6,75,half,()->s.combatOnDamage,()->flip(()->s.combatOnDamage=!s.combatOnDamage));
+            var combatTriggersHelpControl=toggle("Combatants only",left,103,contentWidth,()->s.combatThreatsOnly,()->flip(()->s.combatThreatsOnly=!s.combatThreatsOnly));
             var combatTriggersHelpText=Component.translatable("afmr.copy.combatsettings.combat_triggers");
             if(!combatTriggersHelpText.getString().isBlank())combatTriggersHelpControl.setTooltip(Tooltip.create(combatTriggersHelpText));
             value=edit(""+s.combatQuietSeconds,"Combat quiet period",left+contentWidth-100,143,100,null);
@@ -34,12 +35,12 @@ final class CombatSettingsScreen extends MusicScreen {
             value=edit(""+s.combatDeathFadeSeconds,"Death fade seconds",left+contentWidth-100,95,100,null);
             var deathFadeHelpText=Component.translatable("afmr.copy.combatsettings.death_fade");
             if(!deathFadeHelpText.getString().isBlank())value.setTooltip(Tooltip.create(deathFadeHelpText));
-            var newMusicWhileDeadHelpControl=button("New music while dead: "+(s.preventMusicWhileDead?"paused":"allowed"),left,127,contentWidth,()->flip(()->s.preventMusicWhileDead=!s.preventMusicWhileDead));
+            var newMusicWhileDeadHelpControl=toggle("Prevent new music while dead",left,127,contentWidth,()->s.preventMusicWhileDead,()->flip(()->s.preventMusicWhileDead=!s.preventMusicWhileDead));
             var newMusicWhileDeadHelpText=Component.translatable("afmr.copy.combatsettings.new_music_while_dead");
             if(!newMusicWhileDeadHelpText.getString().isBlank())newMusicWhileDeadHelpControl.setTooltip(Tooltip.create(newMusicWhileDeadHelpText));
         }
-        button(page==0?"Death options >":"< Combat triggers",left,height-29,150,()->{if(apply()){page=1-page;rebuildWidgets();}});
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button(page==0?"Death options >":"< Combat triggers",left,bodyBottom()-29,150,()->{if(apply()){page=1-page;rebuildWidgets();}});
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     private void flip(Runnable action){if(apply()){action.run();runtime.save();rebuildWidgets();}}
     private boolean apply(){
@@ -49,7 +50,7 @@ final class CombatSettingsScreen extends MusicScreen {
     }
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        g.text(font,fit(page==0?"Combat quiet period (seconds)":"Death fade duration (seconds)",contentWidth-108),left,page==0?149:101,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        g.text(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
+        g.text(menuFont,fit(page==0?"Combat quiet period (seconds)":"Death fade duration (seconds)",contentWidth-108),left,page==0?149:101,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        g.text(menuFont,fit(error,contentWidth),left,bodyBottom()-48,0xFFFFA0A0);
     }
 }

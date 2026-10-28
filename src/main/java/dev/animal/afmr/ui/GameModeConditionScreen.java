@@ -6,13 +6,11 @@ import dev.animal.afmr.core.PlaylistConditions;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import java.util.EnumMap;
 import java.util.EnumSet;
 
 final class GameModeConditionScreen extends MusicScreen {
     private final PlaylistConditions conditions;
     private final EnumSet<GameMode> selected=EnumSet.noneOf(GameMode.class);
-    private final EnumMap<GameMode,FlatButton> choices=new EnumMap<>(GameMode.class);
     private boolean enabled;
     private FlatButton toggle;
 
@@ -21,26 +19,18 @@ final class GameModeConditionScreen extends MusicScreen {
         enabled=conditions.gameModeEnabled;selected.addAll(conditions.gameModes);
     }
     @Override protected void init(){
-        super.init();choices.clear();
-        toggle=button("",left,47,contentWidth,()->{enabled=!enabled;updateLabels();});
+        super.init();
+        toggle=toggle("Filter",left,47,contentWidth,()->enabled,()->{enabled=!enabled;});
         var gamemodeFilterHelpText=Component.translatable("afmr.copy.gamemodecondition.gamemode_filter");
         if(!gamemodeFilterHelpText.getString().isBlank())toggle.setTooltip(Tooltip.create(gamemodeFilterHelpText));
         int half=(contentWidth-6)/2,i=0;
         for(var mode:GameMode.values()){
-            var choice=button("",left+(i%2)*(half+6),79+(i/2)*24,half,()->{
-                if(!selected.remove(mode))selected.add(mode);updateLabels();
+            toggle(mode.label(),left+(i%2)*(half+6),79+(i/2)*24,half,()->selected.contains(mode),()->{
+                if(!selected.remove(mode))selected.add(mode);
             });
-            choices.put(mode,choice);i++;
+            i++;
         }
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
-        updateLabels();
-    }
-    private void updateLabels(){
-        toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));
-        for(var entry:choices.entrySet()){
-            boolean on=selected.contains(entry.getKey());entry.getValue().selected=on;
-            entry.getValue().setMessage(Component.literal(entry.getKey().label()+": "+(on?"on":"off")));
-        }
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     @Override protected boolean saveChanges(){
         conditions.gameModeEnabled=enabled;conditions.gameModes=selected.clone();runtime.save();return true;

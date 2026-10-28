@@ -1,0 +1,92 @@
+STEP Hover playlist action
+STEP Hovered playlist menu visible
+PASS Playlist actions occupy the reserved right edge
+PASS Hover menu targets its playlist
+PASS Menu click does not arm a priority drag
+PASS Playlist context menu stays opaque
+STEP Playlist menu render
+PASS Row menu rename affects only its target
+PASS Row menu rename participates in Undo
+STEP Keyboard playlist action
+PASS Shift+F10 opens playlist actions
+PASS Priority dragging still works beside the row action
+STEP Offscreen action hidden
+PASS Offscreen playlist button is not interactive
+STEP Fresh row hit testing
+PASS Click after scrolling uses the actual row
+PASS Row menu respects invalid playlist drafts
+STEP Primary play icon
+PASS Empty transport offers Play now
+STEP Primary starts music
+PASS Primary changes to Pause while playing
+PASS Primary Play now bypasses a fresh gap
+STEP Primary resumes music
+PASS Paused transport has a Play icon and Resume label
+PASS Next icon requests the next song without clearing pause
+STEP Skip and wait stays distinct
+PASS Next starts after explicit Resume
+STEP Transport icon render
+PASS Skip and wait starts the usual gap
+STEP Pause a silent gap
+PASS Skip and wait is disabled without a song
+STEP Resume a silent gap
+PASS Resume retains the remaining silence
+STEP Next bypasses the gap
+PASS Next icon starts immediately from a gap
+STEP Verify decoded position
+STEP Decoded position matches
+PASS Seeking produces PCM from the requested file position
+STEP Selection counts
+PASS Song actions state the affected count
+STEP Audio starts
+PASS Clicking the title finds its source playlist
+PASS Locate clears the filter and selects the current song
+PASS Locate preserves playback and pending queue
+STEP Workspace transport render
+PASS Seek hit area stays above the status line
+PASS Holding a seek previews without changing audio
+PASS Seek release updates the song position
+STEP Paused seek attaches
+PASS Native channel remains paused after seeking
+PASS Seek keeps playback identity and queue
+STEP Seek resumes
+PASS Native playback resumes from the target
+STEP Latest seek wins
+PASS Rapid seeks retain only the latest target
+STEP Repeated seek 0
+STEP Repeated seek 1
+STEP Repeated seek 2
+STEP Repeated seek 3
+STEP Repeated seek 4
+STEP Repeated seek 5
+STEP Repeated seek 6
+STEP Repeated seek 7
+STEP Repeated seek 8
+STEP Repeated seek 9
+STEP Repeated seek 10
+STEP Repeated seek 11
+STEP Search timing
+STEP Search focuses timing
+PASS Search opens and focuses the precise setting
+PASS Global booleans use checkboxes
+PASS Page actions stay above the transport strip
+PASS Search cannot bypass invalid numeric drafts
+STEP Direct font destination
+PASS Font search opens the widget font chooser
+STEP Home search destination
+PASS Home search returns to the playback-area action
+PASS Details arrow opens inline controls without enabling a rule
+PASS Rule checkbox toggles without navigating
+STEP Vanilla preview starts
+PASS Resource-backed music still plays
+PASS Resource-backed song accepts seeking
+STEP Vanilla seek starts
+PASS Resource-backed seek plays from the target
+STEP Collect decoded buffers
+PASS Resource seek survives buffer collection
+STEP Menus render
+PASS Fabric menu exposes opacity without unsupported blur
+PASS Menu navigation uses arrows
+PASS Small menus reserve the playback strip
+PASS Small menus keep the last setting reachable
+COMPLETE: 49 passed / 0 failed

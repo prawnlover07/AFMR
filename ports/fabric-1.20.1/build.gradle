@@ -69,9 +69,29 @@ if (project.hasProperty('smoke')) {
                 programArg '--username'
                 programArg 'AFMRSmoke'
                 vmArg '-Dafmr.smoke=true'
+                if (project.hasProperty('ridingAudit')) vmArg '-Dafmr.smoke.ridingAudit=true'
+                if (project.hasProperty('soakRestart')) vmArg '-Dafmr.smoke.soakRestart=true'
+                if (project.hasProperty('playbackSoak')) vmArg '-Dafmr.smoke.playbackSoak=true'
+                if (project.hasProperty('pickerAudit')) vmArg '-Dafmr.smoke.pickerAudit=true'
+                if (project.hasProperty('overnightAudit')) vmArg '-Dafmr.smoke.overnightAudit=true'
+                if (project.hasProperty('serverCompanion')) {
+                    vmArg '-Dafmr.smoke.serverCompanion=true'
+                    if (project.hasProperty('noCompanion')) vmArg '-Dafmr.smoke.noCompanion=true'
+                    runDir 'run-server-companion'
+                    programArg '--quickPlayMultiplayer'
+                    programArg '127.0.0.1:25586'
+                }
+                if (project.hasProperty('navigation')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.navigation=true' }
+                if (project.hasProperty('clarity')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.clarity=true' }
+                if (project.hasProperty('uiFollowup')) vmArg '-Dafmr.smoke.uiFollowup=true'
+                if (project.hasProperty('muteWarning')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.muteWarning=true' }
+                if (project.hasProperty('inlineSettings')) vmArg '-Dafmr.smoke.inlineSettings=true'
+                if (project.hasProperty('proximityVolume')) { vmArg '-Dafmr.smoke.features101=true'; vmArg '-Dafmr.smoke.proximityVolume=true' }
                 if (project.hasProperty('features101')) vmArg '-Dafmr.smoke.features101=true'
+                if (project.hasProperty('transitions')) vmArg '-Dafmr.smoke.transitions=true'
                 if (project.hasProperty('finalReview')) vmArg '-Dafmr.smoke.finalReview=true'
                 if (project.hasProperty('reviewRestart')) vmArg '-Dafmr.smoke.reviewRestart=true'
+                if (project.hasProperty('gameplayNormalization')) vmArg '-Dafmr.smoke.normalization=true'
                 if (project.hasProperty('playOnJoin')) vmArg '-Dafmr.smoke.playOnJoin=true'
                 if (project.hasProperty('backgroundImages')) vmArg '-Dafmr.smoke.backgroundImages=true'
                 if (project.hasProperty('playlistSilence')) vmArg '-Dafmr.smoke.playlistSilence=true'
@@ -80,7 +100,24 @@ if (project.hasProperty('smoke')) {
             }
         }
     }
-    tasks.named('runClient') { dependsOn tasks.named('smokeClasses') }
+    tasks.register('capProbeFps') {
+        doLast {
+            def options = file(project.hasProperty('serverCompanion') ? 'run-server-companion/options.txt' : 'run-smoke/options.txt')
+            def lines = options.isFile() ? options.readLines('UTF-8') : []
+            lines = lines.findAll { !it.startsWith('maxFps:') && !it.startsWith('enableVsync:') }
+            lines.addAll(['maxFps:60', 'enableVsync:false'])
+            def content = lines.join('\n') + '\n'
+            if (!options.isFile() || options.getText('UTF-8') != content) {
+                options.parentFile.mkdirs()
+                options.setText(content, 'UTF-8')
+            }
+            logger.lifecycle('AFMR smoke client capped at 60 FPS')
+        }
+    }
+    tasks.named('runClient') { dependsOn tasks.named('smokeClasses'), tasks.named('capProbeFps') }
+    if (project.hasProperty('smokeJava')) {
+        tasks.named('runClient') { executable project.property('smokeJava') }
+    }
     tasks.register('artworkMemoryProbe', JavaExec) {
         dependsOn tasks.named('smokeClasses')
         classpath = sourceSets.smoke.runtimeClasspath
@@ -100,7 +137,7 @@ if (project.hasProperty('smoke')) {
         tasks.register('installSmokeJar', Copy) {
             dependsOn remapJar
             from remapJar.archiveFile
-            into layout.projectDirectory.dir('run-smoke/mods')
+            into layout.projectDirectory.dir(project.hasProperty('serverCompanion') ? 'run-server-companion/mods' : 'run-smoke/mods')
         }
         tasks.named('runClient') { dependsOn tasks.named('installSmokeJar') }
     }
@@ -115,3 +152,41 @@ tasks.register('sourceZip', Zip) {
         from(new File(uiCopyRoot, 'copy/utility-en_us.json')) { into 'copy' }
     }
 }
+
+// Remap the small companion separately; no client assets or nested decoders.
+tasks.register('serverJar', Jar) {
+    archiveBaseName = 'animals-final-music-replacer-server-fabric-1.20.1'
+    archiveClassifier = 'dev'
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+    from(sourceSets.main.output) {
+        include 'dev/animal/afmr/server/**', 'dev/animal/afmr/network/**', 'dev/animal/afmr/core/StructureContext*'
+    }
+    from('src/server/resources')
+    from('LICENSE')
+}
+tasks.register('remapServerJar', net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn tasks.named('serverJar')
+    inputFile = tasks.named('serverJar', Jar).flatMap { it.archiveFile }
+    archiveBaseName = 'animals-final-music-replacer-server-fabric-1.20.1'
+    archiveClassifier = ''
+    addNestedDependencies = false
+}
+tasks.named('assemble') { dependsOn tasks.named('remapServerJar') }
+
+// Protocol component tests need Minecraft/Netty; keep pure regression tests independent.
+sourceSets {
+    networkTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+configurations {
+    networkTestImplementation.extendsFrom testImplementation
+    networkTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+tasks.register('networkTest', Test) {
+    testClassesDirs = sourceSets.networkTest.output.classesDirs
+    classpath = sourceSets.networkTest.runtimeClasspath
+    useJUnitPlatform()
+}
+tasks.named('check') { dependsOn tasks.named('networkTest') }

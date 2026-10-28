@@ -11,7 +11,7 @@ class ConditionMatchingTest {
     private final Settings settings=new Settings();
     private final StructureContext structures=new StructureContext(true,List.of(new StructureContext.Bounds("test:village",-10,60,-10,10,80,10)));
     private Context context(StructureContext observation){
-        return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,false,observation,false,false,Precipitation.NONE,10,false,"minecraft:fishing_rod","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,false,observation,false,false,Precipitation.NONE,10,false,"minecraft:fishing_rod","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private record Case(String name,Consumer<PlaylistConditions> matching,Consumer<PlaylistConditions> failing) {}
     @Test void everyFilterCanIndependentlySatisfyAnyModeAndFailAllMode(){
@@ -61,7 +61,7 @@ class ConditionMatchingTest {
     }
     @Test void globalCombatSwitchStillAppliesInAnyMode(){
         var c=new PlaylistConditions();c.matchAny=true;c.combat=State.YES;
-        var busy=new Context("minecraft:overworld","minecraft:plains",true,false,6000,false,15,"world",0,70,0,0,0.8,false,structures,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var busy=new Context("minecraft:overworld","minecraft:plains",true,false,6000,false,15,"world",0,70,0,0,0.8,false,structures,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertTrue(c.matches(busy,settings));settings.combatEnabled=false;assertFalse(c.matches(busy,settings));
         c.combat=State.NO;assertTrue(c.matches(busy,settings));
     }

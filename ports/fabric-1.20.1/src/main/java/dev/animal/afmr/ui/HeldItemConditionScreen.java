@@ -41,23 +41,22 @@ final class HeldItemConditionScreen extends MusicScreen {
             catalog.put(id,new Entry(id,label,label.toLowerCase(Locale.ROOT)));
         }
         int half=(contentWidth-6)/2;
-        toggle=button("",left,47,half,()->{enabled=!enabled;updateLabels();});
+        toggle=toggle("Filter",left,47,half,()->enabled,()->{enabled=!enabled;updateLabels();});
         button("Add held items",left+half+6,47,half,this::addHeld).active=runtime.inWorld();
         handButton=button("",left,71,contentWidth,()->{hand=HANDS[(hand.ordinal()+1)%HANDS.length];updateLabels();});
         var handSelectionHelpText=Component.translatable("afmr.copy.helditemcondition.hand_selection");
         if(!handSelectionHelpText.getString().isBlank())handButton.setTooltip(Tooltip.create(handSelectionHelpText));
-        list=addRenderableWidget(new DenseList<>(left,121,contentWidth,Math.max(14,height-179),
-            (g,item,x,y,w,hover)->g.drawString(font,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
-                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0)),
+        list=addRenderableWidget(new DenseList<>(left,121,contentWidth,Math.max(14,bodyBottom()-179),
+            (g,item,x,y,w,hover)->g.drawString(menuFont,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
+                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED)),
             (item,clickX,clickY,button,twice)->{if(!selected.remove(item.id())){selected.add(item.id());enabled=true;}error="";updateLabels();},Entry::label));
         search=edit(query,"Search items or enter namespace:id",left,95,contentWidth-82,value->{query=value;filter();});
         button("Add ID",left+contentWidth-76,95,76,()->add(search.getValue().strip()));
-        button("Clear / any",left,height-29,100,()->{selected.clear();enabled=false;error="";updateLabels();});
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Clear / any",left,bodyBottom()-29,100,()->{selected.clear();enabled=false;error="";updateLabels();});
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
         updateLabels();rebuildEntries();
     }
     private void updateLabels(){
-        toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));
         handButton.setMessage(Component.literal("Hand: "+hand.label()));
     }
     private void rebuildEntries(){
@@ -91,6 +90,6 @@ final class HeldItemConditionScreen extends MusicScreen {
         runtime.save();super.onClose();
     }
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
-        g.drawString(font,fit(error.isEmpty()?selected.size()+" selected":error,contentWidth),left,height-49,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0):0xFFFFA0A0);
+        g.drawString(menuFont,fit(error.isEmpty()?selected.size()+" selected":error,contentWidth),left,bodyBottom()-49,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF):0xFFFFA0A0);
     }
 }

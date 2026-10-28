@@ -29,16 +29,17 @@ import org.slf4j.Logger;
 public final class Afmr {
     public static final Logger LOG = LogUtils.getLogger();
     private static final java.util.logging.Logger METADATA_LOG=java.util.logging.Logger.getLogger("org.jaudiotagger");
-    private static final KeyMapping OPEN = new KeyMapping("key.afmr.open", InputConstants.KEY_M, KeyMapping.Category.MISC);
+    private static final KeyMapping.Category CATEGORY=KeyMapping.Category.register(Identifier.fromNamespaceAndPath("afmr","afmr"));
+    private static final KeyMapping OPEN = new KeyMapping("key.afmr.open", InputConstants.KEY_M, CATEGORY);
     private static boolean menuKeyClosing;
-    private static final KeyMapping SKIP = new KeyMapping("key.afmr.skip", InputConstants.UNKNOWN.getValue(), KeyMapping.Category.MISC);
-    private static final KeyMapping NEXT=new KeyMapping("key.afmr.next",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
-    private static final KeyMapping PAUSE=new KeyMapping("key.afmr.pause",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
-    private static final KeyMapping INSPECT=new KeyMapping("key.afmr.inspect",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
-    private static final KeyMapping OVERRIDES=new KeyMapping("key.afmr.overrides",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
-    private static final KeyMapping AUTOMATIC=new KeyMapping("key.afmr.automatic",InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);
+    private static final KeyMapping SKIP = new KeyMapping("key.afmr.skip", InputConstants.UNKNOWN.getValue(), CATEGORY);
+    private static final KeyMapping NEXT=new KeyMapping("key.afmr.next",InputConstants.UNKNOWN.getValue(),CATEGORY);
+    private static final KeyMapping PAUSE=new KeyMapping("key.afmr.pause",InputConstants.UNKNOWN.getValue(),CATEGORY);
+    private static final KeyMapping INSPECT=new KeyMapping("key.afmr.inspect",InputConstants.UNKNOWN.getValue(),CATEGORY);
+    private static final KeyMapping OVERRIDES=new KeyMapping("key.afmr.overrides",InputConstants.UNKNOWN.getValue(),CATEGORY);
+    private static final KeyMapping AUTOMATIC=new KeyMapping("key.afmr.automatic",InputConstants.UNKNOWN.getValue(),CATEGORY);
     private static final KeyMapping[] OVERRIDE_KEYS=new KeyMapping[Library.OVERRIDE_SLOTS];
-    static{for(int i=0;i<OVERRIDE_KEYS.length;i++)OVERRIDE_KEYS[i]=new KeyMapping("key.afmr.override_"+(i+1),InputConstants.UNKNOWN.getValue(),KeyMapping.Category.MISC);}
+    static{for(int i=0;i<OVERRIDE_KEYS.length;i++)OVERRIDE_KEYS[i]=new KeyMapping("key.afmr.override_"+(i+1),InputConstants.UNKNOWN.getValue(),CATEGORY);}
     public static String overrideKeyName(int slot){return OVERRIDE_KEYS[slot].getTranslatedKeyMessage().getString();}
 
     public static Map<String,ConfigBackup.Key> backupKeys(){
@@ -114,7 +115,7 @@ public final class Afmr {
     @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut e) { MusicMenu.clear();menuKeyClosing=false;ClientRuntime.disconnect(); }
     @SubscribeEvent public static void streaming(PlayStreamingSourceEvent e){
         // This event runs on the sound executor, including when decoding finished after pause was requested.
-        if(e.getSound() instanceof MusicSound music&&music.paused())e.getChannel().pause();
+        if(e.getSound() instanceof MusicSound music){if(music.ended())e.getChannel().stop();else if(music.paused())e.getChannel().pause();}
     }
     @SubscribeEvent public static void shutdown(GameShuttingDownEvent e) { ClientRuntime.shutdown(); }
     @SubscribeEvent public static void hud(RenderGuiEvent.Post e) { ClientRuntime.get().overlay().draw(e.getGuiGraphics()); }

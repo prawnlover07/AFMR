@@ -11,27 +11,26 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public final class GameAudio implements PlaybackEngine.Audio {
-    public record LocalSource(Path path,boolean replayGain,TrackLoudness loudness) {}
-    private static final Map<ResourceLocation, LocalSource> LOCAL = new ConcurrentHashMap<>();
+    public record StreamSource(Path path,ResourceLocation resource,boolean replayGain,TrackLoudness loudness,double offset,MusicSound owner) {}
+    private static final Map<ResourceLocation, StreamSource> STREAMS = new ConcurrentHashMap<>();
     private final Minecraft minecraft;
     private final Settings settings;
     private MusicSound sound;
     private int warmup;
+    private long generation;
     private float gain;
     private boolean paused;
     public GameAudio(Minecraft minecraft,Settings settings) { this.minecraft=minecraft;this.settings=settings; }
-    public static LocalSource localSource(ResourceLocation path) { return LOCAL.get(path); }
-    @Override public void start(Track track) throws Exception {
+    public static StreamSource streamSource(ResourceLocation path) { return STREAMS.get(path); }
+    @Override public void start(Track track,double offset) throws Exception {
         stop();
-        ResourceLocation file;
-        if (track.vanilla) file = new ResourceLocation(track.path);
-        else {
-            Path path = Path.of(track.path);
-            if (!Files.isRegularFile(path)) throw new java.io.IOException("File missing; rescan its folder");
-            file = new ResourceLocation("afmr", "library/" + track.id.substring(5));
-            LOCAL.put(new ResourceLocation("afmr", "sounds/" + file.getPath() + ".ogg"), new LocalSource(path,settings.replayGainEnabled,track.loudness));
-        }
+        Path path=track.vanilla?null:Path.of(track.path);
+        if(path!=null&&!Files.isRegularFile(path))throw new java.io.IOException("File missing; rescan its folder");
+        ResourceLocation original=track.vanilla?new ResourceLocation(track.path):null;
+        ResourceLocation resource=original==null?null:new ResourceLocation(original.getNamespace(),"sounds/"+original.getPath()+".ogg");
+        ResourceLocation file=new ResourceLocation("afmr","stream/"+(++generation));
         sound = new MusicSound(file); sound.gain(gain);sound.setPaused(paused);warmup = 10;
+        STREAMS.put(new ResourceLocation(file.getNamespace(),"sounds/"+file.getPath()+".ogg"),new StreamSource(path,resource,!track.vanilla&&settings.replayGainEnabled,track.loudness,offset,sound));
         minecraft.getSoundManager().play(sound);
         dev.animal.afmr.Afmr.LOG.info("AFMR playing: {} ({})", track.title, track.path);
     }
@@ -43,6 +42,6 @@ public final class GameAudio implements PlaybackEngine.Audio {
     @Override public void setPaused(boolean value){paused=value;if(sound!=null)sound.setPaused(value);}
     @Override public void stop() {
         if (sound != null) { sound.end(); minecraft.getSoundManager().stop(sound); sound = null; }
-        LOCAL.clear();
+        STREAMS.clear();
     }
 }

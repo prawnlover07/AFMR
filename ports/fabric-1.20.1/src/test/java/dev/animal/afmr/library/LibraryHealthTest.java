@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LibraryHealthTest {
     @TempDir Path directory;
     private Track add(Library l,String name){var t=new Track("file:"+name,directory.resolve(name).toString(),name,false);l.tracks.add(t);return t;}
-    private LibraryHealth.Report check(Library l){return LibraryHealth.check(LibraryRepair.capture(l),List.of(),p->{});}
+    private LibraryHealth.Report check(Library l){return LibraryHealth.check(LibraryRepair.capture(l),List.of(),p->{},()->false);}
     @Test void missingFolderAndEveryContainedSongAreReportedWithoutDroppingAssignments(){
         var l=Library.defaults();l.folders.add(new Folder(directory.resolve("gone").toString(),"home"));
         var a=add(l,"gone/a.wav");var b=add(l,"gone/sub/b.mp3");l.playlist("home").tracks.put(a.id,false);
@@ -44,7 +44,7 @@ class LibraryHealthTest {
     @Test void progressAndScanErrorsUseOwnedSnapshots(){
         var l=Library.defaults();add(l,"missing.wav");var sources=LibraryRepair.capture(l);l.tracks.getFirst().path="changed";
         var progress=new ArrayList<MusicFiles.ScanProgress>();var errors=new ArrayList<String>(List.of("Decoder detail"));
-        var report=LibraryHealth.check(sources,errors,progress::add);errors.clear();
+        var report=LibraryHealth.check(sources,errors,progress::add,()->false);errors.clear();
         assertEquals(directory.resolve("missing.wav").toString(),report.issues().getFirst().path());assertEquals(List.of("Decoder detail"),report.scanErrors());
         assertEquals(MusicFiles.ScanStage.CHECKING,progress.getLast().stage());assertEquals(1,progress.getLast().processed());
         assertThrows(UnsupportedOperationException.class,()->report.issues().clear());

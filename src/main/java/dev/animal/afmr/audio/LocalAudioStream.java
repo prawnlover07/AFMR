@@ -1,7 +1,7 @@
 package dev.animal.afmr.audio;
 
 import net.minecraft.client.sounds.AudioStream;
-import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.BufferUtils;
 import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.*;
@@ -21,8 +21,8 @@ public final class LocalAudioStream implements AudioStream {
         byte[] data = pcm.readNBytes(Math.max(frame, requested / frame * frame));
         if (data.length == 0) return null;
         ReplayGain.apply(data,replayGain);
-        // SoundBuffer takes ownership and frees this allocation after uploading it to OpenAL.
-        ByteBuffer output = MemoryUtil.memAlloc(data.length); output.put(data).flip(); return output;
+        // AudioStream returns GC-managed direct buffers, matching Minecraft's own decoders.
+        ByteBuffer output = BufferUtils.createByteBuffer(data.length); output.put(data).flip(); return output;
     }
     @Override public void close() throws IOException { pcm.close(); }
 }

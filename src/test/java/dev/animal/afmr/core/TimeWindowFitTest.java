@@ -14,12 +14,12 @@ class TimeWindowFitTest {
     private final Settings settings=new Settings();
     private Context context(int time){
         return new Context("minecraft:overworld","minecraft:plains",false,false,time,false,15,"world",0,80,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions window(int start,int end){
         var c=new PlaylistConditions();c.timeEnabled=true;c.fitSongsToTimeWindow=true;c.startTime=start;c.endTime=end;return c;
     }
-    private Library library(){var lib=new Library();lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=0;return lib;}
+    private Library library(){var lib=new Library();lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;return lib;}
     private Playlist playlist(Library lib,PlaylistConditions c){var p=lib.createPlaylist("Timed");p.conditions=c;return p;}
     private Track song(Library lib,Playlist p,String id,double duration){var t=new Track(id,"file",id,false);t.durationSeconds=duration;lib.tracks.add(t);p.tracks.put(id,true);return t;}
     private PlaybackEngine engine(PlaybackEngineTest.FakeAudio audio){return new PlaybackEngine(audio,new Random(1));}

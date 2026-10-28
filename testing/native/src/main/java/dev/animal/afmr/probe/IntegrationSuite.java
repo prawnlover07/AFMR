@@ -41,7 +41,7 @@ public final class IntegrationSuite {
     private static Library lib;
     private static LibraryScreen editor;
     private static Playlist ambient,manual,location;
-    private static String copyProfile,importedLocation,trackA,trackB;
+    private static String copyProfile,trackA,trackB;
     private static long sequence;
     private static float fullGain;
     private static Sample frozen;
@@ -112,7 +112,7 @@ public final class IntegrationSuite {
         Files.writeString(results.resolveSibling(results.getFileName().toString().replace("results","complete")),passed+" passed / "+failed+" failed\n");
         if(Boolean.getBoolean("afmr.probe.interactive"))show(ambient==null?lib.playlists.getFirst().id:ambient.id);else mc.stop();
     }
-    private static List<AbstractWidget> widgets(){return mc.gui.screen().children().stream().filter(AbstractWidget.class::isInstance).map(AbstractWidget.class::cast).toList();}
+    @SuppressWarnings("unchecked") private static List<AbstractWidget> widgets(){var result=new ArrayList<AbstractWidget>();for(var child:mc.gui.screen().children())if(child instanceof AbstractWidget w)result.add(w);if(mc.gui.screen() instanceof LibraryScreen)result.addAll((List<AbstractWidget>)field(mc.gui.screen(),"menuButtons"));return result;}
     private static AbstractWidget control(String text){return widgets().stream().filter(w->w.getMessage().getString().equals(text)).findFirst().orElseThrow(()->new IllegalStateException("Missing "+text+" on "+mc.gui.screen().getClass().getSimpleName()));}
     private static AbstractWidget prefix(String text){return widgets().stream().filter(w->w.getMessage().getString().startsWith(text)).findFirst().orElseThrow(()->new IllegalStateException("Missing "+text));}
     private static void click(String text){click(control(text));}
@@ -152,7 +152,7 @@ public final class IntegrationSuite {
             ambient.tracks.put(trackB,false);
             manual.tracks.put(trackA,true);manual.tracks.put(trackB,true);show(ambient.id);
             check("New workspace navigation remains accessible",control("Profiles").active&&control("Queue / history").active&&control("Import / export").active);
-            click("Until released");check("Automatic-off playlist accepts override",ambient.id.equals(rt.engine().overrideId()));
+            playlistAction("Keep this playlist playing");check("Automatic-off playlist accepts override",ambient.id.equals(rt.engine().overrideId()));
         });
         volumeChecks();queueChecks();profileChecks();repairChecks();presetChecks();
         add("Prepare restart",20,()->{
@@ -165,30 +165,35 @@ public final class IntegrationSuite {
         });
         add("Shutdown flush",30,()->check("History has real native starts before shutdown",rt.engine().history().size()>5));
     }
+    @SuppressWarnings("unchecked") private static EditBox volumeField(){return ((Map<String,EditBox>)field(field(editor,"settingsPanel"),"fields")).get("volume");}
+    private static void playlistAction(String label){
+        click("Playlist actions ...");
+        @SuppressWarnings("unchecked") var menu=(List<AbstractWidget>)field(editor,"menuButtons");
+        click(menu.stream().filter(w->w.getMessage().getString().startsWith(label)).findFirst().orElseThrow());
+    }
     private static void volumeChecks(){
         await("Native initial playback",()->playing()&&(float)field(rt.engine(),"currentGain")>=0.999f,()->{
             check("Imported WAV opens a real native channel",playing());fullGain=audio.gain();sequence=rt.engine().playbackSequence();
-            click(prefix("Volume:"));check("Volume opens dedicated page",screen("PlaylistVolumeScreen"));
-            click(prefix("Volume:"));check("Slider sets 50 percent",ambient.volume==0.5);
+            volumeField().setValue("50");check("Inline volume sets 50 percent",ambient.volume==0.5);
         });
         add("Observe half gain",25,()->{
             check("Playlist volume halves native gain",playing()&&Math.abs(audio.gain()-fullGain*0.5)<0.005);
             check("Live volume preserves channel and song",rt.engine().playbackSequence()==sequence);
-            var slider=prefix("Volume:");point(slider.getX()+4,slider.getY()+10);
+            volumeField().setValue("0");
         });
         add("Observe muted gain",15,()->{
             check("Zero playlist volume mutes real channel",ambient.volume==0&&audio.gain()==0&&rt.engine().current()!=null);
-            click("Reset to 100%");check("Volume reset restores setting",ambient.volume==1);click("Back");
+            volumeField().setValue("100");check("Inline volume restores setting",ambient.volume==1);
         });
         add("Observe reset gain",15,()->{
             check("Volume reset restores native gain",Math.abs(audio.gain()-fullGain)<0.005);shot("volume-workspace");
-            ambient.volume=0.25;rt.preview(lib.track(trackA));
+            volumeField().setValue("25");check("Preview setup commits the visible 25 percent field",ambient.volume==0.25);rt.preview(lib.track(trackA));
         });
         await("Preview native playback",()->playing()&&(float)field(rt.engine(),"currentGain")>=0.999f,()->check("Library preview uses normal volume",Math.abs(audio.gain()-fullGain)<0.005));
     }
     private static void queueChecks(){
         add("Queue from workspace",5,()->{
-            rt.engine().queue().clear();rt.clearHistory();show(ambient.id);row("songs",0);click("Queue");
+            rt.engine().queue().clear();rt.clearHistory();show(ambient.id);row("songs",0);var songs=(AbstractWidget)field(editor,"songs");float scale=(float)field(editor,"scale");var event=new MouseButtonEvent((songs.getX()+30)*scale,(songs.getY()+7)*scale,new MouseButtonInfo(InputConstants.MOUSE_BUTTON_RIGHT,0));editor.mouseClicked(event,false);editor.mouseReleased(event);click("Queue 1 song");
             check("Workspace queues assigned song",rt.engine().queue().size()==1);
             rt.queueTrack(trackB,manual.id);rt.queueTrack(trackA,manual.id);click("Queue / history");
             check("Queue page opens",screen("ListeningScreen"));row("list",2);click("Up");
@@ -330,18 +335,20 @@ public final class IntegrationSuite {
             rt.preparePresetImport(root.resolve("shared.afmrp"),lib.profiles.activeId,ambient.id);
         });
         await("Sharing review",()->idle()&&rt.pendingPreset()!=null,()->{
-            check("Imported setup opens preview before mutation",screen("PresetImportScreen"));check("Location import enabled inside world",control("Add 2 playlists").active);
+            check("Imported setup opens preview before mutation",screen("PresetImportScreen"));check("Location import enabled inside world",control("Create profile and import").active);
+            click(prefix("Destination:"));click(prefix("Insert new:"));check("Existing-profile insertion can change to top",control("Insert new: Top priority").active);
             click("Cancel");check("Cancel clears pending import",rt.pendingPreset()==null);
             rt.preparePresetImport(root.resolve("shared.afmrp"),lib.profiles.activeId,ambient.id);
         });
         await("Review same file again",()->idle()&&rt.pendingPreset()!=null,()->{
-            click(prefix("Insert:"));check("Priority can change to top",control("Insert: Top priority").active);shot("sharing-preview");click("Add 2 playlists");
-            check("Import creates new ordered playlist copies",lib.playlists.get(0).name.equals(ambient.name)&&lib.playlists.get(1).name.equals(location.name)&&!lib.playlists.get(0).id.equals(ambient.id));
-            var p=lib.playlists.get(1);importedLocation=p.id;
+            var active=lib.playlists;shot("sharing-preview");click("Create profile and import");
+            var imported=lib.profiles.inactive.getLast();
+            check("Import creates a new profile with ordered playlist copies",imported.name.equals("shared")&&imported.playlists.size()==2&&imported.playlists.get(0).name.equals(ambient.name)&&imported.playlists.get(1).name.equals(location.name)&&!imported.playlists.get(0).id.equals(ambient.id));
+            var p=imported.playlists.get(1);
             check("Imported playlist retains flags and volume",p.volume==0.42&&p.finishCurrentSong&&p.finishCurrentSongOnExit&&p.playOnTrigger&&!p.enabled&&!p.includeVanilla);
             check("Imported location binds to current world and retains radius",p.conditions.area.world.equals(rt.worldKey())&&p.conditions.area.radius==73);
-            check("Imported playlists carry no song assignments",p.tracks.isEmpty()&&lib.playlists.getFirst().tracks.isEmpty());
-            check("Import returns to fresh selected workspace",screen("LibraryScreen"));
+            check("Imported playlists carry no song assignments",p.tracks.isEmpty()&&imported.playlists.getFirst().tracks.isEmpty());
+            check("Import leaves active setup unchanged",lib.playlists==active&&screen("PlaylistSharingScreen"));
             checkedIO(()->Files.writeString(root.resolve("invalid.afmrp"),"{\"format\":\"afmr-playlists\",\"playlists\":[{\"name\":\"bad\",\"unknown\":true}]}"));
             rt.preparePresetImport(root.resolve("invalid.afmrp"),lib.profiles.activeId,ambient.id);
         });
@@ -362,11 +369,14 @@ public final class IntegrationSuite {
         check("Listening history survives actual game shutdown",rt.engine().history().size()>5);
         check("Repaired paths survive restart",lib.tracks.stream().anyMatch(t->t.path.endsWith("moved\\Album\\Renamed.wav")));
         rt.activateProfile(PlaylistProfiles.DEFAULT);
-        check("Other profile retains imported setups",lib.playlists.stream().filter(p->p.name.equals("Integration shared location")).count()==2);
+        check("Default retains original setup without imported duplicates",lib.playlists.stream().filter(p->p.name.equals("Integration shared location")).count()==1);
+        var imported=lib.profiles.inactive.stream().filter(p->p.name.equals("shared")).findFirst().orElseThrow();
+        check("Imported-only profile survives restart",imported.playlists.size()==2);
+        check("Imported location survives in its own profile",imported.playlists.stream().anyMatch(p->p.name.equals("Integration shared location")&&p.conditions.area.radius==73&&p.conditions.area.world.equals(rt.worldKey())));
         check("Shared setup locations survive restart",lib.playlists.stream().filter(p->p.name.equals("Integration shared location")).allMatch(p->p.conditions.area.radius==73&&p.conditions.area.world.equals(rt.worldKey())));
         show(ambient.id);click("Queue / history");click("History");shot("history-after-restart");
         check("Persistent history visible in native screen",screen("ListeningScreen")&&((List<?>)field(mc.gui.screen(),"rows")).size()>5);
-        rt.activateProfile(copyProfile);show(ambient.id);click("Until released");
+        rt.activateProfile(copyProfile);show(ambient.id);playlistAction("Keep this playlist playing");
         await("Restart native decoder",IntegrationSuite::playing,()->{
             check("Repaired library plays after full restart",playing());
             rt.engine().queue().clear();rt.returnAutomatic();rt.skip();

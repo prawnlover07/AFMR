@@ -17,8 +17,28 @@ import net.minecraft.sounds.SoundSource;
 @Mixin(SoundEngine.class)
 public abstract class SoundEngineMixin {
     @Shadow @Final private Map<SoundInstance,ChannelAccess.ChannelHandle> instanceToChannel;
+    @Shadow private boolean loaded;
+    @Shadow private float calculateVolume(SoundInstance sound){throw new AssertionError();}
     @Unique private MusicSound afmr$music;
     @Unique private boolean afmr$appliedPause;
+
+    @com.llamalad7.mixinextras.injector.ModifyExpressionValue(method="tickNonPaused",at=@At(value="INVOKE",target="Lnet/minecraft/client/Options;getSoundSourceVolume(Lnet/minecraft/sounds/SoundSource;)F"))
+    private float afmr$retainMutedChannel(float volume,@com.llamalad7.mixinextras.sugar.Local SoundInstance sound){
+        // This value controls vanilla's removal decision only. Actual OpenAL gain remains exactly zero.
+        return sound instanceof MusicSound&&volume<=0?Float.MIN_NORMAL:volume;
+    }
+    @Redirect(method="play",at=@At(value="INVOKE",target="Lcom/mojang/blaze3d/audio/Listener;getGain()F"))
+    private float afmr$allowSilentStart(com.mojang.blaze3d.audio.Listener listener,SoundInstance sound){
+        float gain=listener.getGain();return sound instanceof MusicSound&&gain<=0?Float.MIN_NORMAL:gain;
+    }
+    @Inject(method="updateCategoryVolume",at=@At("HEAD"),cancellable=true)
+    private void afmr$preserveMutedStream(SoundSource source,float gain,CallbackInfo ci){
+        if(!loaded||source==SoundSource.MASTER||afmr$music==null)return;
+        instanceToChannel.forEach((sound,handle)->{
+            float volume=calculateVolume(sound);boolean preserve=sound instanceof MusicSound;
+            handle.execute(channel->{if(volume<=0&&!preserve)channel.stop();else channel.setVolume(volume);});
+        });ci.cancel();
+    }
 
     @Inject(method="play",at=@At("RETURN"))
     private void afmr$remember(SoundInstance instance,CallbackInfo ci){
@@ -37,6 +57,9 @@ public abstract class SoundEngineMixin {
         if(!(instance instanceof MusicSound music))return future.thenAccept(attach);
         var handle=instanceToChannel.get(instance);
         return future.thenAccept(stream->{
+            if(music.ended()){
+                try{((AudioStream)stream).close();}catch(java.io.IOException error){dev.animal.afmr.Afmr.LOG.debug("Canceled stream close failed",error);}return;
+            }
             attach.accept(stream);
             if(handle!=null)handle.execute(channel->{if(music.paused())channel.pause();});
         });
@@ -56,6 +79,14 @@ public abstract class SoundEngineMixin {
     private void afmr$keepManualPause(CallbackInfo ci){
         if(afmr$music!=null&&afmr$music.paused()){
             var handle=instanceToChannel.get(afmr$music);if(handle!=null){handle.execute(Channel::pause);afmr$appliedPause=true;}
+        }
+    }
+    @Inject(method="stop(Lnet/minecraft/client/resources/sounds/SoundInstance;)V",at=@At("TAIL"))
+    private void afmr$stopPending(SoundInstance instance,CallbackInfo ci){
+        if(instance instanceof MusicSound music&&!music.started()){
+            var handle=instanceToChannel.get(instance);
+            // OpenAL stop on an INITIAL source leaves it INITIAL. Play/stop makes it reclaimable.
+            if(handle!=null)handle.execute(channel->{if(!channel.stopped()&&!channel.playing())channel.play();channel.stop();});
         }
     }
     @Inject(method="stopAll",at=@At("TAIL"))

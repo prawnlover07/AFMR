@@ -26,18 +26,17 @@ final class HealthConditionScreen extends MusicScreen {
     }
     @Override protected void init(){
         super.init();
-        toggle=button("",left,47,contentWidth,()->{enabled=!enabled;updateLabels();});
+        toggle=toggle("Filter",left,47,contentWidth,()->enabled,()->{enabled=!enabled;updateLabels();});
         mode=button("",left,75,contentWidth,()->{comparison=comparison==HealthComparison.BELOW?HealthComparison.ABOVE:HealthComparison.BELOW;updateLabels();});
         var aboveOrBelowHelpText=Component.translatable("afmr.copy.healthcondition.above_or_below");
         if(!aboveOrBelowHelpText.getString().isBlank())mode.setTooltip(Tooltip.create(aboveOrBelowHelpText));
         threshold=edit(Double.toString(conditions.healthThreshold),"Red hearts",left+contentWidth-100,119,100,null);
         var heartThresholdHelpText=Component.translatable("afmr.copy.healthcondition.heart_threshold");
         if(!heartThresholdHelpText.getString().isBlank())threshold.setTooltip(Tooltip.create(heartThresholdHelpText));
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
         updateLabels();
     }
     private void updateLabels(){
-        toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));
         mode.setMessage(Component.literal("Health: "+(comparison==HealthComparison.BELOW?"below":"above")));
     }
     @Override protected boolean saveChanges(){
@@ -51,8 +50,8 @@ final class HealthConditionScreen extends MusicScreen {
     }
     @Override public void onClose(){if(saveChanges())super.onClose();}
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
-        g.drawString(font,fit("Threshold (red hearts)",contentWidth-108),left,125,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        if(runtime.inWorld())g.drawString(font,fit(String.format(Locale.ROOT,"Current health: %.2f hearts",runtime.context().healthHearts()),contentWidth),left,159,MenuAppearance.color(MenuColor.ACCENT,0xFFB9D7B7));
-        g.drawString(font,fit(error,contentWidth),left,height-48,0xFFFFA0A0);
+        g.drawString(menuFont,fit("Threshold (red hearts)",contentWidth-108),left,125,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        if(runtime.inWorld())g.drawString(menuFont,fit(String.format(Locale.ROOT,"Current health: %.2f hearts",runtime.context().healthHearts()),contentWidth),left,159,MenuAppearance.color(MenuColor.ACCENT,0xFFBCBDF8));
+        g.drawString(menuFont,fit(error,contentWidth),left,bodyBottom()-48,0xFFFFA0A0);
     }
 }

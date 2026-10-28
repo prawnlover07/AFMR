@@ -7,13 +7,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SongGroupsTest {
     private static final Context CONTEXT=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,
-        "test",0,70,0,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,NearbyPlayers.EMPTY);
+        "test",0,70,0,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,NearbyPlayers.EMPTY,false);
     private static class Scenario {
         final Library lib=new Library();
         final Playlist a=new Playlist("a","A"),b=new Playlist("b","B");
         final PlaybackEngineTest.FakeAudio audio=new PlaybackEngineTest.FakeAudio();
         final PlaybackEngine engine=new PlaybackEngine(audio,new Random(7));
         Scenario(){
+            lib.settings.bufferSeconds=lib.settings.fadeOutSeconds=0;
             lib.settings.songsBeforeSilence=3;lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;
             for(var p:List.of(a,b)){
                 p.includeVanilla=false;lib.playlists.add(p);

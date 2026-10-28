@@ -27,7 +27,7 @@ public final class Afmr implements ClientModInitializer {
     public static final Logger LOG=LogUtils.getLogger();
     // JUL retains loggers weakly. Keep this parent alive so WAV chunk logging stays quiet.
     private static final java.util.logging.Logger METADATA_LOG=java.util.logging.Logger.getLogger("org.jaudiotagger");
-    private static final String CATEGORY="key.categories.misc";
+    private static final String CATEGORY="key.categories.afmr";
     private static final KeyMapping OPEN=key("open",InputConstants.KEY_M);
     private static final KeyMapping SKIP=key("skip",-1),NEXT=key("next",-1),PAUSE=key("pause",-1);
     private static final KeyMapping INSPECT=key("inspect",-1),OVERRIDES=key("overrides",-1),AUTOMATIC=key("automatic",-1);
@@ -73,7 +73,7 @@ public final class Afmr implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{MusicMenu.clear();suppressOpen=false;ClientRuntime.disconnect();});
         ClientLifecycleEvents.CLIENT_STOPPING.register(client->ClientRuntime.shutdown());
         HudRenderCallback.EVENT.register((graphics,delta)->ClientRuntime.get().overlay().draw(graphics));
-        HostileTargeting.register();
+        ClientConditions.register();
     }
     private static void tick(Minecraft mc){
         var runtime=ClientRuntime.get();runtime.tick();

@@ -1,6 +1,7 @@
 package dev.animal.afmr.ui;
 
 
+import dev.animal.afmr.ClientRuntime;
 import dev.animal.afmr.core.Library.Settings;
 import dev.animal.afmr.core.NowPlayingInfo;
 import dev.animal.afmr.core.NowPlayingLayout;
@@ -19,6 +20,7 @@ final class NowPlayingWidget {
     private int[] lineWidths=new int[0];
     private int textWidth=-1;
     private boolean wrapped;
+    private net.minecraft.client.gui.Font measuredFont;
     private NowPlayingLayout layout;
     private int availableWidth,availableHeight;
 
@@ -26,6 +28,8 @@ final class NowPlayingWidget {
         info=next;textWidth=-1;layout=null;
     }
     NowPlayingLayout layout(Settings settings,int width,int height){
+        var selectedFont=ClientRuntime.get().fonts().font(CustomFonts.Target.WIDGET);
+        if(measuredFont!=selectedFont){measuredFont=selectedFont;layout=null;textWidth=-1;}
         if(layout==null||availableWidth!=width||availableHeight!=height){
             availableWidth=width;availableHeight=height;
             var base=NowPlayingLayout.fit(settings.widgetWidth,settings.widgetScale,0,
@@ -33,7 +37,7 @@ final class NowPlayingWidget {
             int space=base.width()-base.textX()-7;
             if(textWidth!=space||wrapped!=settings.widgetWrap){
                 textWidth=space;wrapped=settings.widgetWrap;
-                var font=Minecraft.getInstance().font;
+                var font=ClientRuntime.get().fonts().font(CustomFonts.Target.WIDGET);
                 lines=info==null?new String[0]:wrapped?info.wrap(space,font::width):info.lines;
                 fitted=new String[lines.length];lineWidths=new int[lines.length];
                 for(int i=0;i<lines.length;i++){
@@ -49,10 +53,12 @@ final class NowPlayingWidget {
 
     void draw(GuiGraphics g,Settings settings,NowPlayingLayout layout,float x,float y,float alpha,boolean hasCover,double age){
         if(info==null||(lines.length==0&&!settings.widgetArtwork))return;
-        var font=Minecraft.getInstance().font;
+        var font=ClientRuntime.get().fonts().font(CustomFonts.Target.WIDGET);
+        var appearance=ClientRuntime.get().themes().preview();
         int width=layout.width(),height=layout.height(),space=width-layout.textX()-7;
         g.pose().pushPose();g.pose().translate(x,y,0);g.pose().scale((float)layout.scale(),(float)layout.scale(),1);
-        g.fill(0,0,width,height,color(settings.widgetBackgroundColor,alpha*(float)settings.widgetBackgroundOpacity));
+        if(!ClientRuntime.get().widgetBackground().draw(g,width,height,alpha))
+            g.fill(0,0,width,height,color(appearance==null?settings.widgetBackgroundColor:appearance.widgetBackground,alpha*(float)(appearance==null?settings.widgetBackgroundOpacity:appearance.widgetOpacity)));
         if(settings.widgetArtwork){
             int size=layout.iconSize(),iconY=(height-size)/2;
             if(hasCover){

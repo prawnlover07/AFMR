@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlaylistTemplatesTest {
     private Context context(String dimension,int time,double y,boolean cover,double depth,int light,boolean combat){
-        return new Context(dimension,"test:biome",combat,false,time,cover,light,"world",0,y,0,depth,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context(dimension,"test:biome",combat,false,time,cover,light,"world",0,y,0,depth,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     @Test void initialTemplatesReproduceThePreviousRulesAcrossEnvironmentBoundaries(){
         var lib=Library.defaults();
@@ -62,7 +62,7 @@ class PlaylistTemplatesTest {
         assertTrue(source.enabled);assertFalse(source.manualOnly);assertTrue(source.conditions.areaEnabled);
         assertFalse(source.conditions.matchAny);assertFalse(source.conditions.negated);assertEquals(State.ANY,source.conditions.combat);assertTrue(source.conditions.groups.isEmpty());
         assertEquals(64,source.conditions.area.radius);assertTrue(source.matches(c,lib.settings));
-        var boundary=new Context(c.dimension(),c.biome(),false,false,6000,false,15,c.world(),0,264,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var boundary=new Context(c.dimension(),c.biome(),false,false,6000,false,15,c.world(),0,264,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertTrue(source.matches(boundary,lib.settings));source.conditions.area.radius=63.9;assertFalse(source.matches(boundary,lib.settings));
         assertFalse(source.conditions.area.contains(context("other:dimension",6000,200,false,0,15,false)));
         assertSame(untouched,lib.playlist("home").conditions);assertFalse(untouched.area.configured);
@@ -70,7 +70,7 @@ class PlaylistTemplatesTest {
     }
     @Test void autoplayWithoutAWorldDoesNotDiscardConditions(){
         var p=Library.defaults().playlist("combat");var before=p.conditions;
-        var c=new Context("","",false,false,0,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var c=new Context("","",false,false,0,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertThrows(IllegalArgumentException.class,()->p.autoplayHere(c));assertSame(before,p.conditions);
     }
     @Test void groupsComposeNotAndDisabledBranchesWithoutChangingUnrelatedTemplates(){

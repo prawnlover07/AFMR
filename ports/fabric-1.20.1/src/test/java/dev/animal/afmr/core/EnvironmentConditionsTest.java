@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class EnvironmentConditionsTest {
     private final Library library=Library.defaults();
     private Context context(boolean day,boolean underground,boolean covered,int light,double y){
-        return new Context("minecraft:overworld","any",false,false,(day?6000:18000),covered,light,"world",0,y,0,(covered?8:0),0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        return new Context("minecraft:overworld","any",false,false,(day?6000:18000),covered,light,"world",0,y,0,(covered?8:0),0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
-    private Context underground(double y,boolean covered,double depth){return new Context("minecraft:overworld","",false,false,6000,covered,15,"world",0,y,0,depth,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
-    private Context dimension(String dim,boolean covered,int light){return new Context(dim,"",false,false,6000,covered,light,"world",0,100,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private Context underground(double y,boolean covered,double depth){return new Context("minecraft:overworld","",false,false,6000,covered,15,"world",0,y,0,depth,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
+    private Context dimension(String dim,boolean covered,int light){return new Context(dim,"",false,false,6000,covered,light,"world",0,100,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private Context atHome(Context c){library.playlist("home").autoplayHere(c);return c;}
     @Test void undergroundYBoundaryIsInclusiveAndNegativeValuesWork(){
         var s=library.playlist("underground").conditions;s.maxY=-20;
@@ -45,7 +45,7 @@ class EnvironmentConditionsTest {
         Context c=context(true,true,true,0,-20);
         assertEquals("dark_exploration",library.select(c).id);
         assertEquals("home",library.select(atHome(c)).id);
-        Context combat=new Context(c.dimension(),c.biome(),true,false,6000,true,0,c.world(),0,-20,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        Context combat=new Context(c.dimension(),c.biome(),true,false,6000,true,0,c.world(),0,-20,0,8,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertEquals("combat",library.select(combat).id);
         library.playlist("home").conditions.area.configured=false;library.playlist("dark_exploration").enabled=false;
         assertEquals("underground",library.select(c).id);
@@ -89,10 +89,10 @@ class EnvironmentConditionsTest {
     }
     @Test void dimensionOverrideStillRespectsPriorityAndPlaylistDisable(){
         library.playlist("dark_exploration").conditions.groups.get(2).enabled=true;
-        var c=new Context("minecraft:the_end","",false,false,6000,false,15,"world",0,200,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var c=new Context("minecraft:the_end","",false,false,6000,false,15,"world",0,200,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertEquals("dark_exploration",library.select(c).id);
         assertEquals("home",library.select(atHome(c)).id);
-        var combat=new Context(c.dimension(),"",true,false,6000,false,15,"world",0,200,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        var combat=new Context(c.dimension(),"",true,false,6000,false,15,"world",0,200,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         assertEquals("combat",library.select(combat).id);
         library.playlist("home").conditions.area.configured=false;library.playlist("dark_exploration").enabled=false;
         assertEquals("day_outside",library.select(c).id);

@@ -40,17 +40,17 @@ final class PlaylistSharingScreen extends MusicScreen {
         });
         var exportSetupHelpText=Component.translatable("afmr.copy.playlistsharing.export_setup");
         if(!exportSetupHelpText.getString().isBlank())export.setTooltip(Tooltip.create(exportSetupHelpText));
-        button("Include song list: "+(includeSongs?"On":"Off"),left,74,contentWidth,()->{includeSongs=!includeSongs;rebuildWidgets();});
+        toggle("Include song list",left,74,contentWidth,()->includeSongs,()->{includeSongs=!includeSongs;rebuildWidgets();});
         button("All",left,100,56,()->{selected.clear();runtime.library().playlists.forEach(p->selected.add(p.id));updateControls();});
         button("None",left+62,100,56,()->{selected.clear();updateControls();});
-        var rows=addRenderableWidget(new DenseList<Playlist>(left,127,contentWidth,Math.max(28,height-203),
+        var rows=addRenderableWidget(new DenseList<Playlist>(left,127,contentWidth,Math.max(28,bodyBottom()-203),
             (g,p,x,y,w,hover)->{
-                if(selected.contains(p.id))g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF35594E));
-                g.drawString(font,fit((selected.contains(p.id)?"[x] ":"[ ] ")+p.name,w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFE3F2E9),false);
+                if(selected.contains(p.id))g.fill(x,y,x+w,y+14,MenuAppearance.color(MenuColor.SELECTION,0xFF304963));
+                g.drawString(menuFont,fit((selected.contains(p.id)?"[x] ":"[ ] ")+p.name,w-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFEDF4F6),false);
             },(p,clickX,clickY,button,twice)->{if(!selected.remove(p.id))selected.add(p.id);updateControls();},p->p.name));
         rows.items(runtime.library().playlists);updateControls();
-        button("Full configuration...",left,height-29,(contentWidth-6)/2,()->minecraft.setScreen(new ConfigBackupScreen(this,runtime)));
-        button("Back",left+(contentWidth-6)/2+6,height-29,(contentWidth-6)/2,this::onClose);
+        button("Full configuration...",left,bodyBottom()-29,(contentWidth-6)/2,()->minecraft.setScreen(new ConfigBackupScreen(this,runtime)));
+        button("Back",left+(contentWidth-6)/2+6,bodyBottom()-29,(contentWidth-6)/2,this::onClose);
     }
     private void updateControls(){export.active=!runtime.scanning()&&!selected.isEmpty()&&selected.size()<=PlaylistPresets.MAX_PLAYLISTS;}
     private void showImport(ClientRuntime.PresetImport pending){shown=pending;minecraft.setScreen(new PresetImportScreen(this,runtime,pending));}
@@ -65,14 +65,14 @@ final class PlaylistSharingScreen extends MusicScreen {
         minecraft.setScreen(repair?new LibraryRepairScreen(next,runtime):next);
     }
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
-        g.drawString(font,fit(selected.size()+" selected / maximum "+PlaylistPresets.MAX_PLAYLISTS,contentWidth-126),left+126,106,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-        if(runtime.scanning())ScanProgressView.draw(g,font,runtime.scanProgress(),left,height-66,contentWidth);
+        g.drawString(menuFont,fit(selected.size()+" selected / maximum "+PlaylistPresets.MAX_PLAYLISTS,contentWidth-126),left+126,106,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+        if(runtime.scanning())ScanProgressView.draw(g,menuFont,runtime.scanProgress(),left,bodyBottom()-66,contentWidth);
         else{
-            g.drawString(font,guidance,left,height-65,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA9BDB3));
-            g.drawString(font,fit(runtime.taskStatus(),contentWidth),left,height-48,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-            if(x>=left&&x<left+contentWidth&&y>=height-50&&y<height-36){
-                if(!statusText.equals(runtime.taskStatus())){statusText=runtime.taskStatus();statusTooltip=font.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
-                g.renderTooltip(font,statusTooltip,x,y);
+            g.drawString(menuFont,guidance,left,bodyBottom()-65,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABB5C2));
+            g.drawString(menuFont,fit(runtime.taskStatus(),contentWidth),left,bodyBottom()-48,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+            if(x>=left&&x<left+contentWidth&&y>=bodyBottom()-50&&y<bodyBottom()-36){
+                if(!statusText.equals(runtime.taskStatus())){statusText=runtime.taskStatus();statusTooltip=menuFont.split(Component.literal(statusText),Math.max(100,Math.min(400,contentWidth)));}
+                g.renderTooltip(menuFont,statusTooltip,x,y);
             }
         }
     }

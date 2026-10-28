@@ -10,7 +10,7 @@ class SongTableLayoutTest {
         for(int width:new int[]{478,600,1200}){
             var table=new SongTableLayout(SongColumn.defaults(),width,100);
             assertFalse(table.overflow());assertEquals(0,table.scroll());assertEquals(table.viewport,table.total);
-            assertEquals(-1,table.columnAt(0));assertEquals(0,table.columnAt(28));assertEquals(3,table.columnAt(width-1));assertEquals(-1,table.columnAt(width));
+            assertEquals(-1,table.columnAt(0));assertEquals(0,table.columnAt(SongTableLayout.PINNED));assertEquals(3,table.columnAt(width-1));assertEquals(-1,table.columnAt(width));
         }
     }
     @Test void extraColumnsKeepTheirWidthsAndHitTestingFollowsTheScroll(){

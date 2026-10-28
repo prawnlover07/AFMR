@@ -54,6 +54,7 @@ public final class DiagnosticSummary {
         report.line("");
         if(session.inWorld())environment(report,context);
         else report.line("Environment: unavailable outside a world; condition matches are not evaluated.");
+        if(engine.transitionRule()!=null)report.line("Active directional transition: "+engine.transitionRule().summary());
         report.line("");report.line("Playlists (priority order):");
         int count=Math.min(MAX_PLAYLISTS,lib.playlists.size());
         for(int i=0;i<count;i++)playlist(report,lib.playlists.get(i),i+1,lib,engine,session.inWorld()?context:null,vanilla);
@@ -74,6 +75,7 @@ public final class DiagnosticSummary {
         r.line("Weather: raining "+c.raining()+"; thunder "+c.thundering()+"; precipitation "+c.precipitation()
             +"; structure data available: "+c.structures().available());
         r.line("Held items: main "+resource(c.mainHandItem())+"; off-hand "+resource(c.offHandItem()));
+        r.line("Riding animal: "+c.ridingAnimal());
     }
     private static void playlist(Report r,Playlist p,int rank,Library lib,PlaybackEngine e,Context c,Set<String> vanilla){
         r.line("#"+rank+": automatic="+p.enabled+"; manualOnly="+p.manualOnly+"; conditions="+(c==null?"not evaluated":p.conditions.failure(c,lib.settings))
@@ -98,7 +100,9 @@ public final class DiagnosticSummary {
         if(p.weatherEnabled)r.line("    Weather: "+p.weather);
         if(p.heldItemEnabled)r.line("    Held items: "+p.heldItems.size()+" selected; hand="+p.heldItemHand);
         if(p.nearbyPlayerEnabled)r.line("    Nearby player: radius="+number(p.nearbyPlayerRadius)+"; matches="+(c==null?"not evaluated":c.nearbyPlayers().matches(p.nearbyPlayerUuid,p.nearbyPlayerName,p.nearbyPlayerRadius))+" (identity omitted)");
+        if(p.nearbyPlayerEnabled&&p.proximityVolume.enabled)r.line("    Proximity volume: near "+number(p.proximityVolume.nearDistance)+" blocks="+percent(p.proximityVolume.nearVolume)+"; far "+number(p.proximityVolume.farDistance)+" blocks="+percent(p.proximityVolume.farVolume));
         if(p.gameModeEnabled)r.line("    Gamemodes: "+p.gameModes);
+        if(p.ridingAnimal!=PlaylistConditions.State.ANY)r.line("    Riding animal: "+p.ridingAnimal);
         for(int i=0;i<p.groups.size()&&nodes[0]<PlaylistConditions.MAX_NODES;i++)conditions(r,p.groups.get(i),c,settings,group+"."+(i+1),depth+1,nodes);
     }
     private static String reference(Library lib,String id){

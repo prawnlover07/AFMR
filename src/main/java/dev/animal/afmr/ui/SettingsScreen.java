@@ -10,46 +10,56 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import java.util.*;
+import net.minecraft.client.gui.components.AbstractWidget;
 
 final class SettingsScreen extends MusicScreen {
     private final Map<String,EditBox> values=new LinkedHashMap<>();
     private String error="";
-    private int half;
+    private int half,scroll,rows;
+    private record Positioned(AbstractWidget control,int y){}
+    private final List<Positioned> positions=new ArrayList<>();
     SettingsScreen(Screen parent,ClientRuntime runtime){super("Timing & playback",parent,runtime);}
     @Override protected void init(){
-        super.init();values.clear();var s=runtime.library().settings;
+        super.init();values.clear();positions.clear();int first=children().size();var s=runtime.library().settings;
         half=(contentWidth-18)/2;int x=left+half+18;
         field("Min silence (sec)",s.silenceMinSeconds,52,Component.translatable("afmr.copy.settings.min_silence_sec"));
         field("Max silence (sec)",s.silenceMaxSeconds,76,Component.translatable("afmr.copy.settings.max_silence_sec"));
         field("Fade in (sec)",s.fadeInSeconds,100,Component.translatable("afmr.copy.settings.fade_in_sec"));
         field("Fade out (sec)",s.fadeOutSeconds,124,Component.translatable("afmr.copy.settings.fade_out_sec"));
         field("Context buffer (sec)",s.bufferSeconds,148,Component.translatable("afmr.copy.settings.context_buffer_sec"));
-        var playImmediatelyOnJoinHelpControl=button("Play immediately on join: "+(s.playImmediatelyOnJoin?"on":"off"),left,176,half,()->flip(()->s.playImmediatelyOnJoin=!s.playImmediatelyOnJoin));
+        var playImmediatelyOnJoinHelpControl=toggle("Play immediately on join",left,176,half,()->s.playImmediatelyOnJoin,()->flip(()->s.playImmediatelyOnJoin=!s.playImmediatelyOnJoin));
         var playImmediatelyOnJoinHelpText=Component.translatable("afmr.copy.settings.play_immediately_on_join");
         if(!playImmediatelyOnJoinHelpText.getString().isBlank())playImmediatelyOnJoinHelpControl.setTooltip(Tooltip.create(playImmediatelyOnJoinHelpText));
         addRenderableWidget(minecraft.options.musicFrequency().createButton(minecraft.options,x,52,half,value->{
             values.get("Min silence (sec)").setValue(Double.toString(s.silenceMinSeconds));
             values.get("Max silence (sec)").setValue(Double.toString(s.silenceMaxSeconds));
         }));
-        var normalizationHelpControl=button("Normalization: "+(s.replayGainEnabled?"on":"off"),x,78,half,()->flip(()->s.replayGainEnabled=!s.replayGainEnabled));
+        var normalizationHelpControl=toggle("Normalization",x,78,half,()->s.replayGainEnabled,()->flip(()->s.replayGainEnabled=!s.replayGainEnabled));
         var normalizationHelpText=Component.translatable("afmr.copy.settings.normalization");
         if(!normalizationHelpText.getString().isBlank())normalizationHelpControl.setTooltip(Tooltip.create(normalizationHelpText));
-        var continuePlayingOnMatchHelpControl=button("Continue playing on match: "+(s.continuePlayingOnMatch?"on":"off"),x,104,half,()->flip(()->s.continuePlayingOnMatch=!s.continuePlayingOnMatch));
+        var continuePlayingOnMatchHelpControl=toggle("Continue playing on match",x,104,half,()->s.continuePlayingOnMatch,()->flip(()->s.continuePlayingOnMatch=!s.continuePlayingOnMatch));
         var continuePlayingOnMatchHelpText=Component.translatable("afmr.copy.settings.continue_playing_on_match");
         if(!continuePlayingOnMatchHelpText.getString().isBlank())continuePlayingOnMatchHelpControl.setTooltip(Tooltip.create(continuePlayingOnMatchHelpText));
         var jukeboxPolicyHelpControl=button("Jukebox: "+s.jukeboxMode.label(),x,130,half,()->flip(()->s.jukeboxMode=JukeboxMode.values()[(s.jukeboxMode.ordinal()+1)%JukeboxMode.values().length]));
         var jukeboxPolicyHelpText=Component.translatable("afmr.copy.settings.jukebox_policy");
         if(!jukeboxPolicyHelpText.getString().isBlank())jukeboxPolicyHelpControl.setTooltip(Tooltip.create(jukeboxPolicyHelpText));
-        button("Songs before silence: "+s.songsBeforeSilence,x,156,half,()->{if(apply())minecraft.gui.setScreen(new SongCountScreen(this,runtime,null));});
+        button("Songs before silence: "+s.songsBeforeSilence+" >",x,156,half,()->{if(apply())minecraft.gui.setScreen(new SongCountScreen(this,runtime,null));});
+        for(int i=first;i<children().size();i++)if(children().get(i) instanceof AbstractWidget control)positions.add(new Positioned(control,control.getY()));
+        rows=Math.max(1,(bodyBottom()-100)/24);scroll=Math.max(0,Math.min(scroll,Math.max(0,6-rows)));positionControls();
+        addRenderableWidget(new SettingsScrollbar(left+contentWidth+2,52,rows*24,Math.max(0,6-rows),rows,()->scroll,this::scrollTo));
         int combatWidth=Math.min(150,contentWidth/3),backWidth=Math.min(130,contentWidth/4);
-        var combatSettingsHelpControl=button("Combat settings",left,height-29,combatWidth,()->{if(apply())minecraft.gui.setScreen(new CombatSettingsScreen(this,runtime));});
+        var combatSettingsHelpControl=button("Combat settings >",left,bodyBottom()-29,combatWidth,()->{if(apply())minecraft.gui.setScreen(new CombatSettingsScreen(this,runtime));});
         var combatSettingsHelpText=Component.translatable("afmr.copy.settings.combat_settings");
         if(!combatSettingsHelpText.getString().isBlank())combatSettingsHelpControl.setTooltip(Tooltip.create(combatSettingsHelpText));
-        var minecraftDefaultsHelpControl=button("Minecraft defaults",left+combatWidth+6,height-29,contentWidth-combatWidth-backWidth-12,()->{s.restoreMinecraftPlaybackDefaults();runtime.save();error="";rebuildWidgets();});
+        var minecraftDefaultsHelpControl=button("Minecraft defaults",left+combatWidth+6,bodyBottom()-29,contentWidth-combatWidth-backWidth-12,()->{s.restoreMinecraftPlaybackDefaults();runtime.save();error="";rebuildWidgets();});
         var minecraftDefaultsHelpText=Component.translatable("afmr.copy.settings.minecraft_defaults");
         if(!minecraftDefaultsHelpText.getString().isBlank())minecraftDefaultsHelpControl.setTooltip(Tooltip.create(minecraftDefaultsHelpText));
-        button("Save & back",left+contentWidth-backWidth,height-29,backWidth,this::onClose);
+        button("Save & back",left+contentWidth-backWidth,bodyBottom()-29,backWidth,this::onClose);
     }
+    private void positionControls(){for(var item:positions){int row=(item.y-52)/24;var control=item.control;control.setY(item.y-scroll*24);control.visible=row>=scroll&&row<scroll+rows;if(!control.visible&&control.isFocused()){control.setFocused(false);setFocused(null);}}}
+    private void scrollTo(int next){scroll=Math.max(0,Math.min(next,Math.max(0,6-rows)));positionControls();}
+    @Override protected void revealControl(AbstractWidget control){for(var item:positions)if(item.control==control){scrollTo((item.y-52)/24);break;}}
+    @Override public boolean mouseScrolled(double x,double y,double dx,double dy){if(x>=left&&x<left+contentWidth&&y>=52&&y<52+rows*24&&dy!=0){scrollTo(scroll+(dy<0?1:-1));return true;}return super.mouseScrolled(x,y,dx,dy);}
     private void field(String name,double value,int y,Component help){
         var control=edit(Double.toString(value),name,left+half-76,y,76,null);
         var fieldHelpText=help;
@@ -68,7 +78,7 @@ final class SettingsScreen extends MusicScreen {
     @Override protected boolean saveChanges(){return apply();}
     @Override public void onClose(){if(apply())super.onClose();}
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
-        int i=0;for(String name:values.keySet())g.text(font,fit(name,half-82),left,58+(i++)*24,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        if(!error.isBlank())g.text(font,fit(error,half),left,height-43,0xFFFFA0A0);
+        int i=0;for(String name:values.keySet()){int row=i++;if(row>=scroll&&row<scroll+rows)g.text(menuFont,fit(name,half-82),left,58+(row-scroll)*24,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));}
+        if(!error.isBlank())g.text(menuFont,fit(error,half),left,bodyBottom()-43,0xFFFFA0A0);
     }
 }

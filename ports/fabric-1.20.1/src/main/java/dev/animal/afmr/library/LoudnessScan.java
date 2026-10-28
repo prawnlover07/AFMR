@@ -34,9 +34,9 @@ public final class LoudnessScan implements AutoCloseable {
         }
         return List.copyOf(result);
     }
-    public Job start(String playlist,List<Request> requests,boolean allowed) {
+    public Job start(String playlist,List<Request> requests) {
         if(current!=null&&current.report()==null)throw new IllegalStateException("A loudness scan is already running");
-        Job job=new Job(playlist,List.copyOf(requests),laneCount,allowed);current=job;
+        Job job=new Job(playlist,List.copyOf(requests),laneCount);current=job;
         for(int lane=0;lane<laneCount;lane++){int index=lane;workers.execute(()->job.runLane(index));}
         return job;
     }
@@ -51,11 +51,11 @@ public final class LoudnessScan implements AutoCloseable {
         private final Row[] rows;
         private final AtomicInteger next=new AtomicInteger(),completed=new AtomicInteger(),remaining;
         private final AtomicReferenceArray<Progress> progress;
-        private volatile boolean cancelled,allowed;
+        private volatile boolean cancelled;
         private volatile Report report;
-        private Job(String playlist,List<Request> requests,int lanes,boolean allowed){
+        private Job(String playlist,List<Request> requests,int lanes){
             this.playlist=playlist;this.requests=requests;rows=new Row[requests.size()];remaining=new AtomicInteger(lanes);
-            progress=new AtomicReferenceArray<>(lanes);this.allowed=allowed;
+            progress=new AtomicReferenceArray<>(lanes);
         }
         public String playlist(){return playlist;}
         public int total(){return requests.size();}
@@ -65,14 +65,8 @@ public final class LoudnessScan implements AutoCloseable {
         public Report report(){return report;}
         public void cancel(){cancelled=true;}
         public boolean cancelled(){return cancelled;}
-        public void setAllowed(boolean value){allowed=value;}
-        public boolean allowed(){return allowed;}
         private void checkpoint(){
-            while(true){
-                if(cancelled||Thread.currentThread().isInterrupted())throw new CancellationException();
-                if(allowed)return;
-                try{Thread.sleep(25);}catch(InterruptedException e){Thread.currentThread().interrupt();throw new CancellationException();}
-            }
+            if(cancelled||Thread.currentThread().isInterrupted())throw new CancellationException();
         }
         private void runLane(int lane){
             // One allocation per lane per explicit batch, independent of song length or library size.

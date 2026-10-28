@@ -29,7 +29,7 @@ class PlaylistPresetsTest {
         p.finishCurrentSongOnExit=true;p.playOnTrigger=true;p.includeVanilla=false;p.volume=0.37;
         var defaults=new Playlist();
         for(var field:Playlist.class.getFields())if(field.getType()==boolean.class)field.setBoolean(p,!field.getBoolean(defaults));
-        var data=roundTrip(capture(l));var target=Library.defaults();var ids=PlaylistPresets.apply(target,"default","day_outside",Placement.ABOVE_SELECTED,data,"",null);
+        var data=roundTrip(capture(l));var target=Library.defaults();var ids=PlaylistPresets.apply(target,"default","","day_outside",Placement.ABOVE_SELECTED,data,"",null).ids();
         var imported=target.playlist(ids.getFirst());var expected=JSON.toJsonTree(p).getAsJsonObject();var actual=JSON.toJsonTree(imported).getAsJsonObject();
         expected.remove("id");actual.remove("id");assertEquals(expected,actual);assertNotEquals(p.id,imported.id);
     }
@@ -60,23 +60,23 @@ class PlaylistPresetsTest {
         var nested=new PlaylistConditions();area(nested,"server:hidden.example:25565");nested.enabled=false;c.groups.add(nested);
         var data=roundTrip(capture(l));String text=Files.readString(file());assertFalse(text.contains("PrivateUser"));assertFalse(text.contains("hidden.example"));
         assertEquals(2,PlaylistPresets.locations(data));assertEquals("",data.playlists.getFirst().conditions.area.world);
-        var target=Library.defaults();var id=PlaylistPresets.apply(target,"default","",Placement.TOP,data,"server:recipient",null).getFirst();var imported=target.playlist(id).conditions;
+        var target=Library.defaults();var id=PlaylistPresets.apply(target,"default","","",Placement.TOP,data,"server:recipient",null).ids().getFirst();var imported=target.playlist(id).conditions;
         assertEquals("server:recipient",imported.area.world);assertEquals("server:recipient",imported.groups.getFirst().area.world);
         assertEquals(123.5,imported.area.x);assertEquals(-24.25,imported.area.y);assertEquals(-999,imported.area.z);assertEquals(73,imported.area.radius);assertEquals("minecraft:the_nether",imported.area.dimension);
         assertEquals("server:hidden.example:25565",c.groups.getFirst().area.world);assertFalse(imported.groups.getFirst().enabled);
     }
     @Test void configuredDisabledLocationParametersAreRetainedForLaterUse()throws Exception{
         var l=source();var c=l.playlists.getFirst().conditions;area(c,"private");c.areaEnabled=false;
-        var target=Library.defaults();var id=PlaylistPresets.apply(target,"default","",Placement.TOP,roundTrip(capture(l)),"recipient",null).getFirst();
+        var target=Library.defaults();var id=PlaylistPresets.apply(target,"default","","",Placement.TOP,roundTrip(capture(l)),"recipient",null).ids().getFirst();
         assertFalse(target.playlist(id).conditions.areaEnabled);assertTrue(target.playlist(id).conditions.area.configured);assertEquals("recipient",target.playlist(id).conditions.area.world);
     }
     @Test void locationImportWithoutAWorldFailsBeforeChangingTheDestination()throws Exception{
         var l=source();area(l.playlists.getFirst().conditions,"world");var target=Library.defaults();int before=target.playlists.size();
-        assertThrows(IllegalArgumentException.class,()->PlaylistPresets.apply(target,"default","",Placement.TOP,capture(l),"",null));assertEquals(before,target.playlists.size());
+        assertThrows(IllegalArgumentException.class,()->PlaylistPresets.apply(target,"default","","",Placement.TOP,capture(l),"",null).ids());assertEquals(before,target.playlists.size());
     }
     @Test void unconfiguredLocationsDoNotRequireBeingInAWorld()throws Exception{
         var l=source();l.playlists.getFirst().conditions.areaEnabled=true;
-        var target=Library.defaults();assertEquals(1,PlaylistPresets.apply(target,"default","",Placement.TOP,capture(l),"",null).size());
+        var target=Library.defaults();assertEquals(1,PlaylistPresets.apply(target,"default","","",Placement.TOP,capture(l),"",null).ids().size());
     }
     @Test void multiSelectionUsesPriorityOrderRatherThanClickOrder()throws Exception{
         var l=source();var a=l.playlists.getFirst();var b=l.createPlaylist("Second");var c=l.createPlaylist("Third");l.movePlaylist(c.id,0);
@@ -87,26 +87,26 @@ class PlaylistPresetsTest {
         var l=source();l.createPlaylist("Second");var data=capture(l);
         for(var mode:Placement.values()){
             var target=Library.defaults();var previous=target.playlist("day_outside");int anchor=target.playlists.indexOf(previous),count=target.playlists.size();
-            var ids=PlaylistPresets.apply(target,"default",previous.id,mode,data,"",null);int index=mode==Placement.TOP?0:mode==Placement.BOTTOM?count:anchor;
+            var ids=PlaylistPresets.apply(target,"default","",previous.id,mode,data,"",null).ids();int index=mode==Placement.TOP?0:mode==Placement.BOTTOM?count:anchor;
             assertEquals(ids.getFirst(),target.playlists.get(index).id);assertEquals(ids.get(1),target.playlists.get(index+1).id);assertSame(previous,target.playlist(previous.id));
         }
     }
     @Test void deletedAnchorFallsBackToBottom(){
-        var l=source();var target=Library.defaults();var ids=PlaylistPresets.apply(target,"default","removed",Placement.ABOVE_SELECTED,capture(l),"",null);assertEquals(ids.getFirst(),target.playlists.getLast().id);
+        var l=source();var target=Library.defaults();var ids=PlaylistPresets.apply(target,"default","","removed",Placement.ABOVE_SELECTED,capture(l),"",null).ids();assertEquals(ids.getFirst(),target.playlists.getLast().id);
     }
     @Test void importingIntoAnInactiveProfileLeavesTheActiveSetupAndGlobalsUntouched(){
         var target=Library.defaults();String profile=target.profiles.create(target,"Other",null);var active=target.playlists;var settings=target.settings;
         target.settings.silenceMinSeconds=17;target.settings.overrideSlots[0].playlistId="kept";target.settings.widgetScale=1.5;
-        PlaylistPresets.apply(target,profile,"day_outside",Placement.TOP,capture(source()),"",null);
+        PlaylistPresets.apply(target,profile,"","day_outside",Placement.TOP,capture(source()),"",null).ids();
         assertSame(active,target.playlists);assertSame(settings,target.settings);assertEquals(6,active.size());assertEquals(17,settings.silenceMinSeconds);assertEquals("kept",settings.overrideSlots[0].playlistId);assertEquals(1.5,settings.widgetScale);
         target.profiles.activate(target,profile);assertEquals("Shared music",target.playlists.getFirst().name);assertEquals(7,target.playlists.size());
     }
     @Test void deletedDestinationProfileFailsWithoutAddingAnything(){
-        var target=Library.defaults();assertThrows(IllegalStateException.class,()->PlaylistPresets.apply(target,"deleted","",Placement.TOP,capture(source()),"",null));assertEquals(6,target.playlists.size());
+        var target=Library.defaults();assertThrows(IllegalStateException.class,()->PlaylistPresets.apply(target,"deleted","","",Placement.TOP,capture(source()),"",null).ids());assertEquals(6,target.playlists.size());
     }
-    @Test void repeatedImportsCreateIndependentIdentitiesAndConditions(){
-        var data=capture(source());var target=Library.defaults();String a=PlaylistPresets.apply(target,"default","",Placement.TOP,data,"",null).getFirst();String b=PlaylistPresets.apply(target,"default","",Placement.TOP,data,"",null).getFirst();
-        assertNotEquals(a,b);target.playlist(a).conditions.label="Edited";assertNotEquals("Edited",target.playlist(b).conditions.label);assertNotEquals("Edited",data.playlists.getFirst().conditions.label);
+    @Test void repeatedExistingProfileImportsReplaceInPlaceWithOwnedConditions(){
+        var data=capture(source());var target=Library.defaults();String a=PlaylistPresets.apply(target,"default","","",Placement.TOP,data,"",null).ids().getFirst();String b=PlaylistPresets.apply(target,"default","","",Placement.TOP,data,"",null).ids().getFirst();
+        assertEquals(a,b);assertEquals(7,target.playlists.size());target.playlist(a).conditions.label="Edited";assertNotEquals("Edited",data.playlists.getFirst().conditions.label);
     }
     @Test void exportSnapshotsStayStableAcrossLaterEditsAndProfileSwitches()throws Exception{
         var l=source();var p=l.playlists.getFirst();p.volume=0.4;var data=capture(l);p.volume=0.9;p.name="Changed";
@@ -114,7 +114,7 @@ class PlaylistPresetsTest {
         assertEquals("Shared music",loaded.playlists.getFirst().name);assertEquals(0.4,loaded.playlists.getFirst().volume);
     }
     @Test void importedSettingsSurviveOrdinaryLibraryPersistence()throws Exception{
-        var target=Library.defaults();String id=PlaylistPresets.apply(target,"default","",Placement.TOP,capture(source()),"",null).getFirst();
+        var target=Library.defaults();String id=PlaylistPresets.apply(target,"default","","",Placement.TOP,capture(source()),"",null).ids().getFirst();
         try(var store=new LibraryStore(directory.resolve("library.json"))){store.save(target.snapshot());assertEquals("Shared music",store.load().playlist(id).name);}
     }
     @Test void unicodeUtf8AndUppercaseExtensionAreSupported()throws Exception{
@@ -161,6 +161,6 @@ class PlaylistPresetsTest {
             @Override public Set<Map.Entry<String,Boolean>> entrySet(){throw new AssertionError("Read song assignments during settings-only sharing");}
         };
         for(int i=0;i<70000;i++)l.playlists.getFirst().tracks.put("file:"+i,true);
-        var data=capture(l);PlaylistPresets.apply(l,"default","",Placement.TOP,data,"",null);assertEquals(2,l.playlists.size());
+        var data=capture(l);PlaylistPresets.apply(l,"default","","",Placement.TOP,data,"",null).ids();assertEquals(1,l.playlists.size());assertEquals(70000,l.playlists.getFirst().tracks.size());
     }
 }

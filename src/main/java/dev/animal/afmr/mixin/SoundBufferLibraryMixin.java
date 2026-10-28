@@ -11,16 +11,25 @@ import java.util.concurrent.*;
 
 @Mixin(SoundBufferLibrary.class)
 public abstract class SoundBufferLibraryMixin {
-    @Inject(method = "getStream", at = @At("HEAD"), cancellable = true)
-    private void afmr$localStream(Identifier location, boolean looping, CallbackInfoReturnable<CompletableFuture<AudioStream>> cir) {
-        var source = GameAudio.localSource(location);
-        if (source == null) return;
-        cir.setReturnValue(CompletableFuture.supplyAsync(() -> {
-            try { return new LocalAudioStream(source.path(),source.replayGain(),source.loudness()); }
-            catch (Exception e) {
-                dev.animal.afmr.ClientRuntime.reportAudioFailure(source.path(), e);
-                throw new CompletionException(e);
+    @org.spongepowered.asm.mixin.Shadow @org.spongepowered.asm.mixin.Final
+    private net.minecraft.server.packs.resources.ResourceProvider resourceManager;
+    @Inject(method="getStream",at=@At("HEAD"),cancellable=true)
+    private void afmr$stream(Identifier location,boolean looping,CallbackInfoReturnable<CompletableFuture<AudioStream>> cir){
+        var source=GameAudio.streamSource(location);if(source==null)return;
+        var resources=resourceManager;
+        cir.setReturnValue(CompletableFuture.supplyAsync(()->{
+            try{
+                AudioStream stream;
+                if(source.path()!=null)stream=new LocalAudioStream(source.path(),source.replayGain(),source.loudness());
+                else{
+                    var input=resources.open(source.resource());
+                    try{stream=new JOrbisAudioStream(input);}catch(Exception error){input.close();throw error;}
+                }
+                StreamSeek.skip(stream,source.offset(),source.owner()::ended);return stream;
+            }catch(Exception error){
+                if(!source.owner().ended())dev.animal.afmr.ClientRuntime.reportAudioFailure(source.owner(),error);
+                throw new CompletionException(error);
             }
-        }, Util.nonCriticalIoPool()));
+        },Util.nonCriticalIoPool()));
     }
 }

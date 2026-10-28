@@ -95,7 +95,7 @@ def main() -> None:
         config.write_text(json.dumps(library, indent=2), encoding="utf-8")
     options = profile / "options.txt"
     if not options.exists():
-        options.write_text("version:5023\npauseOnLostFocus:false\nrenderDistance:6\nsimulationDistance:6\n"
+        options.write_text("version:5023\nmaxFps:60\nenableVsync:false\npauseOnLostFocus:false\nrenderDistance:6\nsimulationDistance:6\n"
                            "onboardAccessibility:false\nskipMultiplayerWarning:true\n"
                            +("" if args.fresh else "key_key.afmr.next:key.keyboard.n\nkey_key.afmr.pause:key.keyboard.p\n"
                            "key_key.afmr.inspect:key.keyboard.i\nkey_key.afmr.override_1:key.keyboard.k\n"), encoding="utf-8")

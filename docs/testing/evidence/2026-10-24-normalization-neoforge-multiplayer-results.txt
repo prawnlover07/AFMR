@@ -1,0 +1,19 @@
+PASS test world is running unpaused
+PASS requested singleplayer or actual remote server context
+PASS Normalize immediately starts the explicit batch
+PASS progress screen does not request a pause
+PASS manual scan completes during unpaused gameplay
+PASS client applies measured results
+PASS music continues without a restart
+PASS Back returns to the workspace while the job continues
+PASS scan makes progress after closing its screen
+PASS reopening progress reuses the running batch
+PASS Cancel reaches the active job
+PASS cancellation publishes a partial report
+PASS completed measurements survive cancellation
+PASS unprocessed songs remain unmeasured
+PASS music is still active after cancellation
+PASS original generated audio is unchanged
+PASS normalization measurements persist to the normal library file
+PASS no title-screen or pause transition was required
+COMPLETE: 18 passed / 0 failed

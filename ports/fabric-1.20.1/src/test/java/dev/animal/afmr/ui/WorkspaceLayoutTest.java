@@ -22,6 +22,6 @@ class WorkspaceLayoutTest {
         assertTrue(l.rulesX()+l.rulesWidth()<l.width());
         assertTrue(94+l.priorityHeight()+52<l.libraryY());
         assertTrue(l.libraryListY()+l.libraryListHeight()<l.footerY()-22);
-        assertTrue(l.songListY()+l.songListHeight()<l.footerY()-32);
+        assertTrue(l.songListY()+l.songListHeight()<=l.footerY()-8);
     }
 }

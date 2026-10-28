@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SeparateFadesTest {
     @TempDir Path directory;
-    private static Context context(boolean incoming,boolean combat,boolean dead){return new Context("minecraft:overworld",incoming?"test:b":"test:a",combat,false,6000,false,15,"world",0,70,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);}
+    private static Context context(boolean incoming,boolean combat,boolean dead){return new Context("minecraft:overworld",incoming?"test:b":"test:a",combat,false,6000,false,15,"world",0,70,0,0,0.8,dead,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);}
     private static final class Scenario {
         final Library lib=new Library();
         final Playlist a=lib.createPlaylist("A"),b=lib.createPlaylist("B");

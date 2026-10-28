@@ -1,7 +1,7 @@
 # AFMR user guide
 
-For animal's final music replacer **1.0.1**. Reviewed against the source on
-**October 23, 2026**.
+For animal's final music replacer **1.1**. Reviewed against the source on
+**October 28, 2026**.
 
 AFMR gives Minecraft a soundtrack built from your own music and Minecraft's music.
 It chooses a playlist based on where you are and what you are doing. You can also
@@ -34,20 +34,23 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
 ## Install and hear your first song
 
 1. Use **Minecraft Java 26.3**, **NeoForge 26.3.0.90 or later**, and **Java 25**.
-   Install AFMR on your own Minecraft client; a server installation is unnecessary.
+   Install AFMR on your own Minecraft client for ordinary use. The optional server
+   companion adds multiplayer structure data and mob-target retention.
    Fabric, Forge, and other Minecraft versions need a separate port.
-2. Close Minecraft. Put `animals-final-music-replacer-1.0.1.jar` in your game
+2. Close Minecraft. Put `animals-final-music-replacer-1.1.jar` in your game
    instance's `mods` folder. Keep exactly one AFMR JAR there.
 3. Launch that instance, join a world, and press **M**. If M is already assigned
-   to another mod, change AFMR's binding in **Options → Controls → Key Binds**.
+   to another mod, change AFMR's binding in **Options → Controls → Key Binds → AFMR**.
+   All AFMR shortcuts, including the eight override slots, are grouped there.
    You can also open AFMR with its **Config** button in the Mods menu.
 4. Select **Day outside** in the left priority list. Click **Add music**, select
    that destination, then **Files** or **Folder**. Importing directly into a playlist
    adds its songs to the library and assigns them in the same operation.
 5. To assign existing music, select songs or a folder in the lower-left **Music
    library**, then **Add selected / folder →**. Double-click a file to add it directly.
-6. Select a song in either pane and click **Preview** to hear it immediately.
-7. **Next** in the bottom transport skips the normal wait. Fresh settings use
+6. Select a song in either pane, then open its right-click/ellipsis menu and
+   choose **Preview song** to hear it immediately.
+7. **Next song now** in the bottom transport skips the normal wait. Fresh settings use
    **10–20 minutes of silence between songs**.
 
 For local music only, switch **Minecraft music** off in the selected playlist's
@@ -56,6 +59,43 @@ right-side Playback panel, and remove or disable any explicit Minecraft assignme
 AFMR reads music at its original location. It does not copy or modify your music,
 playlist files, or foobar settings. You can close its screens while a scan runs.
 **AFMR screens do not pause the game**, so open them somewhere safe.
+
+## Transport and playlist actions
+
+The workspace's primary **play triangle / pause bars** button starts music when
+nothing is playing, pauses the current song, or resumes a manual pause. Resuming a paused silent gap
+keeps its remaining wait. The **next-track**
+icon starts the next song immediately; a manual pause is retained until you
+resume. **Skip & wait** ends the current song and
+uses the usual silence before another starts. Hover the icons for their current
+action names; keyboard focus and Enter/Space work too.
+
+Hover a playlist in the priority list to reveal its **…** button on the right.
+It opens the same menu as right-clicking that playlist. A focused playlist also
+shows the button; **Shift+F10** opens its menu and **F2** still renames it. Drag
+from the playlist name/rank to reorder. Opening the selected playlist's menu keeps
+its song selection and search intact.
+
+## Song position and settings search
+
+The bottom playback strip shows elapsed and total song time. Click or drag the
+bar to choose a position; the jump happens when you release. A paused song stays
+paused. With the bar focused, Left/Right move five seconds and Home returns to the
+start. Seeking becomes available once the song length is known. Long compressed
+files may take a moment to reach the requested position; decoding stays off the
+game thread. Seeking keeps the current playlist, queue and listening-history
+entry, and does not restart the widget notification.
+
+Click the current-song title to open its source playlist, clear that playlist's
+song search and select the playing song. Source-free previews have no playlist
+link. Song context actions include the affected count, such as **Remove 8 songs**.
+
+**Search settings...** is available at the top of the workspace and AFMR pages.
+Search terms such as **fade**, **widget font**, **home** or **proximity volume**.
+Click a result or use Up/Down and Enter. Results open the relevant screen and
+highlight the control when applicable. **Selected playlist** results apply to the
+playlist you are editing. Invalid numeric drafts must be corrected before leaving
+their page. Checkboxes toggle settings; **>** opens details or another page.
 
 ## Quick reference
 
@@ -67,30 +107,30 @@ last hid; use Back / Save & back to return to the editor if needed.
 | Open / close AFMR | **M**, or Mods menu → AFMR → Config to open |
 | Import audio | **M → Add music → Files / Folder** |
 | Assign imported songs | Select a playlist in Priority, select songs/folder in Music library, **Add selected / folder →** |
-| Hear one specific song | Select it in either pane → **Preview** |
+| Hear one specific song | Select it → right-click/ellipsis menu → **Preview song** |
 | Queue specific songs | Select songs in the playlist table → **Queue** |
 | Edit the queue or find recently played songs | **M → Queue / history** |
-| Set gaps for one playlist | Select playlist → **Silence** beside Volume → **Custom silence: on** |
+| Set gaps for one playlist | Select playlist → **Playlist Settings → Custom gap between songs** |
 | Balance a playlist's volume | Select playlist → **Volume** in the right panel |
 | Keep different world/server setups | **M → Profiles** |
 | Skip and get another song immediately | **M → Next**, or bind **Next song (skip silence)** |
-| Skip but keep the usual gap | Editor **Skip / play** while playing, or bind **Skip song (with normal silence)** |
-| End a gap | Editor **Skip / play** while idle; context rules still apply |
+| Skip but keep the usual gap | Editor **Skip song** while playing, or bind **Skip song (with normal silence)** |
+| End a gap | Editor **Play now** while idle; context rules still apply |
 | Pause / resume only AFMR music | **M → Pause/Resume**, or bind **Pause/resume AFMR music** |
-| Force a playlist | **M → Play one song / Until released** |
-| Release an override | **M → Automatic**, or bind **Return music to automatic selection** |
-| Stop a playlist activating automatically | **Conditions → Automatic: off**, or **Manual only: on** |
+| Force a playlist | Playlist actions **⋯ → Play one song now / Keep this playlist playing** |
+| Release an override | **M → Use automatic playlists**, or bind **Return music to automatic selection** |
+| Stop a playlist activating automatically | Clear **Playlist Settings → Play automatically** |
 | Exclude a song from that playlist | Select its row → **Disable**, or click its **On** cell |
 | Change playlist priority | **M → Priority**; #1 wins first |
-| Make a custom playlist | **M → New** |
+| Make a custom playlist | **M → New playlist** |
 | Change silence / fades | **M → Timing** |
 | Start music when joining a world/server | **M → Timing → Play immediately on join** |
 | Choose song information columns | Playlist workspace → **Columns**, beside **Add music** |
 | Fade music out for nearby jukebox records | **M → Timing → Jukebox** |
 | Choose a widget style, size, information, or scrolling | **M → Display** |
 | Keep shared songs playing through automatic playlist changes | **M → Timing → Continue playing on match** |
-| Play a playlist near your location | Select it → hold **Autoplay here** for one second |
-| Diagnose silence or unexpected selection | **M → Inspector**, select a playlist → **Details** |
+| Play a playlist near your location | Select it → hold **Set playback area here** for one second |
+| Diagnose silence or unexpected selection | **M → Playback status**, select a playlist → **Details** |
 | Find linked folders | **M → Library** |
 | Refresh linked folders | **M → Library → Rescan all** |
 | Refresh linked folders automatically at startup | **M → Library → Rescan on launch** |
@@ -100,7 +140,7 @@ last hid; use Back / Save & back to return to the editor if needed.
 | Share playlist conditions/options | **M → Import / export → Export selected...** |
 | Add a shared playlist setup | **M → Import / export → Import .afmrp...**, or drop one `.afmrp` file onto the workspace |
 
-Only **M** is bound initially. Skip, Next, Pause, Inspector, Overrides, Return to
+Only **M** is bound initially. Skip, Next, Pause, Playback status, Overrides, Return to
 automatic, and all eight override slot keys start unbound. Gameplay music keys
 do not activate while chat or another screen is open; use the screen buttons there.
 
@@ -115,8 +155,9 @@ it; use **Save & back** to validate and save those fields.
 ## Multiplayer
 
 Install AFMR and NeoForge on your own client, then join a vanilla **Minecraft 26.3**
-server normally. AFMR needs no server installation, custom packets, or operator
-permissions. Music files, playlists, imports, controls, artwork, and settings stay
+server normally. Ordinary use needs no server installation or operator permissions.
+The optional companion supplies structure bounds and mob-target observations through
+AFMR packets on supported servers. Music files, playlists, imports, controls, artwork, and settings stay
 on your computer; other players hear their own soundtrack.
 
 Automatic playlists use the position, time, dimension, biome, temperature, light,
@@ -125,21 +166,25 @@ location areas are scoped to the connection's server address and dimension.
 Joining through a different address requires capturing the area again; replacing
 the world behind the same address also requires recapturing it.
 
-The **Structures (singleplayer only)** filter currently detects structures in
-singleplayer only. Its editor title and unavailable status make that restriction
-visible; hover text on its controls repeats the limitation. Vanilla servers do not
-send structure boundaries. In multiplayer, playlists
-cannot satisfy that filter. **Match all** playlists fall through to other eligible
-playlists; **Match any** can still activate through another enabled filter. Overrides
-remain available. Multiplayer structure support is planned.
+The **Structures** filter works in singleplayer and on multiplayer servers with
+AFMR's optional server companion. Install the matching companion from the server
+build's `build/libs/` directory: `animals-final-music-replacer-server-neoforge-26.3-1.1.jar`
+or `animals-final-music-replacer-server-fabric-1.20.1-1.1.jar`. Use only one AFMR
+JAR per server. Fabric servers also need the matching Fabric API. Clients keep the
+ordinary AFMR client JAR. The companion contains no music or audio code and does
+not require other players to install AFMR.
+
+Servers without the companion remain supported. They cannot supply structure
+bounds, so that filter cannot match; **Match any** can still activate through
+another enabled filter, and manual overrides remain available.
 
 Multiplayer menus cannot pause the server. AFMR's own Pause still holds just your
 music, while context detection continues. Disconnecting clears playback, pause,
 overrides, combat, and the previous world context; saved playlists and areas remain.
 
-Loudness analysis waits while connected, to protect gameplay performance. Leave
-the server to let a waiting **Normalize** job finish; saved normalization
-adjustments and existing ReplayGain tags work during multiplayer playback.
+Manually started **Normalize** jobs run while connected, including during gameplay.
+You can close the progress screen and keep playing; Cancel retains completed
+measurements. Saved adjustments and existing ReplayGain tags work in multiplayer.
 
 ## Your library and imports
 
@@ -190,7 +235,7 @@ focus. Disabled controls can still show their hover help.
 - Automatically included vanilla songs can return after **Remove**. **Disable**
   them to keep them excluded, or turn off automatic vanilla inclusion.
 
-**Preview** previews the last song selected in either pane. It bypasses
+**Preview song** previews the last song selected in either pane. It bypasses
 playlist conditions and automatic eligibility, cancels an override, and normally
 finishes before automatic scheduling resumes. The playback footer shows only the
 current song; during silence it clears title/artist/artwork and shows the wait timer.
@@ -232,6 +277,11 @@ checks availability without reading every song's tags. **Scan messages** shows
 other scan errors separately. Reports describe the last check, not a continuous
 drive monitor; restoring a drive/file may require another check or rescan.
 
+While **Check again** or repair-preview preparation is running, the top-left
+button becomes **Cancel search**. Click it to stop; **Cancelling...** stays visible
+until the current file operation finishes. The last completed report remains
+available and saved paths stay unchanged. You can check again afterward.
+
 1. Select the missing **Folder** row and choose **Locate selected...**. Explorer
    opens a folder picker. Select the folder's new root, preserving the layout below
    it. For example, `OldMusic/Albums/Track.mp3` maps to `NewMusic/Albums/Track.mp3`.
@@ -249,8 +299,16 @@ Repair preserves playlist assignments, enabled/off switches, priorities, volume,
 conditions, queue order and history. Rescanning the repaired location keeps each
 song's original ID. Existing duplicate track entries at that path are merged;
 if their switches disagree in one playlist, **off wins**. If the destination
-folder itself is already linked, unlink that duplicate link first (keep songs),
-then retry, so its folder settings are not silently overwritten.
+folder itself is already linked, content-verified repair keeps that destination's
+rescan settings and merges the old link. For older references without content
+information, unlink the duplicate first (keep songs), then retry.
+
+Songs imported from newly shared song lists retain their file-content identity.
+Folder repair searches the chosen folder and subfolders for identical copies,
+even when filenames/layouts changed. A mismatched individual file is rejected.
+Partial content repairs keep unresolved references and their missing folder
+available for another attempt. Older missing references without a recorded
+identity cannot be automatically recognized by contents.
 
 Only AFMR references change: repair never moves, renames or writes music or
 foobar files. Located songs refresh their metadata; cached loudness survives only
@@ -291,7 +349,7 @@ The initial priority order is:
 
 | Rank | Playlist | When it matches |
 | --- | --- | --- |
-| 1 | Combat | A qualifying attack/damage trigger started combat; the quiet period is initially 15 seconds, with targeting retention in singleplayer |
+| 1 | Combat | A qualifying attack/damage trigger started combat; the quiet period is initially 15 seconds, with targeting retention in singleplayer or companion-enabled multiplayer |
 | 2 | Home | Inside the captured world/dimension and spherical Home radius; initially 64 blocks |
 | 3 | Dark exploration | Covered and light ≤4 outside Nether/End; optional dimension groups start off |
 | 4 | Underground | At or below block Y 64, under solid cover, with at least 5 blocks of cover |
@@ -346,19 +404,62 @@ their original world scope; capture a new location when needed.
 profile cannot be deleted; switch away before deleting another setup. Deleting an
 inactive profile removes its links and setup, preserving shared music and history.
 
+When Minecraft **Music** or **Master** volume is zero, the workspace's now-playing
+area shows **Music muted in Minecraft**. Playback and scheduling continue silently;
+volume changes do not pause or resume AFMR. Raising both volumes restores audio
+at the current playback position. A manually paused song stays paused.
+
 ## Playlists and conditions
 
-Open **New**, enter a name, and click **Create**. The new playlist opens in the workspace;
-assign music from the lower-left library and open **Name & conditions** as needed. New playlists start without automatic vanilla
-inclusion. **Name & conditions** opens the same complete editor for every playlist.
+Open **New playlist**, enter a name, and click **Create**. Assign music from the
+lower-left library. The right-hand **Playlist Settings** panel contains **When it
+plays** and **Playback** in one independently scrolling column. Playback area
+setup stays visible at the top. New playlists start without automatic vanilla inclusion.
 
-**Clone** asks for a name and inserts the copy immediately below its source. It
+Click a condition's checkbox or label to enable/disable it. **Edit** opens its
+settings separately: playback-area coordinates/radius and time ranges expand inline;
+more complex selectors retain their detailed editors. **More rules** reveals the
+other condition types. The compact list shows only enabled filters; when none are
+enabled it offers **Show rules**. Rule summaries show Minecraft clock times,
+configured radius and individual selected names. On/off
+clicks retain configured parameters; negative sky/combat/water/riding choices are
+remembered while editing this workspace. Use **Condition groups** for nested branches.
+
+Right-click a playlist or open **Playlist actions ⋯** for Rename, Duplicate,
+priority movement, Export playlist setup, manual playback, volume balancing and
+Delete. F2 also renames a playlist when the priority list has focus. The selected
+playlist is the editing target; selecting it alone does not force playback.
+
+Drag a playlist row to change its priority; the insertion line marks the destination.
+Holding near the top/bottom scrolls the list. Release outside the list or press Escape
+before releasing to cancel. **Undo** and **Redo** cover playlist settings, names,
+conditions, song assignments, creation/deletion and priority within this session.
+History is separate for each profile and excludes global Timing/Display changes.
+Use Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) outside text fields. Text fields retain their
+normal text-editing shortcuts. Repeated typing in one numeric field is grouped.
+
+Hover or focus a song and click **…**, right-click it, or press Shift+F10 with
+the song list focused for **Preview song**, **Queue selected songs**, **Enable selected
+songs**, **Disable selected songs** and **Remove from playlist**. Right-clicking an
+already selected song keeps the selection; other rows become the selection.
+Removal only changes playlist assignments. Volume balancing remains under
+**Playlist actions**. Right-click menus stay opaque at every background opacity.
+
+A music note marks the currently playing song and its source playlist. Pause bars
+replace the note while paused. The editing selection keeps its own highlight;
+automatic selection can change while an outgoing playlist’s song finishes.
+When silent, the transport shows a reason or a **Next song in m:ss** countdown,
+For automatic playback, the countdown uses the longer of the remaining gap and
+context buffer.
+
+
+**Duplicate playlist** asks for a name and inserts the copy immediately below its source. It
 copies all conditions and nested groups, enabled/disabled song assignments, Automatic,
 Manual only, Minecraft inclusion, Play on trigger and both finish switches. Edits to either playlist
 are independent. Files and library tracks remain shared; folder links and key-slot
 bindings stay with their existing targets.
 
-Choose **Conditions: match all / any** above the filters. **Match all** is the
+Choose **Match all rules / Match any rule** above the filters. **Match all** is the
 default: every enabled filter must match. **Match any** activates when at least
 one enabled filter matches. Disabled/unset filters do not count as matches. With
 no enabled filters, the playlist matches everywhere in either mode. Each filter
@@ -367,9 +468,9 @@ and structure selections work the same way. For example, Biomes + Weather with
 Match any means a selected biome **or** the chosen weather; Match all requires both.
 Use Automatic off or Manual only for a collection you want to trigger yourself.
 
-**Groups** adds nested condition branches. Every group has the same filters, All/Any
+**Condition groups** adds nested condition branches. Every group has the same filters, All/Any
 mode and **Not** switch as the playlist. All requires every enabled filter/group;
-Any requires at least one. Not inverts their combined result. **Group: off** skips
+Any requires at least one. Not inverts their combined result. Clearing **Group enabled** skips
 a branch without deleting it. Disabled branches do not count as matches. No enabled
 filters or groups matches everywhere before Not is applied. Unavailable structure
 data cannot become a match through Not. Groups support four nested levels, eight
@@ -383,17 +484,26 @@ children per level and 64 total condition nodes per playlist.
 | Elevation | Inclusive minimum/maximum block Y, including negative values |
 | Cover | Any, solid cover with a minimum depth (0–4096), or open sky; 0 requires cover without a depth limit; water/leaves alone do not count |
 | Biomes | Any one of the selected exact biome IDs |
-| Structures | Any selected generated structure's full bounding box, plus an optional 0-128 block radius outside it; singleplayer only initially |
+| Structures | Any selected generated structure's full bounding box, plus an optional 0-128 block radius outside it; singleplayer or companion-enabled multiplayer |
 | Biome temperature | Inclusive Minecraft biome base value, not Celsius; independent of weather, height, and time |
 | Light | Inclusive local block/skylight range 0–15; unrelated to video brightness |
 | Combat | Any, in combat, or peaceful; optional Players only restricts the timer to PvP; obeys the global combat switch |
 | Health | Strictly above/below a configurable number of red hearts; excludes absorption; equality does not match |
 | Held items | Any selected item type in the main hand, off-hand, or either hand; empty hands do not match |
 | Gamemode | Any selected mode: Survival, Creative, Adventure or Spectator |
+| Riding animal | Any, riding an animal, or not riding an animal; boats and minecarts count as not riding an animal |
 | Water | Any, underwater, or out of water |
 | Weather | Any weather (rain/snow/thunderstorms), Rain, Snow, Thunderstorm, or Clear; off allows every state |
 
-**Gamemode:** open **Name & conditions → Gamemode**, enable **Filter**, select
+**Riding animal:** in **Playlist Settings**, find **Riding animal** (under **More rules** if needed) then use **Edit** to choose **Any**, **Riding an animal** or **Not riding an animal**. For horseback
+music, choose Riding and put the playlist above broader matching playlists.
+Horses, donkeys, mules, llamas, camels, pigs and striders count, as do modded mounts
+that use Minecraft's Animal class. You can sit still or move; standing beside an
+animal does not match. Any disables the condition. It works in singleplayer and
+multiplayer and uses the existing buffer, fades and independent finish-song
+controls when mounting/dismounting.
+
+**Gamemode:** open **Playlist Settings → When it plays → Gamemode**, enable **Filter**, select
 one or more modes and **Save & back**. No selections with the filter enabled
 cannot match. The filter starts off, with Survival selected. Changes to your
 current mode use the usual playlist priority, buffer, fade and finish-song rules;
@@ -410,7 +520,7 @@ until a fitting song becomes available or its conditions stop matching; lower
 priority playlists do not fill that silence.
 
 Cached imported lengths are reused. Missing local/vanilla lengths are checked in
-the background; unknown/invalid lengths wait until known, and **Inspector → Retry
+the background; unknown/invalid lengths wait until known, and **Playback status → Retry
 failed** allows another attempt if a check failed. Source audio files stay read-only.
 Discovered local lengths are saved; Minecraft/resource-pack lengths are rechecked
 after sound/resource reloads because packs can replace songs.
@@ -423,7 +533,7 @@ when choosing the song. Manual clock jumps, accelerated time and later condition
 changes are not predicted. Existing playing songs keep their normal finish/transition
 rules; **Next** still checks fitting, while overrides and explicit previews bypass it.
 
-**Held items:** open **Name & conditions → Held items**, search an item name or ID
+**Held items:** open **Playlist Settings → When it plays → Held items**, search an item name or ID
 (for example, `fishing rod` or `minecraft:fishing_rod`), and click its row. You can
 select multiple item types, or use **Add held items** to add what you currently hold
 in the chosen hand(s). **Hand** cycles through Either hand (default), Main hand and
@@ -439,7 +549,7 @@ This checks item type, including damaged, renamed and enchanted rods; casting is
 not required. Items in your inventory but outside the chosen hand(s) do not count.
 The filter works with All/Any/Not groups in singleplayer and multiplayer.
 
-**Nearby player:** open **Name & conditions → Nearby player**, enter a Minecraft
+**Nearby player:** open **Playlist Settings → When it plays → Nearby player**, enter a Minecraft
 player name or select an online player, set a **1–1024 block** radius (default 32),
 and turn the condition on. A selected/known online profile keeps its UUID, so a
 later name change does not target someone else. Otherwise AFMR matches the entered
@@ -453,6 +563,28 @@ filter with ordinary All/Any/Not groups and adjust playlist priority as usual.
 Entry and exit obey the playlist's existing finish/fade settings. Player names
 and UUIDs are retained in playlist exports and full backups; copied diagnostic
 summaries omit them.
+
+**Player proximity volume:** inside the Nearby player editor, open **Proximity
+volume…** and turn it on. Set a near distance and volume, then a far distance and
+volume. For example, **4 blocks / 100%** and **32 blocks / 0%** makes music louder
+as the selected player approaches. **Reverse volumes** swaps the percentages to
+make it quieter when closer. Distances accept 0–1024 blocks, with far greater
+than near; each volume accepts 0–100% of the playlist's existing volume.
+
+The condition's trigger radius remains separate: it determines whether the
+playlist is eligible, while the two points determine its volume. Between points,
+volume changes linearly with block distance and is smoothed over 250 ms. Outside
+them it stays at the nearest endpoint. An offline, dead, different-dimension or
+untracked player uses Far volume; server/client tracking limits still apply.
+A zero endpoint mutes the song without stopping or advancing it.
+
+Volume follows the playlist that started the song, including retained songs,
+manual playlist overrides and songs queued from that playlist. Library-only
+previews/queue requests use normal volume. Fades, playlist volume, Minecraft
+volume and normalization keep their effects. Nearby player must be on; disabled
+filters/groups ignore their curves. If several enabled nearby rules have volume
+curves, the quietest result applies, rather than multiplying their reductions.
+Settings survive copies, profiles, playlist exports and full backups.
 
 **Weather → Any weather** includes rain, snow and thunderstorms, and excludes clear
 conditions. It uses the dimension's weather state, so it also matches a rainy world
@@ -469,7 +601,7 @@ the current world's list, **Add current biome**, or enter an ID with **Add ID**.
 Saved IDs remain when their mod is unavailable. Outside a world, you can still
 edit saved/manual IDs. An enabled biome filter needs at least one selection.
 
-For **Structures**, join singleplayer and search names or IDs (searching `village`
+For **Structures**, join singleplayer or a companion-enabled server and search names or IDs (searching `village`
 lists the village variants), use **Add current structures** while inside one, or
 enter an exact ID such as `minecraft:village_plains`. Any selected type can satisfy
 the structure filter. Selections persist when their mod is
@@ -486,7 +618,7 @@ placed without generated structure records do not supply these boundaries.
 
 Example: create **Cold mountain nights**, enable Night, minimum Y 80, and maximum
 biome temperature 0.15. Assign songs and move it above other playlists that would
-otherwise win there. The Inspector explains any filter that is preventing selection.
+otherwise win there. Playback status explains any filter that is preventing selection.
 
 A captured Location already fixes its dimension; a conflicting Dimension filter
 prevents matching in Match all, while Match any treats them as alternatives.
@@ -496,7 +628,7 @@ remain. Deletion is unavailable during scans.
 
 ## Autoplay areas and editable templates
 
-Select any playlist and hold **Autoplay here** for one continuous second. While
+Select any playlist and hold **Set playback area here** for one continuous second. While
 held, the button shows a red replacement warning and a filling bar. Releasing early,
 moving off the button, or leaving the screen cancels it. A completed hold replaces
 all its conditions with a 64-block sphere around your current position, scoped to
@@ -505,17 +637,17 @@ song assignments, Minecraft inclusion and finish switches are retained. Priority
 still determines which eligible playlist wins.
 
 For a different radius, coordinates, dimension or combined conditions, use
-**Name & conditions → Location**. Each playlist and group owns its own area.
+**Playlist Settings → Playback area → Edit**. Each playlist and group owns its own area.
 Spheres include height and the boundary. Moving a singleplayer save to a different
 instance may require recapturing an area because its scope includes the save path.
 
 **Home** starts as an unconfigured Location template. It has no global area or
 special playback behavior. Set its location through the conditions editor or use
-Autoplay here, and clone it for additional places if desired.
+Set playback area here, and duplicate it for additional places if desired.
 
 **Underground** starts with Elevation from the minimum integer Y to 64 and Covered
 with a five-block minimum depth. Both must match. Edit those ordinary filters in
-Name & conditions. Day/Night each contain their own negated copy of that group;
+Playlist Settings. Day/Night each contain their own negated copy of that group;
 changing one template does not silently rewrite another.
 
 **Dark exploration** uses Any across three groups. Covered darkness requires solid
@@ -528,7 +660,7 @@ dimension regardless of cover/light. Every branch and filter is editable.
 **Songs before silence** in Timing sets how many naturally completed songs play
 consecutively before the usual silent gap. It starts at **1**; whole numbers from
 **1 to 1000** are allowed. Set **3** for three songs, a gap, then another three.
-For an individual playlist, open **Playback → Silence → Songs before silence**
+For an individual playlist, open **Playlist Settings → Playback → Songs before gap**
 and enable **Override global count**. Song count and custom silence are independent.
 Both global counts and overrides belong to the current world/server profile.
 
@@ -545,8 +677,8 @@ one, preserving playlist overrides.
 | --- | --- | --- |
 | Minimum / maximum silence | Random gap before the next scheduled song | 600–1200 seconds; each 0–86400, maximum ≥ minimum |
 | Fade in | Fade in a new song or resume it after a jukebox record | 0 seconds; 0–60 |
-| Fade out | Fade out a normal interruption, override transition or jukebox hold | 0 seconds; 0–60 |
-| Context buffer | Require a selection to stay stable before accepting a context change | 0 seconds; 0–60 |
+| Fade out | Fade out a normal interruption, override transition or jukebox hold | 3 seconds; 0–60 |
+| Context buffer | Require a selection to stay stable before accepting a context change | 3 seconds; 0–60 |
 | Play immediately on join | Skip initial silence and context buffer for the first eligible playlist after joining | Off; saved per profile |
 | Continue Playing on Match (under Timing) | Let the current song finish when it is eligible in the incoming automatic playlist | Off |
 | Jukebox | Choose what AFMR does while an audible nearby record plays | Off |
@@ -555,9 +687,9 @@ For more frequent music, lower both silence values. For gentle changes, try a
 3-second Fade in, Fade out and context buffer. A normal interrupted transition is:
 stable new selection → fade out → silence → fade in.
 
-For a playlist-specific gap, select the playlist and open **Silence** beside
-**Volume** in the Playback panel. Enable **Custom silence** and enter minimum and
-maximum seconds. Set both to **600** for fixed 10-minute gaps, or both to **3**
+For a playlist-specific gap, select the playlist and scroll to **Playback** in
+**Playlist Settings**. Enable **Custom gap between songs** and enter **Shortest gap (s)**
+and **Longest gap (s)**. Set both to **600** for fixed 10-minute gaps, or both to **3**
 for a 3-second combat gap. Off uses global Timing and retains your custom values.
 The same 0–86400-second bounds apply; the maximum must be at least the minimum.
 
@@ -663,6 +795,42 @@ and the next song comes from the situation then. Manual overrides still switch
 music as usual and take priority over automatic selection; manual skip/Next and
 combat death fade/cut still take precedence. This global option starts off.
 
+### Playlist-specific transitions
+
+Select a playlist and click **Transitions** beside Overrides. The left column
+chooses the **From** playlist; click a destination in the right column to edit that
+direction. For your Dark exploration example, set **Dark exploration → Underground**
+to **Finish**, and **Dark exploration → Day outside** to **Interrupt**. The reverse
+directions retain their own settings.
+
+**Current song** cycles through Inherit, Finish and Interrupt. Finish lets the
+outgoing song end naturally. Interrupt uses the selected fade-out, even when the
+destination's Finish on entry, source's Finish on exit or Continue Playing on Match
+would otherwise protect it. Inherit keeps those existing protections.
+
+Page one offers context buffer, fade-out and fade-in, each **0–60 seconds**. Page
+two offers minimum/maximum silence, **0–86400 seconds** with maximum at least
+minimum. Leave timing fields **blank** to inherit normal settings; enter **0** for
+an explicit immediate change. Fill both silence fields or leave both blank. The
+page arrows retain drafts; **Save & back** applies them. **Use defaults**, then
+Save, removes that pair's exceptions. All other pairs remain unchanged.
+
+Rules apply only to automatic transitions. They use the playlist that actually
+started the song, even if another playlist becomes selected while it finishes.
+During silence they use the last automatic source and count elapsed silence when
+the destination changes. Once fade-out has begun it completes; the latest
+destination determines the following gap and fade-in. An explicit buffer or gap
+overrides Play on trigger for that part of the transition. Timing applies to the
+first incoming song; later songs use their ordinary settings and song groups.
+
+Manual Skip/Next, overrides, previews, queues, combat death handling, pause and
+time-window fitting keep their existing behavior. Initial playback and transitions
+without a configured playlist pair use ordinary settings. Playback status reports an
+active rule. Copies, profiles and full backups retain rules; deleting a playlist
+clears references to it. To share a rule through `.afmrp`, **export both playlists
+together**; links to omitted destinations are excluded, and imported copies link
+to each other rather than existing playlists with similar names.
+
 ### Shuffle
 
 Each playlist has its own shuffled cycle: eligible songs are drawn once before
@@ -676,16 +844,16 @@ AFMR also remembers each playlist's own last drawn song across swaps, so returni
 after another playlist played does not immediately repeat that song at a new
 shuffle cycle when alternatives exist. Switching profiles resets the session state.
 
-Use **Add playing to playlist** in the workspace or Inspector to assign the
+Use **Add playing to playlist** in the workspace or Playback status to assign the
 current song to another playlist. The picker captures the song that was playing
 when opened. The original assignment and playback remain intact; an already-off
 destination assignment stays off. Files are never moved or copied.
 
 ## Manual overrides and keybinds
 
-Select a playlist in **Priority**, then use the workspace controls:
+Select a playlist in **Priority**, then open **Playlist actions ⋯**:
 
-- **Play one song:** fade out the current song, bypass the initial gap/buffer,
+- **Play one song now:** fade out the current song, bypass the initial gap/buffer,
   and play one shuffled song. Its ending or normal Skip returns to automatic
   selection and normal silence.
 - **Until released:** make the same initial switch, then keep choosing from that
@@ -698,15 +866,15 @@ song-level off and failed songs stay excluded. Turning Automatic off during an
 override does not stop it. An empty, deleted, or entirely failed target releases
 automatically. Death handling still applies.
 
-**Automatic** releases the override and restores normal transition/finish rules;
-it need not cut the song immediately. **Preview** cancels it for a preview.
+**Use automatic playlists** releases the override and restores normal transition/finish rules;
+it need not cut the song immediately. **Preview song** cancels it for a preview.
 
 To use keyboard shortcuts or Stream Deck:
 
-1. Open **Keys** and select one of eight override slots.
+1. Open **Shortcuts** and select one of eight override slots.
 2. Choose a playlist and **Bind: one song** or **Bind: until released**.
    Slot 1 initially targets Combat in held mode; others start unassigned.
-3. In **Options → Controls → Key Binds**, bind **Music override slot 1–8**.
+3. In **Options → Controls → Key Binds → AFMR**, bind **Music override slot 1–8**.
    Also bind Next, Pause, or Return to automatic if useful.
 4. Have Stream Deck send those keys while Minecraft has focus. Press the same
    held-mode slot again to release; a one-song slot requests another song each time.
@@ -748,7 +916,7 @@ Queue mode bypasses automatic conditions, context interruptions and time-window
 fitting. Automatic off and Manual only are allowed; the source playlist's disabled
 song switches remain respected. Removed/disabled/failed entries or deleted source
 playlists are skipped rather than blocking later requests. Audio-open failures are
-reported and quarantined for the session; repair the file and use Inspector's Retry
+reported and quarantined for the session; repair the file and use Playback status panel's Retry
 failed before queuing it again. Pause, jukebox holds, fades and death guards still apply.
 
 After the queue empties, automatic selection resumes, or an existing held override
@@ -777,7 +945,7 @@ absolute music paths. No music files or foobar data are rewritten.
 ## Combat and death
 
 Open **Timing → Combat settings** for the global detection switch, triggers,
-quiet period and death options. A playlist's **Name & conditions → Combat**
+quiet period and death options. A playlist's **Playlist Settings → When it plays → Combat**
 controls its combat filter separately.
 
 **Combat music** enables automatic combat detection globally. **On attack** and
@@ -792,12 +960,12 @@ Merely losing health or absorption is no longer a combat trigger. The global
 Death, respawn/player replacement, and disconnect clear the combat state. An
 override can still force Combat when global detection is off.
 
-In **singleplayer**, once a qualifying attack or hit starts combat, hostile or
+In **singleplayer or companion-enabled multiplayer**, once a qualifying attack or hit starts combat, hostile or
 angered combat-capable mobs that are still targeting you keep it active even
 between hits. Losing the last target starts the full quiet countdown. A mob merely
 noticing you cannot start combat, and targeting cannot restart an expired fight.
 Only loaded mobs are checked; AFMR does not load terrain to find enemies.
-In **multiplayer**, combat uses the attack/damage timeout: vanilla servers do not
+On **servers without the companion**, combat uses the attack/damage timeout: vanilla servers do not
 send a general mob target field to clients.
 
 For a PvP playlist, open its **Edit conditions → Combat**, select **in combat**,
@@ -856,10 +1024,11 @@ Select a row to see requested versus applied gain and peak-protection limits, or
 reason a file failed. Silent/below-gate audio and clips shorter than 400 ms are reported
 as issues rather than given an extreme boost. Unprocessed songs are counted when cancelled.
 
-The progress screen pauses singleplayer automatically. Analysis runs at the title
-screen or while singleplayer is paused; it suspends when play resumes. In multiplayer,
-leave the world to let a waiting scan continue. No launch-time or automatic whole-library
-loudness scan runs. Original music and foobar files are never rewritten; cached
+Manual analysis starts immediately at the title screen, in singleplayer or on a
+multiplayer server. The progress screen does not pause the game. Back returns to
+the previous screen while analysis continues; Cancel retains completed work. Audio
+is analyzed on the existing worker threads, away from the game thread. No launch-time
+or automatic whole-library loudness scan runs. Original music and foobar files are never rewritten; cached
 measurements live in `config/afmr/library.json`. A change in file size or modification
 time invalidates a cached measurement; click **Normalize** again to update it.
 
@@ -928,19 +1097,47 @@ for the added rows. These layout controls apply to Hybrid and AFMR.
 The information switches independently select artwork/music notes, song title,
 artist, album, song length and original source playlist. Widgets show song information
 without a redundant "Now playing" label. Empty
-metadata and unknown lengths are omitted. Previews show **Preview** as their source.
+metadata and unknown lengths are omitted. Previews show **Preview song** as their source.
 **Scroll long text** moves overflowing text within the chosen width at 24 GUI pixels
 per second, pausing for 1.5 seconds at each end. Off (the default) clips long text
 with an ellipsis. Increase popup duration to allow very long titles to scroll fully.
 Disabling artwork removes the entire icon column. Disabling every field hides the
 custom widget.
 
-The background controls in **Widget** customize the AFMR card. Choose Black, Gray,
-Blue or White, or enter any six-digit RGB color (`#RRGGBB`, with an optional `#`).
+The background controls in **Widget** customize the AFMR card. Use the color
+picker or enter any six-digit RGB color (`#RRGGBB`, with an optional `#`).
 The color swatch shows the saved color. **Opacity (%)** accepts 0–100%:
 0 is transparent and 100 is solid. Text, artwork and music notes retain their own
-opacity. **Reset appearance** restores black at 92% opacity. These background
+opacity. **Reset appearance** restores black at 92% opacity and turns off the
+custom widget image, keeping its copy for later. These background
 controls apply to the AFMR card; Hybrid keeps Minecraft's textured frame.
+
+Under **Widget → Custom background… → Choose image…**, import a PNG, JPEG,
+static WebP or animated GIF to replace the card's colored background. The image
+fills the card behind its text and artwork, including in **Preview song**. Choose
+**Fill** for a centered crop, **Fit** for the whole image, or **Stretch** to cover
+the card without cropping. Transparent pixels and Fit gaps show the game.
+**Image opacity** is independent of the solid background's opacity; text and
+artwork retain their normal visibility and the whole popup still fades normally.
+An unavailable image falls back to the selected background color.
+
+**Image: off** restores the colored background while retaining the image.
+**Remove image** deletes only AFMR's copy. **Reset image settings** turns it off
+and restores Fill / 100% image opacity. AFMR stores the copy under
+`config/afmr/widget-background.png` or `widget-background.gif`, leaving the
+original untouched. Widget and menu images are independent, shared across
+profiles and included in full configuration backups. Both use the same import
+size and animation limits described below. On NeoForge, select the AFMR card
+style to use these controls; Fabric's sole widget style already uses it.
+
+Choose **Menu font** under **Display → Menus** and **Widget font** under
+**Display → Widget** independently. The picker lists fonts loaded by active resource
+packs and offers **Import TTF...** for TrueType outline files up to 16 MiB. AFMR
+copies imported fonts and reloads font resources; the original files are unchanged.
+The Minecraft default choice restores the standard font. Widget fonts affect AFMR
+and Hybrid rendering; Minecraft's native toast retains its own font. Missing
+resource-pack fonts fall back to Minecraft default. Full configuration backups
+include imported font copies; install external font resource packs separately.
 
 The **Menus** tab controls AFMR's workspace and settings backgrounds. Drag
 **Background opacity** from 0–100% to preview the change immediately; the default
@@ -950,12 +1147,12 @@ by Minecraft's **Menu Background Blur** option. It starts enabled. Fully opaque
 menu panels skip hidden blur work. These choices do not change widget appearance
 or pause gameplay. Fabric 1.20.1 has panel opacity and custom images, without blur.
 
-Open **Menu colors…** to change Background, Panels, Buttons, Hover, Selection,
+Open **Themes… → Edit colors…** to change Background, Panels, Buttons, Hover, Selection,
 Highlights, Text, Secondary text, Borders and Scrollbars. Enter six RGB hex digits,
 with an optional `#`; each field has a color swatch and valid values preview live.
 Use the page arrows for more colors. Related shades follow the chosen base color
 so alternating rows and headings keep their differences. Invalid values block
-page changes and Save & back; hiding the page retains drafts.
+page changes and Apply; Cancel still discards them. Hiding the page retains drafts.
 
 Click any color swatch to open a visual picker. Drag inside the square for
 saturation/brightness and along the hue strip to change hue. Presets, Original/New
@@ -966,15 +1163,45 @@ picker opened. Hiding/reopening the picker retains its draft. The same picker is
 available from the widget background swatch under **Display → Widget**; on
 NeoForge, that widget option requires the AFMR card style. Opacity stays separate.
 
+Open **Display → Menus → Themes…** to manage color themes. Select a theme to
+preview it, then **Apply** to keep it or **Cancel** to discard the preview.
+**Save as…** explicitly stores the preview as an independent named theme;
+**Edit colors…** opens color pickers/RGB fields and menu/widget opacity fields.
+Editor **Apply** commits the appearance and selected custom theme, then returns
+directly to Display. Editor **Cancel** returns to the theme list and restores the
+preview from before editing, even if a field is invalid. Changing editor pages
+never saves a theme. Graphite stays built in; use Save as to keep a customized copy.
+An asterisk marks preview changes that differ from the selected saved theme.
+
+Hiding the menu temporarily suspends the preview; reopening retains its draft.
+Leaving through a workspace tab cancels the preview. Unrelated saves and full
+backups always contain the committed appearance, without the preview.
+
+**Theme actions ⋯** (also available by right-clicking a theme) offers Rename,
+Export and Delete. Export writes an **.afmrt** file you can share. Import adds a
+new theme without replacing your saved themes or applying it immediately; click
+the imported row to preview it. Duplicate names receive a numbered suffix.
+
+Themes contain the ten menu colors, menu background opacity, widget background
+color and widget background opacity. Fonts, images, blur, widget layout, music
+and playlists keep their separate settings. Saved themes are shared across
+profiles and included in full configuration backups. Theme files work between
+both maintained Minecraft builds. The collection supports up to 128 custom themes.
+
+The default menu palette is **Graphite**, with charcoal surfaces and soft blue
+highlights. Existing saved colors keep their configured values; choose
+**Display → Menus → Themes… → Edit colors… → Reset menu colors → Apply**
+to restore the Graphite menu palette.
+
 Colors apply to AFMR's workspace and child screens across every profile. Text and
 highlights stay fully opaque; panel transparency, blur, custom images and HUD
 appearance retain their separate settings. Minecraft-native text boxes, option
 buttons and tooltips keep their native skins; errors retain their warning colors.
-**Reset colors** restores the original palette and can recover from invalid input
+The editor’s **Reset menu colors** restores the Graphite menu palette and can recover from invalid input
 without changing other appearance settings. **Reset menu appearance** resets the
 palette together with panel opacity, image settings and available blur.
 
-Open **Custom background… → Choose image…** to select a PNG, JPEG, static WebP or
+Under **Menus**, open **Custom background… → Choose image…** to select a PNG, JPEG, static WebP or
 GIF in Explorer. Animated GIFs loop with their frame timing and transparency.
 The image appears behind all AFMR workspace/settings panels; on 26.3 it is drawn
 **before** the menu blur. Reduce panel opacity in Menus to show more of it.
@@ -1006,27 +1233,27 @@ styles with artwork enabled load HUD artwork; the editor's art remains available
 
 ## Troubleshooting
 
-The **Inspector** separates the song playing, its original source playlist, the
+The **Playback status** separates the song playing, its original source playlist, the
 automatic winner, and any override. Its main view updates once a second. Select a
 playlist and open **Details** for conditions and song counts. Details is a snapshot;
 return to the main view for updates. Hover clipped explanations to read them fully.
 
 | Symptom | Check |
 | --- | --- |
-| Nothing plays after launch | Join a world; check Music/Master volume, AFMR Pause, and Inspector's silence timer. Fresh gaps are 10–20 minutes. Try a preview or Next. |
+| Nothing plays after launch | Join a world; check Music/Master volume, AFMR Pause, and Playback status panel's silence timer. Fresh gaps are 10–20 minutes. Try a preview or Next. |
 | Imported songs do not play automatically | Assign them from the left library pane to a matching playlist. Check song switches, Automatic, Manual only, conditions, and priority. |
 | A different playlist wins | Inspect the ranked list. Move the intended playlist higher or adjust its filters. |
-| Inspector winner differs from the song's source | A buffer, fade, finish protection, preview, or override may retain earlier music. Read the explanation. |
+| Automatic winner differs from the song's source | A buffer, fade, finish protection, preview, or override may retain earlier music. Read the explanation. |
 | Vanilla music still plays | Turn automatic vanilla inclusion off in applicable playlists and disable/remove explicit vanilla assignments. |
 | Home never matches | Capture it in the correct world and dimension; radius includes height. |
 | Low Y or nighttime does not select exploration music | Underground also requires cover/depth. Darkness requires cover/light; Nether/End use their own switches. |
 | A key does nothing | Assign it in Minecraft Controls, check conflicts, focus Minecraft, and close chat/other screens. Slot keys also need a target assignment. |
-| A song fails or moved files remain listed | Restore/reimport the file at its correct path. Missing/failed songs can stay listed. Use **Inspector → Retry failed** or rescan after repairing them. |
+| A song fails or moved files remain listed | Restore/reimport the file at its correct path. Missing/failed songs can stay listed. Use **Playback status → Retry failed** or rescan after repairing them. |
 | Playback says no available songs despite a count | Counts use saved entries, not a fresh disk check; a missing file may fail only when opened. |
 | Settings will not close/save | Read the field error and enter valid values. Check the game's `logs/latest.log` for load/save errors. |
 | Library could not load / save blocked | Close Minecraft and preserve `config/afmr/library.json` and its backup before investigating. AFMR keeps unreadable/unsupported JSON and blocks overwriting it; it does not automatically restore the backup. |
 
-For troubleshooting, open **Inspector → Copy diagnostic summary**. The button
+For troubleshooting, open **Playback status → Copy diagnostic summary**. The button
 briefly says **Summary copied!**; paste the text into your message when asking for
 help. It copies locally and sends nothing automatically. The report contains
 installed versions, playback reason/source/override state, timers, volume, scan
@@ -1061,34 +1288,60 @@ switches, Play on trigger, Minecraft music, volume and every condition parameter
 including disabled settings and nested All/Any/Not groups. By default they contain
 **settings only**. Switch **Include song list: On** before export to also retain
 song assignments and their on/off states. The list contains folder names and
-relative paths, plus resource identifiers for explicit Minecraft/resource-pack
+relative paths and file-content fingerprints, plus resource identifiers for explicit Minecraft/resource-pack
 songs. **Audio files and absolute music paths are never embedded.** Global
 timing/combat/widget settings, keybinds and profile links stay separate. The saved
 Minecraft music option still controls normal vanilla inclusion.
 
 Choose **Import .afmrp...** or drag **one** `.afmrp` onto the main workspace.
 Review the playlists and hover a row for its condition summary/playback flags.
-Choose a destination profile and **Insert** above the workspace's selected playlist,
-at top priority or at bottom priority. Relative order within the imported group
-is preserved. A missing selected anchor falls back to bottom. **Add playlists**
-creates independent new playlists; existing ones remain. **Cancel** changes nothing.
-Names may repeat; rename imported copies in Name & conditions when needed.
+The destination starts at **New profile**. Edit its suggested filename-based name,
+then **Create profile and import**. The new profile contains only the imported
+playlists, in their saved order; it shares your music library. It is created only
+on confirmation and does not automatically activate or link to a world/server.
+Choose it later under Profiles. Cancel creates nothing. At the 32-profile limit,
+choose an existing destination or delete an unused profile first.
 
-If the file includes songs, turn **Import songs: On** to restore those assignments.
-AFMR checks files on the background library worker and shows progress and
-found/missing counts. It automatically tries linked music folders with a unique
-matching folder name. If either side has ambiguous names, choose explicitly.
-Open **Locate music folders...**, select a root and use **Locate selected folder...**
-to choose it in Explorer. Choose the folder containing the displayed relative path:
-for `Albums/Track.wav`, choose the folder containing `Albums`. AFMR checks that
-exact path; it does not guess between songs with the same filename or title.
-Existing library entries are reused rather than duplicated. Selecting a root
-imports only the listed songs, not every other file in that folder.
+Click **Destination** to select an existing profile instead. Matching names
+**replace that playlist's settings in place**, ignoring capitalization and
+surrounding spaces. IDs, keybind references, folder routing and existing priority
+order remain. Settings-only replacement keeps its song assignments; **Import
+songs: On** replaces those assignments with the imported list, including disabled
+and missing entries. Music files and shared library tracks are never deleted.
+The review button shows replacement/addition counts. Duplicate matching names
+in either side stop the import without guessing; rename duplicates before retrying.
+
+Unmatched playlists are added using **Insert new**, above the workspace selection,
+at top priority or at bottom priority, retaining their relative order. A missing
+anchor falls back to bottom. Unrelated playlists remain unchanged. **Cancel**
+changes nothing. New-profile imports may retain repeated names from the file.
+
+If the file includes songs, **Search linked libraries** turns song import on and
+searches your linked music folders and existing library songs. Identical copies
+match even if you renamed files or organized albums differently. AFMR verifies
+file contents and reuses existing library entries; it never guesses from titles
+or filenames. Music stays on your computer and is read-only.
+
+Open **Find song files...** to see **Missing songs**, **All songs**, or
+**Original folders**, with a title/path filter. Select a missing song and
+**Choose selected file...**, or use **Search a folder...** to search an additional
+folder and its subfolders for all missing songs. **Search linked libraries** is
+also available here. Counts show matched, missing and content-verified files;
+**Search details** explains unreadable sources or a chosen file with different
+contents. **Cancel search** stops between file reads and preserves prior matches.
+Only listed songs are assigned when you add the playlists.
+
+New exports with song lists record the identities on the background worker;
+exporting a large collection may take time. Identical contents means the same
+complete file bytes: retagged or converted copies do not count. Modification
+times and paths may differ. Older shared files without this information still
+support individual file choices and their original relative folder layout;
+ask the sender to export the song list again to enable content searching.
 
 You can import with files still missing. Their assignments and switches are
 preserved, and AFMR opens **Library repair / missing sources**. An unlocated root
 appears as a missing folder named after the exported root; use **Locate selected...**
-to reconnect its relative paths. Missing/renamed songs can be located individually.
+to search its contents for matching songs. Missing/renamed songs can be located individually.
 Unlocated references use paths under `config/afmr/missing-imports` until repaired;
 no music files or placeholder folders are created there. Repairs survive restart
 and retain playlist assignments. Unavailable resource songs require their resource

@@ -18,7 +18,7 @@ class ConfigBackupTest {
         for(int i=1;i<=8;i++)keys.put("key.afmr.override_"+i,new ConfigBackup.Key("key.keyboard.unknown","NONE"));
         return keys;
     }
-    private ConfigBackup.Data capture(Library library)throws IOException{return ConfigBackup.capture(library,List.of(),keys(),temp.resolve("image-not-set.png"));}
+    private ConfigBackup.Data capture(Library library)throws IOException{return ConfigBackup.capture(library,List.of(),keys(),temp);}
     private Path archive(Map<String,byte[]> files)throws IOException{
         Path path=temp.resolve("test.afmrb");
         try(var zip=new ZipOutputStream(Files.newOutputStream(path))){for(var e:files.entrySet()){zip.putNextEntry(new ZipEntry(e.getKey()));zip.write(e.getValue());zip.closeEntry();}}
@@ -34,12 +34,15 @@ class ConfigBackupTest {
         var theme=lib.playlists.getFirst();theme.customSongCount=true;theme.songsBeforeSilence=2;
         theme.conditions.nearbyPlayerEnabled=true;theme.conditions.nearbyPlayerName="ThemeFriend";
         theme.conditions.nearbyPlayerUuid="aabbccdd-1234-1234-1234-123456789abc";theme.conditions.nearbyPlayerRadius=24;
+        var transition=new TransitionRule();transition.finish=TransitionRule.Finish.FINISH;transition.customSilence=true;
+        transition.silenceMinSeconds=transition.silenceMaxSeconds=7;theme.transitions.put(lib.playlists.get(1).id,transition);
         lib.settings.overrideSlots[3].playlistId=lib.playlists.getFirst().id;
         lib.folders.add(new Library.Folder(temp.resolve("music").toString(),lib.playlists.getFirst().id));
+        lib.playlists.get(0).conditions.proximityVolume.enabled=true;lib.playlists.get(0).conditions.proximityVolume.nearVolume=.25;lib.playlists.get(0).conditions.proximityVolume.farDistance=80;
         var profile=lib.profiles.create(lib,"Second",lib.profiles.activeId);lib.profiles.bind("server:example.invalid",profile);
         lib.profiles.activate(lib,profile);lib.playlists.getFirst().volume=0.42;lib.playlists.getFirst().playOnTrigger=true;
         var history=new ListeningHistory();history.record(song,lib.playlists.getFirst(),ListeningHistory.Origin.PREVIEW,"fixture");
-        lib.normalize();var data=ConfigBackup.capture(lib.snapshot(),history.snapshot(),keys(),temp.resolve("no-image"));
+        lib.normalize();var data=ConfigBackup.capture(lib.snapshot(),history.snapshot(),keys(),temp);
         Path path=temp.resolve("complete.afmrb");ConfigBackup.write(path,data);var restored=ConfigBackup.read(path);
         assertEquals(new Gson().toJsonTree(lib),new Gson().toJsonTree(restored.library()));
         assertEquals(keys(),restored.keys());assertEquals(1,restored.historyCount());
@@ -48,9 +51,9 @@ class ConfigBackupTest {
     }
     @Test void backgroundIsIncludedWithoutChangingItsSource()throws Exception{
         var image=new java.awt.image.BufferedImage(7,5,java.awt.image.BufferedImage.TYPE_INT_RGB);
-        Path source=temp.resolve("source.png");javax.imageio.ImageIO.write(image,"png",source.toFile());byte[] original=Files.readAllBytes(source);
+        Path source=temp.resolve("menu-background.png");javax.imageio.ImageIO.write(image,"png",source.toFile());byte[] original=Files.readAllBytes(source);
         Library lib=Library.defaults();lib.settings.menuImageEnabled=true;lib.settings.menuImageName="source.png";
-        var data=ConfigBackup.capture(lib,List.of(),keys(),source);Path archive=temp.resolve("image.afmrb");ConfigBackup.write(archive,data);
+        var data=ConfigBackup.capture(lib,List.of(),keys(),temp);Path archive=temp.resolve("image.afmrb");ConfigBackup.write(archive,data);
         var read=ConfigBackup.read(archive);assertTrue(read.files().containsKey("menu-background.png"));
         assertArrayEquals(original,Files.readAllBytes(source));
     }
@@ -122,13 +125,58 @@ class ConfigBackupTest {
         Path gif=directory.resolve("menu-background.gif"),png=directory.resolve("menu-background.png");
         byte[] bytes=BackgroundFormatsTest.fixture("disposal.gif");Files.write(gif,bytes);
         var lib=Library.defaults();lib.settings.menuImageEnabled=true;lib.settings.menuImageName="animation.gif";
-        var data=ConfigBackup.capture(lib,List.of(),keys(),png);
+        var data=ConfigBackup.capture(lib,List.of(),keys(),directory);
         assertTrue(data.files().containsKey("menu-background.gif"));assertFalse(data.files().containsKey("menu-background.png"));
         var archive=temp.resolve("animation.afmrb");ConfigBackup.write(archive,data);var read=ConfigBackup.read(archive);
         Files.writeString(gif,"previous");ConfigBackup.stage(directory,read);assertTrue(ConfigBackup.installPending(directory));
         assertArrayEquals(bytes,Files.readAllBytes(gif));assertEquals("previous",Files.readString(directory.resolve("restore-previous/menu-background.gif")));
         assertEquals(4,MenuBackgroundImage.read(MenuBackgroundImage.installed(png)).frames().length);
         ConfigBackup.stage(directory,capture(Library.defaults()));assertTrue(ConfigBackup.installPending(directory));assertFalse(Files.exists(gif));
+    }
+    @Test void widgetAndMenuBackgroundsTransferIndependentlyWithRecovery()throws Exception{
+        Path directory=temp.resolve("both-images");Files.createDirectories(directory);
+        byte[] png=BackgroundFormatsTest.fixture("disposal-0.png"),gif=BackgroundFormatsTest.fixture("disposal.gif");
+        Files.write(directory.resolve("menu-background.png"),png);Files.write(directory.resolve("widget-background.gif"),gif);
+        var lib=Library.defaults();lib.settings.menuImageEnabled=true;lib.settings.menuImageName="menu.png";
+        lib.settings.widgetImageEnabled=true;lib.settings.widgetImageName="widget.gif";
+        lib.settings.widgetImageOpacity=0.42;lib.settings.widgetImageFit=MenuImageLayout.Fit.FIT;
+        var data=ConfigBackup.capture(lib.snapshot(),List.of(),keys(),directory);
+        Path export=temp.resolve("both.afmrb");ConfigBackup.write(export,data);var read=ConfigBackup.read(export);
+        assertArrayEquals(gif,read.files().get("widget-background.gif"));assertTrue(read.files().containsKey("menu-background.png"));
+        assertTrue(read.library().settings.widgetImageEnabled);assertEquals(0.42,read.library().settings.widgetImageOpacity);
+        assertEquals(MenuImageLayout.Fit.FIT,read.library().settings.widgetImageFit);
+        Files.writeString(directory.resolve("widget-background.gif"),"old widget");
+        Files.writeString(directory.resolve("widget-background.png"),"old still");
+        ConfigBackup.stage(directory,read);assertTrue(ConfigBackup.installPending(directory));
+        assertArrayEquals(gif,Files.readAllBytes(directory.resolve("widget-background.gif")));
+        assertFalse(Files.exists(directory.resolve("widget-background.png")));
+        assertEquals("old widget",Files.readString(directory.resolve("restore-previous/widget-background.gif")));
+        assertEquals("old still",Files.readString(directory.resolve("restore-previous/widget-background.png")));
+        ConfigBackup.stage(directory,capture(Library.defaults()));assertTrue(ConfigBackup.installPending(directory));
+        assertFalse(Files.exists(directory.resolve("widget-background.gif")));
+    }
+    @Test void missingConflictingAndInvalidWidgetImagesAreRejected()throws Exception{
+        var lib=Library.defaults();lib.settings.widgetImageEnabled=true;
+        assertThrows(IOException.class,()->capture(lib));
+        var files=new LinkedHashMap<>(capture(Library.defaults()).files());
+        files.put("widget-background.gif",BackgroundFormatsTest.fixture("disposal.gif"));
+        files.put("widget-background.png",BackgroundFormatsTest.fixture("disposal-0.png"));
+        assertThrows(IOException.class,()->ConfigBackup.read(archive(files)));
+        files.remove("widget-background.png");files.put("widget-background.gif","broken".getBytes());
+        assertThrows(IOException.class,()->ConfigBackup.read(archive(files)));
+        files.put("widget-background.gif",BackgroundFormatsTest.fixture("still.gif"));
+        assertThrows(IOException.class,()->ConfigBackup.read(archive(files)));
+    }
+    @Test void interruptedRestoreRecoversWidgetFiles()throws Exception{
+        Path directory=temp.resolve("widget-recovery"),previous=directory.resolve("restore-previous");Files.createDirectories(previous);
+        Files.writeString(previous.resolve("widget-background.gif"),"original widget");
+        Files.writeString(directory.resolve("widget-background.gif"),"partially installed");
+        Files.writeString(directory.resolve("widget-background.png"),"uncommitted still");
+        Files.writeString(directory.resolve("restore-in-progress"),"widget-background.gif");
+        Files.writeString(directory.resolve(ConfigBackup.PENDING),"bad archive");
+        assertThrows(IOException.class,()->ConfigBackup.installPending(directory));
+        assertEquals("original widget",Files.readString(directory.resolve("widget-background.gif")));
+        assertFalse(Files.exists(directory.resolve("widget-background.png")));
     }
     @Test void conflictingOrInvalidAnimationEntriesRejectTheBackup()throws Exception{
         var files=new LinkedHashMap<>(capture(Library.defaults()).files());
@@ -137,4 +185,17 @@ class ConfigBackupTest {
         files.put("menu-background.gif",BackgroundFormatsTest.fixture("disposal.gif"));files.put("menu-background.png",BackgroundFormatsTest.fixture("disposal-0.png"));
         assertThrows(IOException.class,()->ConfigBackup.read(archive(files)));
     }
+    @Test void independentFontSelectionsAndFilesTravelWithTheFullBackup()throws Exception{
+        byte[] font;try(var stream=getClass().getResourceAsStream("/fonts/afmr-fixture.ttf")){font=stream.readAllBytes();}
+        Files.write(temp.resolve("menu-font.ttf"),font);Files.write(temp.resolve("widget-font.ttf"),font);
+        Library lib=Library.defaults();lib.settings.menuFontId="afmr:custom_menu";lib.settings.widgetFontId="afmr:custom_widget";
+        lib.settings.menuFontName="Menu family";lib.settings.widgetFontName="Widget family";
+        var data=capture(lib.snapshot());var read=ConfigBackup.read(archive(data.files()));assertEquals("Menu family",read.library().settings.menuFontName);assertEquals("Widget family",read.library().settings.widgetFontName);
+        Path install=temp.resolve("install");Files.createDirectories(install);ConfigBackup.stage(install,read);assertTrue(ConfigBackup.installPending(install));assertArrayEquals(font,Files.readAllBytes(install.resolve("menu-font.ttf")));assertArrayEquals(font,Files.readAllBytes(install.resolve("widget-font.ttf")));
+    }
+    @Test void resourcePackFontsKeepTheirIdsWithoutEmbeddingOtherPacks()throws Exception{
+        Library lib=Library.defaults();lib.settings.menuFontId="example:menu";lib.settings.widgetFontId="example:widget";var data=capture(lib.snapshot());assertEquals("example:menu",data.library().settings.menuFontId);assertEquals("example:widget",data.library().settings.widgetFontId);assertEquals(Set.of("library.json","history.json","keys.json"),data.files().keySet());
+    }
+    @Test void missingSelectedImportedFontIsRejected()throws Exception{Library lib=Library.defaults();lib.settings.menuFontId="afmr:custom_menu";assertThrows(IOException.class,()->capture(lib));}
+
 }

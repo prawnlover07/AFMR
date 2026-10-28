@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlayerThemesTest {
     private static final String UUID="12345678-1234-1234-1234-123456789abc";
     @TempDir Path folder;
-    private Context context(NearbyPlayers players){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"test",0,70,0,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,players);}
+    private Context context(NearbyPlayers players){return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"test",0,70,0,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,players,false);}
     @Test void radiusUsesSquaredThreeDimensionalDistanceAndInclusiveBoundary(){var p=new NearbyPlayers(Map.of("Friend",25.0));assertTrue(p.matches("","friend",5));assertFalse(p.matches("","friend",4.99));}
     @Test void uuidSurvivesNameChangeAndNeverFallsBackToADifferentPlayersName(){
         var p=new NearbyPlayers(Map.of(UUID,4.0,"NewName",4.0));assertTrue(p.matches(UUID,"OldName",3));

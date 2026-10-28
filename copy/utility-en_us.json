@@ -1,4 +1,6 @@
 {
+  "key.category.afmr.afmr": "AFMR",
+  "key.categories.afmr": "AFMR",
   "key.afmr.open": "Open/close music library",
   "key.afmr.skip": "Skip song (with normal silence)",
   "key.afmr.next": "Next song (skip silence)",

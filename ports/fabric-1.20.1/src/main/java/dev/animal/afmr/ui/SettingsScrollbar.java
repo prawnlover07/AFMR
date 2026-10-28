@@ -41,8 +41,8 @@ final class SettingsScrollbar extends AbstractWidget {
         change.accept(target);return true;
     }
     @Override protected void renderWidget(GuiGraphics g,int x,int y,float delta){
-        g.fill(getX(),getY(),(getX()+width),(getY()+height),MenuAppearance.background(MenuColor.CONTROLS,0x283236));
-        int top=thumbY();g.fill(getX()+1,top,(getX()+width)-1,top+thumbHeight(),MenuAppearance.color(isFocused()?MenuColor.ACCENT:MenuColor.SCROLLBARS,isFocused()?0xFF8DE0BE:0xFF66867D));
+        g.fill(getX(),getY(),(getX()+width),(getY()+height),MenuAppearance.background(MenuColor.CONTROLS,0x2C3038));
+        int top=thumbY();g.fill(getX()+1,top,(getX()+width)-1,top+thumbHeight(),isFocused()?MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF):MenuAppearance.color(MenuColor.SCROLLBARS,0xFF698293));
     }
     @Override protected void updateWidgetNarration(NarrationElementOutput out){
         out.add(NarratedElementType.TITLE,Component.literal("Widget settings, row "+(offset.getAsInt()+1)+" of "+(maximum+1)));

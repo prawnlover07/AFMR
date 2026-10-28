@@ -1,0 +1,27 @@
+STEP Automatic source starts
+PASS Automatic source has native audio
+STEP Choose destination column
+PASS Transitions menu opens
+PASS Source and destination columns exist
+STEP Finish rule editor
+PASS Rule editor opens
+PASS Invalid timing stays in editor
+PASS Finish rule saves
+STEP Interrupt with custom timing
+PASS Interrupt and independent timing save
+STEP Underground retains Dark song
+PASS Finish applies to Underground
+STEP Outside begins custom fade
+PASS Different destination interrupts actual source
+PASS Custom context buffer elapsed
+PASS Inspector reports active rule
+STEP Custom transition silence
+PASS Custom gap follows fade
+STEP Outside starts with native audio
+PASS Incoming custom fade is applied
+PASS Buffer fade and gap elapsed
+PASS Native incoming audio is active
+STEP Manual Next bypasses transition
+PASS Manual Next returns to automatic immediately
+PASS Reset removes only this pair
+COMPLETE: 17 passed / 0 failed

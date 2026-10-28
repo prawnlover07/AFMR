@@ -4,7 +4,7 @@ import dev.animal.afmr.core.Library.*;
 
 /** Only playback policy travels with a profile. Display, imports, bindings and history stay global. */
 public final class ProfilePlayback {
-    public double silenceMinSeconds=600,silenceMaxSeconds=1200,fadeInSeconds,fadeOutSeconds,bufferSeconds;
+    public double silenceMinSeconds=600,silenceMaxSeconds=1200,fadeInSeconds,fadeOutSeconds=3,bufferSeconds=3;
     public int songsBeforeSilence=1;
     public JukeboxMode jukeboxMode=JukeboxMode.OFF;
     public boolean continuePlayingOnMatch,playImmediatelyOnJoin,combatEnabled=true,combatThreatsOnly=true;

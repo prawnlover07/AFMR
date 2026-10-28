@@ -4,7 +4,7 @@ For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
 Gradle build, JAR and disposable native test profile are separate from the
 NeoForge target described below. Keep its mod version synchronized with the root
-build; the current release is 1.0.1 and its shipped bytecode targets Java 17.
+build; the current release is 1.1 and its shipped bytecode targets Java 17.
 
 For a guided explanation of the implementation, read the
 [developer guide](docs/DEVELOPER-GUIDE.md). For player-facing instructions, use the
@@ -34,7 +34,8 @@ toolchain discovery. The wrapper uses Gradle 9.2.1 and NeoForge ModDevGradle.
 .\gradlew.bat sourceZip
 ```
 
-`build` compiles, packages the runtime JAR, and runs the regression tests. The JAR is
+`build` compiles, packages the client and optional server companion JARs, and runs
+the pure regression and `networkTest` packet component suites. The JAR is
 in `build/libs/`; the source ZIP is in `build/distributions/`. Test reports are in
 `build/reports/tests/test/`. Source ZIPs exclude local archives, Git metadata, caches,
 and generated/native game data.
@@ -89,11 +90,25 @@ compiler and utility translations so it remains independently buildable.
 
 Running `runClient` opens Minecraft. Coordinate desktop testing with the user and
 use an isolated profile; never point tests at personal game configuration or music.
+All native/smoke clients must start capped at **60 FPS**, with VSync off, because
+higher rates cause desktop lag on the owner's computer. Their Gradle `capProbeFps`
+tasks enforce this before launch; preserve the cap in new probe setups as well.
 Pure unit tests cannot prove native pause position, device behavior, or real input.
+Optional companion service/socket checks have separate [test instructions](testing/SERVER-COMPANIONS.md).
+
+## Maintaining server companions
+
+Whenever a new feature or condition would otherwise work only in singleplayer
+because it relies on server-owned state, include support in both maintained
+server companions as part of that feature. Update the client observations,
+companion packaging, relevant tests and user-facing availability text together.
+Verify behavior with the companion and on a server without it. Keep observation
+work bounded and music/library data local. Record any unavoidable limitation and
+unfinished validation explicitly.
 
 ## Update versions
 
-Keep the current version (1.0.1) unchanged while any development tasks are in
+Keep the current version (1.1) unchanged while any development tasks are in
 progress, including concurrent work in other chats. Do not increment it for an
 individual fix, feature, or completed task. Record pending changes under
 **Unreleased** in `CHANGELOG.md`; routine builds and tests keep the current version.
@@ -101,9 +116,10 @@ individual fix, feature, or completed task. Record pending changes under
 Only when all in-progress tasks are complete, increment the version once for the
 combined update. A single task finishing does not establish that the other work
 is complete. At that point, update `mod_version` in `gradle.properties`, the mod
-version in `src/main/resources/META-INF/neoforge.mods.toml`, current install/guide
-references, and the combined changelog entry, then rebuild the numbered JAR and
-source ZIP. Keep historical test reports and Git baseline references at their
+versions in both client/server NeoForge metadata files, Fabric's Gradle properties
+and both Fabric metadata files, current install/guide references, and the combined
+changelog entry. Rebuild both numbered clients, optional companions and source
+ZIPs. Keep historical test reports and Git baseline references at their
 original versions. Documentation edits alone do not require a new mod version.
 
 ## Git checkpoints

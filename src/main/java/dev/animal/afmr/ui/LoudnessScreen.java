@@ -23,17 +23,16 @@ final class LoudnessScreen extends MusicScreen {
         super.init();running=running();report=report();
         if(report!=null){
             summary=(report.cancelled()?"Cancelled. ":"Complete. ")+report.rows().size()+" / "+report.total()+" processed; "+report.count(LoudnessScan.Source.FAILED)+" issues.";
-            var list=addRenderableWidget(new DenseList<ResultRow>(left,108,contentWidth,Math.max(28,height-183),this::drawRow,(row,e,twice)->selected=row,r->r.row().track().title()));
+            var list=addRenderableWidget(new DenseList<ResultRow>(left,108,contentWidth,Math.max(28,bodyBottom()-183),this::drawRow,(row,e,twice)->selected=row,r->r.row().track().title()));
             list.items(report.rows().stream().map(LoudnessScreen::resultRow).toList());
         }
-        button(running?"Cancel":"Normalize again",left,height-29,Math.min(150,contentWidth/2-6),()->{
+        button(running?"Cancel":"Normalize again",left,bodyBottom()-29,Math.min(150,contentWidth/2-6),()->{
             if(running){runtime.loudnessJob().cancel();rebuildWidgets();}
             else{selected=null;runtime.normalizePlaylist(playlistId);rebuildWidgets();}
         }).active=running?!runtime.loudnessJob().cancelled():runtime.library().playlist(playlistId)!=null;
-        button("Back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
     }
     @Override public void tick(){if(running!=running()||report!=report())rebuildWidgets();}
-    @Override public boolean isPauseScreen(){return true;}
     private static String db(double value){return String.format(Locale.ROOT,"%+.2f dB",value==0?0:value);}
     private static ResultRow resultRow(LoudnessScan.Row row){
         String source=switch(row.source()){case SCANNED->"Scanned";case CACHED->"Cached";case TAGS->"Existing tag";case FAILED->"Failed";};
@@ -43,32 +42,32 @@ final class LoudnessScreen extends MusicScreen {
     }
     private void drawRow(GuiGraphicsExtractor g,ResultRow row,int x,int y,int w,boolean hover){
         boolean active=selected!=null&&row.row()==selected.row();
-        if(active||hover)g.fill(x,y,x+w,y+14,active?MenuAppearance.color(MenuColor.SELECTION,0xFF35594E):MenuAppearance.color(MenuColor.HOVER,0xFF2C373A));
+        if(active||hover)g.fill(x,y,x+w,y+14,active?MenuAppearance.color(MenuColor.SELECTION,0xFF304963):MenuAppearance.color(MenuColor.HOVER,0xFF2C303E));
         int name=w/2,adjustment=w-88;
-        g.text(font,fit(row.row().track().title(),name-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFDCE6E0));
-        g.text(font,fit(row.source(),adjustment-name-8),x+name,y+3,row.row().source()==LoudnessScan.Source.FAILED?0xFFFFA0A0:MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF9FBCAD));
-        g.text(font,row.gain(),x+adjustment,y+3,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
+        g.text(menuFont,fit(row.row().track().title(),name-8),x+4,y+3,MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED));
+        g.text(menuFont,fit(row.source(),adjustment-name-8),x+name,y+3,row.row().source()==LoudnessScan.Source.FAILED?0xFFFFA0A0:MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA1B4BC));
+        g.text(menuFont,row.gain(),x+adjustment,y+3,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
     }
     @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float delta){
         var job=runtime.loudnessJob();String playlist=job!=null?job.playlist():report!=null?report.playlist():"";
-        g.text(font,fit(playlist.isBlank()?runtime.status():playlist,contentWidth),left,48,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
+        g.text(menuFont,fit(playlist.isBlank()?runtime.status():playlist,contentWidth),left,48,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
         if(running){
-            String state=job.cancelled()?"Cancelling...":!job.allowed()?"Waiting: pause singleplayer or leave the world to scan.":"Analyzing audio...";
-            g.text(font,fit(state,contentWidth),left,85,MenuAppearance.color(MenuColor.TEXT,0xFFDCE6E0));
-            g.text(font,job.completed()+" / "+job.total()+" processed",left,102,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF9FBCAD));
+            String state=job.cancelled()?"Cancelling...":"Analyzing audio...";
+            g.text(menuFont,fit(state,contentWidth),left,85,MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED));
+            g.text(menuFont,job.completed()+" / "+job.total()+" processed",left,102,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA1B4BC));
             int barWidth=(int)(contentWidth*(job.total()==0?0:(double)job.completed()/job.total()));
-            g.fill(left,119,left+contentWidth,125,MenuAppearance.color(MenuColor.CONTROLS,0xFF40504B));g.fill(left,119,left+barWidth,125,MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE));
+            g.fill(left,119,left+contentWidth,125,MenuAppearance.color(MenuColor.CONTROLS,0xFF444E4D));g.fill(left,119,left+barWidth,125,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
             for(int lane=0;lane<job.lanes();lane++){
                 var progress=job.progress(lane);if(progress!=null)
-                    g.text(font,fit(progress.title()+" / "+(int)progress.seconds()+" s analyzed",contentWidth),left,137+lane*16,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF9FBCAD));
+                    g.text(menuFont,fit(progress.title()+" / "+(int)progress.seconds()+" s analyzed",contentWidth),left,137+lane*16,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA1B4BC));
             }
         }else if(report!=null){
-            g.text(font,fit(summary,contentWidth),left,81,MenuAppearance.color(MenuColor.TEXT,0xFFDCE6E0));
-            g.text(font,"Track",left+4,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABC8B9));g.text(font,"Source",left+(contentWidth-8)/2,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABC8B9));
-            g.text(font,"Applied gain",left+contentWidth-96,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFABC8B9));
+            g.text(menuFont,fit(summary,contentWidth),left,81,MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED));
+            g.text(menuFont,"Track",left+4,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADC0C8));g.text(menuFont,"Source",left+(contentWidth-8)/2,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADC0C8));
+            g.text(menuFont,"Applied gain",left+contentWidth-96,98,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADC0C8));
         }
         String detail="";
         if(selected!=null)detail=selected.detail();
-        g.text(font,fit(detail,contentWidth),left,height-65,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF9FBCAD));
+        g.text(menuFont,fit(detail,contentWidth),left,bodyBottom()-65,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFA1B4BC));
     }
 }

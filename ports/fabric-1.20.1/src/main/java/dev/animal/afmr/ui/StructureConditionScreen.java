@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import java.util.*;
 
-/** Search is confined to editing; the catalog is an owned integrated-server observation. */
+/** Search is confined to editing; the catalog is an owned server observation. */
 public final class StructureConditionScreen extends MusicScreen {
     private record Entry(String id,String label,String search) {}
     private final PlaylistConditions conditions;
@@ -26,20 +26,20 @@ public final class StructureConditionScreen extends MusicScreen {
     private boolean enabled;
 
     StructureConditionScreen(Screen parent,ClientRuntime runtime,PlaylistConditions conditions){
-        super("Structure condition (singleplayer only)",parent,runtime);this.conditions=conditions;
+        super("Structure condition",parent,runtime);this.conditions=conditions;
         selected=new LinkedHashSet<>(conditions.structures);enabled=conditions.structureEnabled;radiusValue=""+conditions.structureRadius;
     }
     @Override protected void init(){
         super.init();available=runtime.structureIds();
         int half=(contentWidth-6)/2;
-        toggle=button("Filter: "+(enabled?"on":"off"),left,47,half,()->{enabled=!enabled;updateToggle();});
+        toggle=toggle("Filter",left,47,half,()->enabled,()->{enabled=!enabled;updateToggle();});
         var current=button("Add current structures",left+half+6,47,half,this::addCurrent);
         current.active=runtime.inWorld()&&minecraft.getSingleplayerServer()!=null;
         var addCurrentStructuresHelpText=Component.translatable("afmr.copy.structurecondition.add_current_structures");
         if(!addCurrentStructuresHelpText.getString().isBlank())current.setTooltip(Tooltip.create(addCurrentStructuresHelpText));
-        list=addRenderableWidget(new DenseList<>(left,121,contentWidth,Math.max(14,height-193),
-            (g,item,x,y,w,hover)->g.drawString(font,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
-                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF8DE0BE):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0)),
+        list=addRenderableWidget(new DenseList<>(left,121,contentWidth,Math.max(14,bodyBottom()-193),
+            (g,item,x,y,w,hover)->g.drawString(menuFont,fit((selected.contains(item.id())?"[x] ":"[ ] ")+item.label(),w-8),x+4,y+3,
+                selected.contains(item.id())?MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF):hover?MenuAppearance.color(MenuColor.TEXT,0xFFFFFFFF):MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED)),
             (item,clickX,clickY,button,twice)->{if(!selected.remove(item.id())){selected.add(item.id());enabled=true;}error="";updateToggle();},Entry::label));
         search=edit(query,"Search structures or enter namespace:id",left,71,contentWidth-82,value->{query=value;filter();});
         var structureSearchHelpText=Component.translatable("afmr.copy.structurecondition.structure_search");
@@ -48,11 +48,11 @@ public final class StructureConditionScreen extends MusicScreen {
         radius=edit(radiusValue,"Radius (0-128)",left+160,95,Math.min(100,contentWidth-160),value->radiusValue=value);
         var structureRadiusHelpText=Component.translatable("afmr.copy.structurecondition.structure_radius");
         if(!structureRadiusHelpText.getString().isBlank())radius.setTooltip(Tooltip.create(structureRadiusHelpText));
-        button("Clear / any",left,height-29,100,()->{selected.clear();enabled=false;error="";updateToggle();});
-        button("Save & back",left+contentWidth-104,height-29,104,this::onClose);
+        button("Clear / any",left,bodyBottom()-29,100,()->{selected.clear();enabled=false;error="";updateToggle();});
+        button("Save & back",left+contentWidth-104,bodyBottom()-29,104,this::onClose);
         rebuildEntries();
     }
-    private void updateToggle(){toggle.setMessage(Component.literal("Filter: "+(enabled?"on":"off")));}
+    private void updateToggle(){}
     private void rebuildEntries(){
         var ids=new TreeSet<>(available);ids.addAll(selected);
         entries=ids.stream().map(id->{
@@ -73,7 +73,7 @@ public final class StructureConditionScreen extends MusicScreen {
     }
     private void addCurrent(){
         var c=runtime.context();
-        if(!c.structures().available()){error="Waiting for singleplayer structure data.";return;}
+        if(!c.structures().available()){error="Structure data unavailable. Use singleplayer or an AFMR server companion.";return;}
         boolean found=false;
         for(var box:c.structures().bounds())if(box.distanceSquared(c.x(),c.y(),c.z())==0){selected.add(box.id());found=true;}
         if(!found){error="You are not inside a loaded generated structure.";return;}
@@ -91,10 +91,10 @@ public final class StructureConditionScreen extends MusicScreen {
     }
     @Override protected void drawBody(GuiGraphics g,int x,int y,float delta){
         var catalog=runtime.structureIds();if(catalog!=available){available=catalog;rebuildEntries();}
-        g.drawString(font,"Radius outside bounds",left,101,MenuAppearance.color(MenuColor.TEXT,0xFFD9E8E0));
-        String info=!runtime.inWorld()?"Join a singleplayer world":minecraft.getSingleplayerServer()==null?"Singleplayer only / unavailable in multiplayer"
+        g.drawString(menuFont,"Radius outside bounds",left,101,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        String info=!runtime.inWorld()?"Join a world":!runtime.serverConditionsAvailable()?"Server companion required for structure data"
             :runtime.context().structures().available()?"Structure data ready":"Waiting for structure data";
-        g.drawString(font,fit(info,contentWidth),left,height-61,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0));
-        g.drawString(font,fit(error.isEmpty()?selected.size()+" selected":error,contentWidth),left,height-49,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF8FA7A0):0xFFFFA0A0);
+        g.drawString(menuFont,fit(info,contentWidth),left,bodyBottom()-61,MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF));
+        g.drawString(menuFont,fit(error.isEmpty()?selected.size()+" selected":error,contentWidth),left,bodyBottom()-49,error.isEmpty()?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF919FAF):0xFFFFA0A0);
     }
 }

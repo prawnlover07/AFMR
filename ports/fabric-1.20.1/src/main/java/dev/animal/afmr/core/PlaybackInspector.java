@@ -23,6 +23,8 @@ public final class PlaybackInspector {
             details.add("Condition matching: "+(p.conditions.matchAny?"any enabled filter":"all enabled filters"));
             details.add("Finish on entry: "+p.finishCurrentSong+"; on exit: "+p.finishCurrentSongOnExit);
             details.add("Play on trigger: "+p.playOnTrigger);
+            details.add("Outgoing transition rules: "+p.transitions.size());
+            if(p==engine.selected()&&engine.transitionRule()!=null)details.add("Active transition: "+engine.transitionRule().summary());
             details.add("Songs before silence: "+PlaybackEngine.songsBeforeSilence(p,lib.settings)+(p.customSongCount?" (custom)":" (global)"));
             details.add("Silence: "+(p.customSilence?"custom "+p.silenceMinSeconds+"-"+p.silenceMaxSeconds:"default "+lib.settings.silenceMinSeconds+"-"+lib.settings.silenceMaxSeconds)+" seconds");
             details.add("Biome: "+c.biome());details.add("Dimension: "+c.dimension());
@@ -35,18 +37,21 @@ public final class PlaybackInspector {
             details.add("Main hand: "+(c.mainHandItem().isEmpty()?"empty":c.mainHandItem())+"; off-hand: "+(c.offHandItem().isEmpty()?"empty":c.offHandItem()));
             details.add("Dead: "+c.dead());
             details.add("Gamemode: "+(c.gameMode()==null?"unavailable":c.gameMode().label()));
+            details.add("Riding animal: "+c.ridingAnimal());
             details.add("Position: "+String.format(Locale.ROOT,"%.1f, %.1f, %.1f",c.x(),c.y(),c.z()));
             if(p.conditions.areaEnabled){var a=p.conditions.area;details.add("Area configured: "+a.configured+"; radius: "+a.radius);details.add("Area dimension: "+a.dimension);details.add("Area world matches: "+a.world.equals(c.world()));}
             if(p.conditions.nearbyPlayerEnabled)details.add("Nearby player: "+p.conditions.nearbyPlayerName+"; radius: "+p.conditions.nearbyPlayerRadius+"; matches: "+c.nearbyPlayers().matches(p.conditions.nearbyPlayerUuid,p.conditions.nearbyPlayerName,p.conditions.nearbyPlayerRadius));
+            if(p.conditions.nearbyPlayerEnabled&&p.conditions.proximityVolume.enabled){var v=p.conditions.proximityVolume;details.add("Proximity volume: "+v.nearDistance+" blocks="+Math.round(v.nearVolume*100)+"%; "+v.farDistance+" blocks="+Math.round(v.farVolume*100)+"%");}
             if(p.conditions.biomeEnabled)for(String id:p.conditions.biomes)details.add("Allowed biome: "+id);
             if(p.conditions.heldItemEnabled)details.add("Held items ("+p.conditions.heldItemHand.label()+"): "+String.join(", ",p.conditions.heldItems));
             if(p.conditions.structureEnabled){
-                details.add(c.structures().available()?"Structure data: loaded singleplayer structures":"Structure data unavailable: singleplayer required, or observation pending");
+                details.add(c.structures().available()?"Structure data: loaded server structures":"Structure data unavailable: server companion missing, or observation pending");
                 details.add("Radius outside structure bounds: "+p.conditions.structureRadius);
                 for(String id:p.conditions.structures)details.add("Allowed structure: "+id);
                 for(var box:c.structures().bounds())if(p.conditions.structures.contains(box.id()))
                     details.add("Nearby structure: "+box.id()+"; distance: "+String.format(Locale.ROOT,"%.1f",Math.sqrt(box.distanceSquared(c.x(),c.y(),c.z()))));
             }
+            if(p.id.equals(engine.sourcePlaylistId()))details.add("Source proximity multiplier: "+Math.round(engine.proximityGain()*100)+"%");
             describeGroups(details,p.conditions,c,lib.settings,"");
             result.add(new Entry(p.id,i+1,p.name,status,List.copyOf(details)));
         }
@@ -73,7 +78,8 @@ public final class PlaybackInspector {
         if(failure==PlaylistConditions.Failure.HEALTH)return "Health is not "+(p.conditions.healthComparison==PlaylistConditions.HealthComparison.BELOW?"below ":"above ")+p.conditions.healthThreshold+" red hearts";
         if(failure==PlaylistConditions.Failure.HELD_ITEM)return "No selected item held in "+p.conditions.heldItemHand.label().toLowerCase(Locale.ROOT);
         if(failure==PlaylistConditions.Failure.GAME_MODE)return "Gamemode not selected: "+(c.gameMode()==null?"unavailable":c.gameMode().label());
-        if(failure==PlaylistConditions.Failure.STRUCTURE_DATA)return "Structure data unavailable: singleplayer required, or observation pending";
+        if(failure==PlaylistConditions.Failure.RIDING_ANIMAL)return p.conditions.ridingAnimal==PlaylistConditions.State.YES?"Not riding an animal":"Currently riding an animal";
+        if(failure==PlaylistConditions.Failure.STRUCTURE_DATA)return "Structure data unavailable: server companion missing, or observation pending";
         if(failure==PlaylistConditions.Failure.NO_CONDITIONS_MATCH)return "None of the enabled conditions match";
         return "Condition not met: "+failure.name().toLowerCase(Locale.ROOT);
     }

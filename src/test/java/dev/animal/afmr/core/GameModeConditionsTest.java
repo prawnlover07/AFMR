@@ -14,7 +14,7 @@ class GameModeConditionsTest {
     private final Settings settings=new Settings();
     private Context context(GameMode mode){
         return new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,0.8,false,
-            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",mode,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",mode,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
     }
     private PlaylistConditions creative(){
         var c=new PlaylistConditions();c.gameModeEnabled=true;c.gameModes=EnumSet.of(GameMode.CREATIVE);return c;

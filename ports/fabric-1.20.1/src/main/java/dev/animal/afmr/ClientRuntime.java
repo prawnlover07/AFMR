@@ -5,7 +5,7 @@ import dev.animal.afmr.core.*;
 import dev.animal.afmr.core.Library.*;
 import dev.animal.afmr.library.*;
 import dev.animal.afmr.ui.NowPlaying;
-import dev.animal.afmr.ui.MenuBackground;
+import dev.animal.afmr.ui.CustomBackground;
 import dev.animal.afmr.ui.StructureConditionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.SystemToast;
@@ -21,6 +21,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class ClientRuntime {
     private static ClientRuntime instance;
@@ -34,9 +35,13 @@ public final class ClientRuntime {
     private final VanillaCatalog vanilla = new VanillaCatalog();
     private final PlaybackEngine engine;
     private final NowPlaying overlay = new NowPlaying(this);
-    private final MenuBackground menuBackground = new MenuBackground(this,FabricLoader.getInstance().getConfigDir().resolve("afmr/menu-background.png"));
+    private final CustomBackground menuBackground = new CustomBackground(this,FabricLoader.getInstance().getConfigDir().resolve("afmr/menu-background.png"),CustomBackground.Target.MENU);
+    private final CustomBackground widgetBackground = new CustomBackground(this,FabricLoader.getInstance().getConfigDir().resolve("afmr/widget-background.png"),CustomBackground.Target.WIDGET);
+    private final dev.animal.afmr.ui.CustomFonts fonts=new dev.animal.afmr.ui.CustomFonts(this,configDirectory);
+    private final dev.animal.afmr.ui.Themes themes=new dev.animal.afmr.ui.Themes(this);
+    public dev.animal.afmr.ui.Themes themes(){return themes;}
+    public dev.animal.afmr.ui.CustomFonts fonts(){return fonts;}
     private final SurfaceCover surfaceCover = new SurfaceCover();
-    private final StructureDetection structureDetection=new StructureDetection();
     private final JukeboxTracker jukebox=new JukeboxTracker();
     private final ExecutorService scanner = Executors.newSingleThreadExecutor(r -> { var t = new Thread(r, "AFMR library"); t.setDaemon(true); return t; });
     private final Library library;
@@ -50,16 +55,24 @@ public final class ClientRuntime {
     private String status = "";
     private String unavailable = "";
     private long catalogRevision;
+    public boolean minecraftMusicMuted(){return mc.options.getSoundSourceVolume(net.minecraft.sounds.SoundSource.MUSIC)==0||mc.options.getSoundSourceVolume(net.minecraft.sounds.SoundSource.MASTER)==0;}
+    private final PlaylistEditHistory playlistEdits=new PlaylistEditHistory();
+    public PlaylistEditHistory playlistEdits(){return playlistEdits;}
     private Object worldIdentity;
     private String cachedWorldKey="";
     private PlaylistImportReport lastPlaylistImport;
     private LibraryHealth.Report sourceHealth;
     private LibraryRepair.Plan pendingRepair;
+    private AtomicBoolean repairCancellation;
     private String repairStatus="";
     public record PresetImport(PlaylistPresets.FileData data,String profileId,String anchor,String fileName){}
     private PresetImport pendingPreset;
     private PresetSongs.Plan presetSongPlan;
     private Map<String,Path> presetFolders=Map.of();
+    private Map<String,Path> presetFiles=Map.of();
+    private List<Path> presetSearchFolders=List.of();
+    private boolean presetSearchLinked;
+    private AtomicBoolean presetCancellation;
     private Path presetMissingRoot;
     private record ScanResult(MusicFiles.Result scan,LibraryHealth.Report health){}
     private final LoudnessScan loudnessScanner=new LoudnessScan();
@@ -73,7 +86,7 @@ public final class ClientRuntime {
     private boolean failedHistoryLoad;
     private double nextDurationSave;
     private final PlayerProximity playerProximity=new PlayerProximity();
-    private Context context = new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+    private Context context = new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
 
     private ClientRuntime() {
         try{
@@ -105,28 +118,27 @@ public final class ClientRuntime {
         if(instance==null)return;
         instance.saveHistory();
         if(instance.durationDirty)instance.save();
-        instance.playerProximity.clear();instance.engine.reset();instance.overlay.clear();instance.surfaceCover.clear();instance.jukebox.clear();
-        instance.structureDetection.clear();
-        HostileTargeting.clear();
+        instance.themes.cancelPreview();instance.playerProximity.clear();instance.engine.reset();instance.overlay.clear();instance.surfaceCover.clear();instance.jukebox.clear();
+        ClientConditions.clear();
         instance.durationCheck=null;
         instance.observedMainHand=instance.observedOffHand=null;instance.cachedMainHandId=instance.cachedOffHandId="";
         instance.combatTracker.reset();instance.combatPlayer=null;instance.inWorld=false;
         instance.worldIdentity=null;instance.cachedWorldKey="";instance.applicableVanilla=Set.of();instance.unavailable="";
-        instance.context=new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY);
+        instance.context=new Context("", "", false, false, 6000,false,15,"",0,0,0,0,0.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,Double.NaN,false,"","",null,false,dev.animal.afmr.core.NearbyPlayers.EMPTY,false);
         instance.activateProfile(PlaylistProfiles.DEFAULT);
     }
     public static void shutdown() {
         if(instance==null||instance.closed)return;
         instance.saveHistory();
         instance.finishDurationCheck();
-        HostileTargeting.clear();
+        ClientConditions.clear();
         if(instance.durationDirty)instance.save();
         instance.scanner.shutdownNow();
         instance.loudnessScanner.close();instance.finishLoudnessScan();
         // GameShuttingDown can precede LoggingOut. Save the profile transition while
         // the writer is open, then reject late screen/logout saves after the flush.
         disconnect();
-        instance.menuBackground.close();
+        instance.menuBackground.close();instance.widgetBackground.close();instance.fonts.close();instance.themes.close();
         instance.closed=true;
         try{instance.store.close();}catch(Exception e){Afmr.LOG.error("Could not finish saving AFMR library",e);}
     }
@@ -134,19 +146,33 @@ public final class ClientRuntime {
     public Library library() { return library; }
     public PlaybackEngine engine() { return engine; }
     public NowPlaying overlay() { return overlay; }
-    public MenuBackground menuBackground() { return menuBackground; }
+    public CustomBackground menuBackground() { return menuBackground; }
+    public CustomBackground widgetBackground() { return widgetBackground; }
     public Context context() { return context; }
     public JukeboxTracker jukebox(){return jukebox;}
-    public Set<String> structureIds(){return structureDetection.catalog();}
+    public boolean serverConditionsAvailable(){return ClientConditions.supported();}
+    public Set<String> structureIds(){return ClientConditions.catalog();}
     public long catalogRevision() { return catalogRevision; }
     public PlaylistImportReport lastPlaylistImport() { return lastPlaylistImport; }
     public LibraryHealth.Report sourceHealth(){return sourceHealth;}
     public LibraryRepair.Plan pendingRepair(){return pendingRepair;}
     public String repairStatus(){return repairStatus;}
+    public boolean repairSearchActive(){return repairCancellation!=null;}
+    public boolean repairSearchCancelling(){return repairCancellation!=null&&repairCancellation.get();}
+    public void cancelRepairSearch(){
+        if(repairCancellation==null||repairCancellation.get())return;
+        repairCancellation.set(true);repairStatus=status="Cancelling repair search...";
+    }
     public String taskStatus(){return status;}
     public PresetImport pendingPreset(){return pendingPreset;}
     public PresetSongs.Plan presetSongPlan(){return presetSongPlan;}
+    public boolean presetSearchActive(){return presetCancellation!=null;}
+    public boolean presetSearchCancelling(){return presetCancellation!=null&&presetCancellation.get();}
+    public void cancelPresetSearch(){
+        if(presetCancellation!=null){presetCancellation.set(true);status="Cancelling song search...";}
+    }
     public double now() { return clock; }
+    public String playbackUnavailable(){return unavailable;}
     public boolean scanning() { return scanning; }
     public MusicFiles.ScanProgress scanProgress() { return scanProgress; }
     public LoudnessScan.Job loudnessJob(){return loudnessJob;}
@@ -186,8 +212,6 @@ public final class ClientRuntime {
     public void tick() {
         if(closed)return;
         saveHistory();
-        // Until gameplay impact is measured, decode only at the title screen or with singleplayer paused.
-        if(loudnessJob!=null)loudnessJob.setAllowed(!inWorld()||mc.isPaused());
         finishLoudnessScan();
         var saveFailure=store.takeSaveFailure();
         if(saveFailure!=null){status="Could not save AFMR data: "+saveFailure.getMessage();Afmr.LOG.error(status,saveFailure);}
@@ -195,8 +219,9 @@ public final class ClientRuntime {
         if (!mc.isPaused()) clock += Math.min(0.25, Math.max(0, wall - lastWall));
         lastWall = wall;
         if (reloadRequested && mc.getResourceManager() != null) {
-            reloadRequested = false;durationCheck=null;engine.reset(); overlay.clear(); menuBackground.invalidate(); vanilla.reload(mc, library); catalogRevision++;
+            reloadRequested = false;durationCheck=null;engine.reset(); overlay.clear(); menuBackground.invalidate();widgetBackground.invalidate(); vanilla.reload(mc, library); catalogRevision++;
         }
+        fonts.start();
         finishDurationCheck();
         if(durationDirty&&clock>=nextDurationSave){nextDurationSave=clock+30;save();}
         if (!scannedLaunch) {
@@ -215,7 +240,6 @@ public final class ClientRuntime {
         }
         if (mc.isPaused()) { overlay.tick(); return; }
         updateCombatPlayer();
-        combatTracker.targeting(clock,HostileTargeting.observe(mc,combatTracker.active(clock,library.settings)),library.settings);
         boolean dead=mc.player.isDeadOrDying();
         var pos=mc.player.blockPosition();
         int surface=surfaceCover.height(mc.level.getChunk(pos.getX()>>4,pos.getZ()>>4),mc.level.getGameTime(),pos.getX(),pos.getZ());
@@ -230,7 +254,9 @@ public final class ClientRuntime {
             if(!observePlayers)observePlayers=p.conditions.needsNearbyPlayers();
         }
         if(!observePlayers)playerProximity.clear();
-        var structures=structureDetection.update(mc,clock,structureRadius);
+        ClientConditions.update(mc,clock,structureRadius,combatTracker.active(clock,library.settings));
+        combatTracker.targeting(clock,ClientConditions.targeted(),library.settings);
+        var structures=ClientConditions.structures();
         boolean raining=mc.level.isRaining(),thundering=mc.level.isThundering();
         // Match the client's rendered rain/snow type without tying weather to roof exposure.
         Precipitation precipitation=raining?switch(biome.value().getPrecipitationAt(pos)){
@@ -245,7 +271,7 @@ public final class ClientRuntime {
             combatTracker.active(clock,library.settings),mc.player.isUnderWater(),(int)Math.floorMod(mc.level.getDayTime(),24000),covered,light,worldKey(),mc.player.getX(),mc.player.getY(),mc.player.getZ(),coverDepth,biome.value().getBaseTemperature(),dead,structures,raining,thundering,precipitation,mc.player.getHealth()/2.0,combatTracker.playersActive(clock,library.settings),cachedMainHandId,cachedOffHandId,mc.gameMode==null?null:switch(mc.gameMode.getPlayerMode()){
                 case SURVIVAL->GameMode.SURVIVAL;case CREATIVE->GameMode.CREATIVE;
                 case ADVENTURE->GameMode.ADVENTURE;case SPECTATOR->GameMode.SPECTATOR;
-            },jukebox.audible(mc),observePlayers?playerProximity.update(mc,clock):dev.animal.afmr.core.NearbyPlayers.EMPTY);
+            },jukebox.audible(mc),observePlayers?playerProximity.update(mc,clock):dev.animal.afmr.core.NearbyPlayers.EMPTY,mc.player.getVehicle() instanceof net.minecraft.world.entity.animal.Animal);
         applicableVanilla = vanilla.applicable(mc);
         engine.tick(clock, library, context, applicableVanilla); overlay.tick();
         saveHistory();
@@ -300,7 +326,7 @@ public final class ClientRuntime {
         return path.isEmpty() ? id : Character.toUpperCase(path.charAt(0)) + path.substring(1);
     }
     private void updateCombatPlayer(){
-        if(combatPlayer!=mc.player){combatPlayer=mc.player;combatTracker.reset();HostileTargeting.clear();}
+        if(combatPlayer!=mc.player){combatPlayer=mc.player;combatTracker.reset();ClientConditions.clear();}
         combatTracker.update(mc.player.isDeadOrDying());
     }
     public void attack(Entity target){
@@ -362,7 +388,7 @@ public final class ClientRuntime {
     public boolean addTrackToPlaylist(String trackId,String destination){
         var track=library.track(trackId);var playlist=library.playlist(destination);
         if(track==null||playlist==null){status="Song or destination playlist is no longer available.";return false;}
-        Boolean previous=playlist.tracks.putIfAbsent(track.id,true);save();
+        Boolean previous=playlist.tracks.get(track.id);if(previous==null)playlistEdits.assign(library,playlist,java.util.List.of(track.id),true);save();
         status=previous==null?"Added to "+playlist.name:previous?"Already in "+playlist.name:"Already assigned, disabled in "+playlist.name;
         return true;
     }
@@ -370,7 +396,7 @@ public final class ClientRuntime {
     /** Called only at explicit setup/world transitions; shared track storage and audio settings retain identity. */
     public boolean activateProfile(String id){
         if(!enabled()||!library.profiles.activate(library,id))return false;
-        saveHistory();engine.reset();overlay.clear();combatTracker.reset();HostileTargeting.clear();
+        saveHistory();engine.reset();overlay.clear();combatTracker.reset();ClientConditions.clear();
         dev.animal.afmr.ui.MusicMenu.clear();catalogRevision++;unavailable="";
         save();status="Profile: "+library.profiles.activeName;return true;
     }
@@ -382,7 +408,7 @@ public final class ClientRuntime {
         var requests=LoudnessScan.requests(library,playlist);
         if(requests.isEmpty()){status="This playlist has no imported music to normalize.";return false;}
         library.settings.replayGainEnabled=true;
-        loudnessJob=loudnessScanner.start(playlist.name,requests,!inWorld()||mc.isPaused());
+        loudnessJob=loudnessScanner.start(playlist.name,requests);
         save();status="Normalizing imported music in "+playlist.name+"...";
         return true;
     }
@@ -401,7 +427,7 @@ public final class ClientRuntime {
     public void save() {
         if(closed)return;
         if (failedLoad) { status = "Save blocked: repair the preserved library.json first."; return; }
-        try { library.normalize(); store.saveAsync(library.snapshot());durationDirty=false; }
+        try { library.normalize(); playlistEdits.checkpoint(library); store.saveAsync(library.snapshot());durationDirty=false; }
         catch (Exception e) { status = "Could not save library: " + e.getMessage(); Afmr.LOG.error(status, e); }
     }
     public void rescan() {
@@ -445,7 +471,7 @@ public final class ClientRuntime {
             if(checkSources){
                 var tracks=new LinkedHashMap<String,Track>();for(var t:sources.tracks())tracks.put(t.id,t);
                 for(var found:result.found())tracks.put(found.track().id,found.track());
-                health=LibraryHealth.check(new LibraryRepair.Sources(new ArrayList<>(tracks.values()),sources.folders()),result.errors(),progress->scanProgress=progress);
+                health=LibraryHealth.check(new LibraryRepair.Sources(new ArrayList<>(tracks.values()),sources.folders()),result.errors(),progress->scanProgress=progress,()->false);
             }
             return new ScanResult(result,health);
         },scanner).whenComplete((outcome, failure) -> mc.execute(() -> {
@@ -494,9 +520,13 @@ public final class ClientRuntime {
         if(!enabled()||scanning||pendingRepair!=null){repairStatus="Finish the current scan or repair first.";return;}
         var sources=LibraryRepair.capture(library);scanning=true;scanProgress=MusicFiles.ScanProgress.starting();
         repairStatus=status="Checking library sources...";
-        CompletableFuture.supplyAsync(()->LibraryHealth.check(sources,List.of(),progress->scanProgress=progress),scanner)
+        var cancellation=new AtomicBoolean();repairCancellation=cancellation;
+        CompletableFuture.supplyAsync(()->LibraryHealth.check(sources,List.of(),progress->scanProgress=progress,cancellation::get),scanner)
             .whenComplete((report,failure)->mc.execute(()->{
-                scanning=false;
+                if(repairCancellation!=cancellation)return;
+                repairCancellation=null;scanning=false;
+                if(closed)return;
+                if(cancellation.get()){repairStatus=status="Repair search cancelled; saved paths unchanged.";return;}
                 if(failure!=null){repairStatus=status="Library check failed: "+failure.getMessage();return;}
                 sourceHealth=report;repairStatus=status=report.issues().isEmpty()?"All library sources are available.":report.issues().size()+" missing/unavailable sources. Select one to locate it.";
             }));
@@ -505,11 +535,15 @@ public final class ClientRuntime {
         if(!enabled()||scanning||pendingRepair!=null){repairStatus="Finish the current scan or repair first.";return;}
         var sources=LibraryRepair.capture(library);scanning=true;scanProgress=MusicFiles.ScanProgress.starting();
         repairStatus=status="Preparing repair preview...";
+        var cancellation=new AtomicBoolean();repairCancellation=cancellation;
         CompletableFuture.supplyAsync(()->{
-            try{return LibraryRepair.plan(request,sources,progress->scanProgress=progress);}
+            try{return LibraryRepair.plan(request,sources,progress->scanProgress=progress,cancellation::get);}
             catch(Exception e){throw new CompletionException(e);}
         },scanner).whenComplete((plan,failure)->mc.execute(()->{
-            scanning=false;
+            if(repairCancellation!=cancellation)return;
+            repairCancellation=null;scanning=false;
+            if(closed)return;
+            if(cancellation.get()){repairStatus=status="Repair search cancelled; saved paths unchanged.";return;}
             if(failure!=null){
                 Throwable cause=failure;while(cause.getCause()!=null)cause=cause.getCause();
                 repairStatus=status="Repair could not be prepared: "+cause.getMessage();return;
@@ -533,7 +567,7 @@ public final class ClientRuntime {
     public ConfigBackup.Data pendingBackup(){return pendingBackup;}
     public boolean backupQueued(){return backupQueued;}
     public boolean backupBusy(){return backupBusy;}
-    public boolean backupAvailable(){return enabled()&&!scanning&&pendingRepair==null&&pendingPreset==null&&!menuBackground.busy()
+    public boolean backupAvailable(){return enabled()&&!scanning&&pendingRepair==null&&pendingPreset==null&&!menuBackground.busy()&&!widgetBackground.busy()&&!fonts.busy()&&!themes.busy()
         &&(loudnessJob==null||loudnessJob.report()!=null);}
     public void exportBackup(Path path){
         if(!backupAvailable()){message("Finish the current scan, image change or import first.");return;}
@@ -541,7 +575,7 @@ public final class ClientRuntime {
         Library snapshot=library.snapshot();var history=engine.history().snapshot();var keys=Afmr.backupKeys();
         backupBusy=scanning=true;scanProgress=MusicFiles.ScanProgress.starting();status="Exporting full backup...";
         CompletableFuture.runAsync(()->{
-            try{ConfigBackup.write(path,ConfigBackup.capture(snapshot,history,keys,configDirectory.resolve("menu-background.png")));}
+            try{ConfigBackup.write(path,ConfigBackup.capture(snapshot,history,keys,configDirectory));}
             catch(Exception e){throw new CompletionException(e);}
         },scanner).whenComplete((nothing,failure)->mc.execute(()->{
             backupBusy=scanning=false;if(closed)return;
@@ -579,10 +613,20 @@ public final class ClientRuntime {
         scanning=true;scanProgress=new MusicFiles.ScanProgress(MusicFiles.ScanStage.WRITING_PRESET,1,0,destination.getFileName().toString());
         status="Exporting playlist setup...";
         CompletableFuture.runAsync(()->{
-            try{PlaylistPresets.write(destination,snapshot);}catch(Exception e){throw new CompletionException(e);}
+            try{
+                PresetSongs.identifyExport(snapshot,progress->scanProgress=progress,()->false);
+                PlaylistPresets.write(destination,snapshot);
+            }catch(Exception e){throw new CompletionException(e);}
         },scanner).whenComplete((nothing,failure)->mc.execute(()->{
             scanning=false;
-            if(failure==null)status="Exported "+snapshot.playlists.size()+" playlists to "+destination;
+            if(failure==null){
+                for(var song:snapshot.songs)if(!song.vanilla&&!song.sha256.isEmpty()){
+                    var track=library.track(song.sourceId);
+                    if(track!=null&&track.path.equals(song.sourcePath))track.content=new SongIdentity(song.bytes,song.sha256);
+                }
+                if(!snapshot.songs.isEmpty())save();
+                status="Exported "+snapshot.playlists.size()+" playlists to "+destination;
+            }
             else{Throwable cause=failure;while(cause.getCause()!=null)cause=cause.getCause();status="Export failed: "+cause.getMessage();}
         }));
     }
@@ -597,11 +641,29 @@ public final class ClientRuntime {
             if(failure!=null){Throwable cause=failure;while(cause.getCause()!=null)cause=cause.getCause();status="Playlist import failed: "+cause.getMessage();return;}
             pendingPreset=new PresetImport(data,profileId,anchor,path.getFileName().toString());
             presetSongPlan=null;presetFolders=PresetSongs.matchFolders(data,library.folders.stream().map(f->f.path).toList());
+            presetFiles=Map.of();presetSearchFolders=List.of();presetSearchLinked=false;
             presetMissingRoot=mc.gameDirectory.toPath().resolve("config/afmr/missing-imports").resolve(UUID.randomUUID().toString());
             status="Ready to import "+data.playlists.size()+" new playlists. Review before adding.";
         }));
     }
-    public void cancelPresetImport(PresetImport pending){if(pendingPreset==pending){pendingPreset=null;presetSongPlan=null;presetFolders=Map.of();status="Playlist import cancelled.";}}
+    public void cancelPresetImport(PresetImport pending){if(pendingPreset==pending){
+        if(presetCancellation!=null)presetCancellation.set(true);
+        pendingPreset=null;presetSongPlan=null;presetFolders=Map.of();presetFiles=Map.of();presetSearchFolders=List.of();presetSearchLinked=false;status="Playlist import cancelled.";
+    }}
+    public void locatePresetFile(String id,Path path){
+        if(pendingPreset==null||scanning||pendingPreset.data().songs.stream().noneMatch(song->song.id.equals(id)&&!song.vanilla))return;
+        var choices=new HashMap<>(presetFiles);choices.put(id,path);presetFiles=Map.copyOf(choices);preparePresetSongs(pendingPreset);
+    }
+    public void searchPresetFolder(Path path){
+        if(pendingPreset==null||scanning)return;
+        if(pendingPreset.data().songs.stream().noneMatch(song->!song.sha256.isEmpty())){status="For content matching, ask the sender to export this song list again. You can still choose individual files or its original folder layout.";return;}
+        var folders=new ArrayList<>(presetSearchFolders);folders.add(path);presetSearchFolders=List.copyOf(folders);preparePresetSongs(pendingPreset);
+    }
+    public void searchPresetLibraries(PresetImport pending){
+        if(pendingPreset!=pending||scanning)return;
+        if(pending.data().songs.stream().noneMatch(song->!song.sha256.isEmpty())){status="For content matching, ask the sender to export this song list again. You can still choose individual files or its original folder layout.";return;}
+        presetSearchLinked=true;preparePresetSongs(pending);
+    }
     public void locatePresetFolder(String id,Path path){
         if(pendingPreset==null||scanning||pendingPreset.data().folders.stream().noneMatch(f->f.id.equals(id)))return;
         var choices=new HashMap<>(presetFolders);choices.put(id,path);presetFolders=Map.copyOf(choices);
@@ -611,34 +673,41 @@ public final class ClientRuntime {
         if(!enabled()||scanning||pendingPreset!=pending)return;
         var catalog=library.tracks.stream().map(Library::copyTrack).toList();
         var choices=Map.copyOf(presetFolders);Path missingRoot=presetMissingRoot;
+        var fileChoices=Map.copyOf(presetFiles);var searchFolders=new ArrayList<>(presetSearchFolders);boolean searchCatalog=presetSearchLinked;
+        if(presetSearchLinked)for(var folder:library.folders)searchFolders.add(Path.of(folder.path));
+        var cancellation=new AtomicBoolean();presetCancellation=cancellation;
         scanning=true;scanProgress=MusicFiles.ScanProgress.starting();status="Finding playlist songs...";
         CompletableFuture.supplyAsync(()->{
-            try{return PresetSongs.plan(pending.data(),catalog,choices,missingRoot,progress->scanProgress=progress);}
+            try{return PresetSongs.plan(pending.data(),catalog,choices,missingRoot,progress->scanProgress=progress,searchFolders,fileChoices,cancellation::get,searchCatalog);}
             catch(Exception e){throw new CompletionException(e);}
         },scanner).whenComplete((plan,failure)->mc.execute(()->{
-            scanning=false;if(!enabled()||pendingPreset!=pending)return;
-            if(failure!=null){presetSongPlan=null;Throwable cause=failure;while(cause.getCause()!=null)cause=cause.getCause();status="Song matching failed: "+cause.getMessage();return;}
-            presetSongPlan=plan;status=plan.found()+" songs found, "+plan.missing()+" missing, "+plan.unavailableResources()+" unavailable resource songs. Missing files can be repaired after import.";
+            if(presetCancellation!=cancellation)return;
+            presetCancellation=null;scanning=false;if(!enabled()||pendingPreset!=pending)return;
+            if(cancellation.get()){status="Song search cancelled; previous matches kept.";return;}
+            if(failure!=null){Throwable cause=failure;while(cause.getCause()!=null)cause=cause.getCause();status="Song matching failed: "+cause.getMessage();return;}
+            presetSongPlan=plan;status=plan.found()+" songs matched ("+plan.verified()+" verified by contents), "+plan.missing()+" still missing, "+plan.unavailableResources()+" unavailable resource songs."
+                +(plan.errors().isEmpty()?"":" Some chosen files or folders could not be matched/read; review the file list.");
         }));
     }
-    public List<String> applyPresetImport(PresetImport pending,String profileId,PlaylistPresets.Placement placement,boolean includeSongs){
-        if(!enabled()||scanning||pendingPreset!=pending)return List.of();
-        if(includeSongs&&presetSongPlan==null){status="Find the song files before applying the import.";return List.of();}
+    public PlaylistPresets.ImportResult applyPresetImport(PresetImport pending,String profileId,String newProfileName,PlaylistPresets.Placement placement,boolean includeSongs){
+        if(!enabled()||scanning||pendingPreset!=pending)return null;
+        if(includeSongs&&presetSongPlan==null){status="Find the song files before applying the import.";return null;}
         try{
             var plan=includeSongs?presetSongPlan:null;
-            var ids=PlaylistPresets.apply(library,profileId,pending.anchor(),placement,pending.data(),inWorld()?worldKey():"",plan);
-            pendingPreset=null;presetSongPlan=null;presetFolders=Map.of();catalogRevision++;if(plan!=null)engine.retryFailed();save();
-            status="Imported "+ids.size()+" new playlists"+(includeSongs?" with song assignments.":"; add your own songs.");
+            var result=PlaylistPresets.apply(library,profileId,newProfileName,pending.anchor(),placement,pending.data(),inWorld()?worldKey():"",plan);
+            pendingPreset=null;presetSongPlan=null;presetFolders=Map.of();presetFiles=Map.of();presetSearchFolders=List.of();presetSearchLinked=false;
+            catalogRevision++;if(plan!=null)engine.retryFailed();save();
+            status="Imported "+result.ids().size()+" playlists into "+library.profiles.entries().stream().filter(p->p.id().equals(result.profileId())).findFirst().orElseThrow().name()+(includeSongs?" with song assignments.":"; add your own songs.");
             if(plan!=null&&plan.missing()>0)checkLibrary();
-            return ids;
-        }catch(Exception e){status="Playlist import not applied: "+e.getMessage();return List.of();}
+            return result;
+        }catch(Exception e){status="Playlist import not applied: "+e.getMessage();return null;}
     }
-    public static void reportAudioFailure(Path path, Exception error) {
-        Afmr.LOG.error("Cannot decode {}", path, error);
+    public static void reportAudioFailure(dev.animal.afmr.audio.MusicSound owner, Exception error) {
+        Afmr.LOG.error("Cannot decode AFMR stream",error);
         Minecraft.getInstance().execute(() -> {
             ClientRuntime runtime = get();
             Track current = runtime.engine.current();
-            if (current != null && !current.vanilla && Path.of(current.path).equals(path))
+            if (current != null && !owner.ended())
                 runtime.engine.failed(current.id, "Could not play " + current.title + ": " + error.getMessage(), runtime.clock, runtime.library);
         });
     }

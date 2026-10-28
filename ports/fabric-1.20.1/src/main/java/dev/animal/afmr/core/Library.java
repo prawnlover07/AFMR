@@ -35,9 +35,9 @@ public final class Library {
         public int songsBeforeSilence = 1;
         public double silenceMinSeconds = 600;
         public double silenceMaxSeconds = 1200;
-        public double fadeInSeconds = 0,fadeOutSeconds = 0;
+        public double fadeInSeconds = 0,fadeOutSeconds = 3;
         public JukeboxMode jukeboxMode=JukeboxMode.OFF;
-        public double bufferSeconds = 0;
+        public double bufferSeconds = 3;
         public boolean continuePlayingOnMatch = false;
         public boolean playImmediatelyOnJoin = false;
         public double combatQuietSeconds = 15;
@@ -49,10 +49,16 @@ public final class Library {
         public boolean rescanOnLaunch = false;
         public double menuBackgroundOpacity = 0.80;
         public Map<MenuColor,Integer> menuColors=MenuColor.defaults();
+        public List<ColorTheme> savedThemes=new ArrayList<>();
         public boolean menuImageEnabled = false;
         public String menuImageName = "";
+        public String menuFontId="minecraft:default",widgetFontId="minecraft:default",menuFontName="",widgetFontName="";
         public double menuImageOpacity = 1;
         public MenuImageLayout.Fit menuImageFit = MenuImageLayout.Fit.FILL;
+        public boolean widgetImageEnabled = false;
+        public String widgetImageName = "";
+        public double widgetImageOpacity = 1;
+        public MenuImageLayout.Fit widgetImageFit = MenuImageLayout.Fit.FILL;
         public boolean nowPlaying = true;
         public WidgetCorner widgetCorner=WidgetCorner.DEFAULT;
         public double widgetScale = 1;
@@ -74,9 +80,9 @@ public final class Library {
             songsBeforeSilence=Math.max(1,Math.min(1000,songsBeforeSilence));
             silenceMinSeconds=bounded(silenceMinSeconds,0,86400,600);
             silenceMaxSeconds=bounded(silenceMaxSeconds,silenceMinSeconds,86400,1200);
-            fadeInSeconds=bounded(fadeInSeconds,0,60,0);fadeOutSeconds=bounded(fadeOutSeconds,0,60,0);
+            fadeInSeconds=bounded(fadeInSeconds,0,60,0);fadeOutSeconds=bounded(fadeOutSeconds,0,60,3);
             if(jukeboxMode==null)jukeboxMode=JukeboxMode.OFF;
-            bufferSeconds=bounded(bufferSeconds,0,60,0);
+            bufferSeconds=bounded(bufferSeconds,0,60,3);
             combatQuietSeconds=bounded(combatQuietSeconds,1,600,15);
             combatDeathFadeSeconds=bounded(combatDeathFadeSeconds,0,60,1);
             if(combatDeathMusic==null)combatDeathMusic=DeathMusic.FADE;
@@ -128,6 +134,7 @@ public final class Library {
         public boolean vanilla;
         public double durationSeconds;
         public TrackLoudness loudness;
+        public SongIdentity content;
         public Track() {}
         public Track(String id, String path, String title, boolean vanilla) {
             this.id = id; this.path = path; this.title = title; this.vanilla = vanilla;
@@ -138,7 +145,7 @@ public final class Library {
         Track next=new Track(t.id,t.path,t.title,t.vanilla);
         next.artist=t.artist;next.album=t.album;next.durationSeconds=t.durationSeconds;next.loudness=t.loudness;
         next.albumArtist=t.albumArtist;next.trackNumber=t.trackNumber;next.discNumber=t.discNumber;
-        next.genre=t.genre;next.date=t.date;next.replayGain=t.replayGain;return next;
+        next.genre=t.genre;next.date=t.date;next.replayGain=t.replayGain;next.content=t.content;return next;
     }
 
     public enum DeathMusic { FADE, CUT, KEEP_PLAYING }
@@ -166,6 +173,8 @@ public final class Library {
         public PlaylistConditions conditions = new PlaylistConditions();
         /** Explicit entries take precedence over automatic vanilla membership. */
         public Map<String, Boolean> tracks = new LinkedHashMap<>();
+        /** Destination playlist ID -> automatic transition exception. */
+        public Map<String,TransitionRule> transitions=new LinkedHashMap<>();
         public Playlist() {}
         public Playlist(String id,String name){this.id=id;this.name=name;}
         public boolean matches(Context c,Settings settings){return enabled&&conditions.matches(c,settings);}
@@ -192,7 +201,7 @@ public final class Library {
                           boolean covered, int lightLevel,
                           String world, double x, double y, double z,double coverDepth,double biomeTemperature,boolean dead,
                           StructureContext structures,boolean raining,boolean thundering,Precipitation precipitation,
-                          double healthHearts,boolean playerCombat,String mainHandItem,String offHandItem,GameMode gameMode,boolean jukeboxPlaying,NearbyPlayers nearbyPlayers) {
+                          double healthHearts,boolean playerCombat,String mainHandItem,String offHandItem,GameMode gameMode,boolean jukeboxPlaying,NearbyPlayers nearbyPlayers,boolean ridingAnimal) {
         public boolean day(){return Math.floorMod(timeOfDay,24000)<12000;}
     }
 
@@ -215,7 +224,7 @@ public final class Library {
     }
     public boolean removePlaylist(String id){
         Playlist p=playlist(id);if(p==null)return false;
-        playlists.remove(p);for(Folder f:folders)if(id.equals(f.playlistId))f.playlistId="library";return true;
+        playlists.remove(p);for(var other:playlists)other.transitions.remove(id);for(Folder f:folders)if(id.equals(f.playlistId))f.playlistId="library";return true;
     }
 
     /** Called at library changes; never rebuild the index during steady gameplay or drawing. */
@@ -319,8 +328,12 @@ public final class Library {
         s.nowPlaying=settings.nowPlaying;s.popupSeconds=settings.popupSeconds;
         s.widgetCorner=settings.widgetCorner;
         s.menuColors=MenuColor.normalize(settings.menuColors);
+        s.savedThemes=ColorTheme.copySaved(settings.savedThemes);
+        s.menuFontId=settings.menuFontId;s.widgetFontId=settings.widgetFontId;s.menuFontName=settings.menuFontName;s.widgetFontName=settings.widgetFontName;
         s.menuImageEnabled=settings.menuImageEnabled;s.menuImageName=settings.menuImageName;
         s.menuImageOpacity=settings.menuImageOpacity;s.menuImageFit=settings.menuImageFit;
+        s.widgetImageEnabled=settings.widgetImageEnabled;s.widgetImageName=settings.widgetImageName;
+        s.widgetImageOpacity=settings.widgetImageOpacity;s.widgetImageFit=settings.widgetImageFit;
         s.menuBackgroundOpacity=settings.menuBackgroundOpacity;
         s.widgetScale=settings.widgetScale;s.widgetWidth=settings.widgetWidth;
         s.widgetBackgroundColor=settings.widgetBackgroundColor;s.widgetBackgroundOpacity=settings.widgetBackgroundOpacity;
@@ -342,17 +355,22 @@ public final class Library {
         return copy;
     }
     public static Playlist copyPlaylist(Playlist p,boolean includeTracks) {
-        Playlist next=new Playlist(p.id,p.name);next.enabled=p.enabled;
-        next.manualOnly=p.manualOnly;
-        next.finishCurrentSong=p.finishCurrentSong;next.finishCurrentSongOnExit=p.finishCurrentSongOnExit;
-        next.playOnTrigger=p.playOnTrigger;
-        next.customSongCount=p.customSongCount;next.songsBeforeSilence=p.songsBeforeSilence;
-        next.customSilence=p.customSilence;next.silenceMinSeconds=p.silenceMinSeconds;next.silenceMaxSeconds=p.silenceMaxSeconds;
-        next.volume=p.volume;
-        next.includeVanilla=p.includeVanilla;next.conditions=p.conditions.copy();
+        Playlist next=new Playlist(p.id,p.name);applyPlaylistSettings(p,next);
         if(includeTracks)next.tracks.putAll(p.tracks);return next;
     }
+    /** Restore editable settings in place; song assignments and playlist identity retain ownership. */
+    public static void applyPlaylistSettings(Playlist p,Playlist next) {
+        next.name=p.name;next.enabled=p.enabled;next.manualOnly=p.manualOnly;
+        next.finishCurrentSong=p.finishCurrentSong;next.finishCurrentSongOnExit=p.finishCurrentSongOnExit;
+        next.playOnTrigger=p.playOnTrigger;next.transitions.clear();
+        for(var entry:p.transitions.entrySet())next.transitions.put(entry.getKey(),entry.getValue().copy());
+        next.customSongCount=p.customSongCount;next.songsBeforeSilence=p.songsBeforeSilence;
+        next.customSilence=p.customSilence;next.silenceMinSeconds=p.silenceMinSeconds;next.silenceMaxSeconds=p.silenceMaxSeconds;
+        next.volume=p.volume;next.includeVanilla=p.includeVanilla;next.conditions=p.conditions.copy();
+    }
 
+    private static String fontId(String id){return id!=null&&id.length()<=256&&id.matches("[a-z0-9_.-]+:[a-z0-9/._-]+")?id:"minecraft:default";}
+    private static String fontName(String name){if(name==null)return "";String clean=name.replaceAll("\\p{Cc}","");return clean.substring(0,Math.min(128,clean.length()));}
     public void normalize() {
         if(settings.overrideSlots==null)settings.overrideSlots=defaultOverrideSlots();
         else if(settings.overrideSlots.length!=OVERRIDE_SLOTS)settings.overrideSlots=Arrays.copyOf(settings.overrideSlots,OVERRIDE_SLOTS);
@@ -368,10 +386,16 @@ public final class Library {
         settings.widgetBackgroundColor = Math.max( 0,Math.min(settings.widgetBackgroundColor, 0xFFFFFF));
         settings.widgetBackgroundOpacity = bounded(settings.widgetBackgroundOpacity, 0, 1, 0.92);
         settings.menuBackgroundOpacity = bounded(settings.menuBackgroundOpacity, 0, 1, 0.80);
+        settings.menuFontId=fontId(settings.menuFontId);settings.widgetFontId=fontId(settings.widgetFontId);
+        settings.menuFontName=fontName(settings.menuFontName);settings.widgetFontName=fontName(settings.widgetFontName);
         settings.menuColors=MenuColor.normalize(settings.menuColors);
+        settings.savedThemes=ColorTheme.copySaved(settings.savedThemes);
         settings.menuImageOpacity = bounded(settings.menuImageOpacity, 0, 1, 1);
         if(settings.menuImageName==null)settings.menuImageName="";
         if(settings.menuImageFit==null)settings.menuImageFit=MenuImageLayout.Fit.FILL;
+        settings.widgetImageOpacity = bounded(settings.widgetImageOpacity, 0, 1, 1);
+        if(settings.widgetImageName==null)settings.widgetImageName="";
+        if(settings.widgetImageFit==null)settings.widgetImageFit=MenuImageLayout.Fit.FILL;
         if(settings.widgetCorner==null)settings.widgetCorner=WidgetCorner.DEFAULT;
         settings.songColumns=SongColumn.normalize(settings.songColumns);
         for(Track t:tracks){
@@ -386,6 +410,9 @@ public final class Library {
     static void normalizePlaylist(Playlist p){
         if(p==null||p.id==null||p.name==null||p.tracks==null)throw new IllegalArgumentException("Invalid playlist");
         if(p.conditions==null)p.conditions=new PlaylistConditions();p.conditions.normalize();
+        if(p.transitions==null||p.transitions.size()>128)throw new IllegalArgumentException("Invalid transition rules");
+        for(var entry:p.transitions.entrySet())if(entry.getKey()==null||entry.getKey().isBlank()||entry.getKey().length()>128
+            ||entry.getKey().equals(p.id)||entry.getValue()==null||!entry.getValue().valid())throw new IllegalArgumentException("Invalid transition rule");
         p.songsBeforeSilence=Math.max(1,Math.min(1000,p.songsBeforeSilence));
         p.volume=bounded(p.volume,0,1,1);
         p.silenceMinSeconds=bounded(p.silenceMinSeconds,0,86400,600);

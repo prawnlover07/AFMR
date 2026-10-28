@@ -15,7 +15,7 @@ final class SongColumnsScreen extends MusicScreen {
         for(int i=page*size;i<Math.min(columns.length,(page+1)*size);i++){
             var column=columns[i];
             int row=index/2,col=index++%2;
-            var button=button(column.label+": "+(runtime.library().settings.songColumns.contains(column)?"on":"off"),left+col*(half+12),50+row*22,half,()->{
+            var button=toggle(column.label,left+col*(half+12),50+row*22,half,()->runtime.library().settings.songColumns.contains(column),()->{
                 var visible=runtime.library().settings.songColumns;
                 if(!visible.remove(column))visible.add(column);
                 runtime.save();rebuildWidgets();
@@ -31,8 +31,8 @@ final class SongColumnsScreen extends MusicScreen {
             };
             if(!rgTrackGainHelpText.getString().isBlank())button.setTooltip(Tooltip.create(rgTrackGainHelpText));
         }
-        if(columns.length>size)pages(page,size,columns.length,height-53,value->{page=value;rebuildWidgets();});
-        button("Defaults",left,height-29,100,()->{runtime.library().settings.songColumns=SongColumn.defaults();runtime.save();rebuildWidgets();});
-        button("Back",left+contentWidth-100,height-29,100,this::onClose);
+        if(columns.length>size)pages(page,size,columns.length,bodyBottom()-53,value->{page=value;rebuildWidgets();});
+        button("Defaults",left,bodyBottom()-29,100,()->{runtime.library().settings.songColumns=SongColumn.defaults();runtime.save();rebuildWidgets();});
+        button("Back",left+contentWidth-100,bodyBottom()-29,100,this::onClose);
     }
 }
