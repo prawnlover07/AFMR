@@ -12,26 +12,13 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
-- Use the green music-note AFMR artwork as the mod icon across all client targets
-  and optional server companions.
-
-- Add the independently built Fabric 26.3 target and its optional server companion,
-  with matching 26.3 toast/frequency/blur features and packaged native checks.
-- Add independently verified Forge 1.20.1 and Fabric/NeoForge 1.21.1 targets,
-  including optional companions, packaged audio/gameplay/network checks and
-  independently buildable source archives. Keep version 1.1.1 during the expansion.
-- Complete Fabric and Forge 1.19.2 / 1.18.2 targets with matching companions,
-  direct older UI/font/persistence support, and independently buildable sources.
-  On those older versions, the companion supplies precise incoming/ranged-hit
-  combat; without it, clients use direct local attacks only. All ten targets pass
-  their scoped release gates; see [the matrix](docs/PORTING.md). The combined local
-  packages remain 1.1.1 and preserve the original baseline release.
+No pending code changes in this release task.
 
 ## 1.1.1 — October 29, 2026
 
-Hotkey update for the existing NeoForge 26.3 / Java 25 and Fabric 1.20.1 / Java 17
-builds, with matching optional companions. Additional platform ports follow after
-individual verification.
+The original hotkey update for NeoForge 26.3 / Java 25 and Fabric 1.20.1 / Java 17
+was finalized first. The additional platform packages below followed after their
+own verification, retaining version 1.1.1 and the original baseline tag/packages.
 
 - Adds an unbound **Show now playing widget/toast** key in Minecraft's AFMR
   controls category on both maintained targets. Reopen the current song for its
@@ -39,6 +26,20 @@ individual verification.
   on repeat presses, including during manual music pause. Keeps playback, queue,
   history, cached artwork and visibility preferences intact. Full backups retain
   the binding; existing backups without it remain readable.
+
+### Platform expansion
+
+- Uses the green music-note AFMR artwork as the mod icon across all client targets
+  and optional server companions.
+- Adds Fabric 26.3 with matching vanilla toast/frequency/blur integration.
+- Adds Forge 1.20.1, Fabric/NeoForge 1.21.1 and Fabric/Forge 1.19.2 / 1.18.2.
+  Every target includes its optional companion, verified packaged gameplay/audio/
+  network behavior and independently buildable sources. See
+  [the support matrix](docs/PORTING.md) and
+  [combined verification](docs/testing/2026-10-29-multi-version-release.md).
+- Older ports use direct UI/font/persistence implementations. On 1.18.2 / 1.19.2,
+  singleplayer and companions supply precise incoming/ranged-hit combat; servers
+  without the companion use direct local attacks only.
 
 ## 1.1 — October 28, 2026
 
