@@ -4,7 +4,10 @@ AFMR is a client-side custom soundtrack mod for **Minecraft Java 26.3**,
 **NeoForge 26.3.0.90+**, and **Java 25**. It combines local music and Minecraft's
 music, chooses playlists from your surroundings, and gives you manual controls.
 Install it on your client for ordinary multiplayer use. Optional server companions
-add multiplayer structure detection and mob-target combat retention on both targets.
+add multiplayer structure detection and mob-target combat retention.
+Fabric 26.3 and Fabric 1.20.1 builds are also available; choose the matching
+[installation target](docs/INSTALLATION.md). Additional versions are tracked in
+[the porting matrix](docs/PORTING.md).
 The playback implementation passed [27 checks on an unmodified vanilla server](docs/testing/2026-10-21-multiplayer.md).
 See the [multiplayer guide](docs/USER-GUIDE.md#multiplayer) for behavior and scope.
 

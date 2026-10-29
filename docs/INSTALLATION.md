@@ -3,19 +3,20 @@
 AFMR 1.1.1 runs on your Minecraft client. The server and other players do not need it
 for ordinary playback. An optional server companion adds structure detection and
 mob-target combat retention in multiplayer.
-Choose the package that matches your game and loader; the two JARs are separate
+Choose the package that matches your game and loader; these JARs are separate
 builds and cannot be used interchangeably.
 
 | Package | Minecraft Java | Loader | Java runtime |
 | --- | --- | --- | --- |
 | NeoForge | 26.3 | NeoForge 26.3.0.90 or newer for 26.3 | 25 |
+| Fabric | 26.3 | Fabric Loader 0.20.1 or newer, plus Fabric API for 26.3 | 25 |
 | Fabric | 1.20.1 | Fabric Loader 0.19.5 or newer, plus Fabric API for 1.20.1 | 17 or newer |
 
 Close Minecraft, back up an existing AFMR setup if needed, and place the package's
 AFMR `.jar` in that instance's `mods` folder. Remove older AFMR JARs so exactly one
 remains. The audio decoders are bundled; do not extract the JAR or install them
 separately. Keep the included license and third-party notices with shared copies.
-Use separate game instances for the two targets; do not downgrade a newer world
+Use separate game instances for different targets; do not downgrade a newer world
 to 1.20.1.
 
 ## Hear your first song

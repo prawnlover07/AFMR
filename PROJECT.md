@@ -14,6 +14,11 @@ and library features with the AFMR card as its sole now-playing style, without
 newer vanilla music-toast/frequency integration or menu blur. Its validation is
 separate from the NeoForge results below; both maintained builds are version 1.1.1.
 
+An added [Fabric 26.3 target](ports/fabric-26.3/README.md) now passes its independent
+build and packaged client/companion checks. It preserves the modern vanilla
+toast/frequency/blur integrations. Other additional ports remain in progress in
+[the support matrix](docs/PORTING.md).
+
 Keep the version unchanged while any development tasks are in progress, including
 concurrent chats. Increment it once for the combined update only after all
 in-progress tasks are complete; collect pending changes under Unreleased.

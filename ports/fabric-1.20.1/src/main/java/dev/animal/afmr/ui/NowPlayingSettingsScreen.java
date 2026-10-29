@@ -56,7 +56,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
             var preview=button("Preview widget",left,bodyBottom()-29,half,()->{
                 if(apply()){runtime.overlay().refresh();minecraft.setScreen(new NowPlayingPreviewScreen(this,runtime));}
             });
-            var previewWidgetHelpText=Component.translatable("afmr.copy.nowplayingsettings.preview_widget.fabric");
+            var previewWidgetHelpText=Component.translatable("afmr.copy.nowplayingsettings.preview_widget.card");
             if(!previewWidgetHelpText.getString().isBlank())preview.setTooltip(Tooltip.create(previewWidgetHelpText));
         }
         button("Save & back",page==1?left:left+half+6,bodyBottom()-29,page==1?contentWidth:half,this::onClose);
@@ -67,20 +67,20 @@ final class NowPlayingSettingsScreen extends MusicScreen {
         int body=contentWidth-12,half=(body-6)/2,right=left+half+6,row=0;
         toggle("Now playing",left,TOP,half,()->s.nowPlaying,()->change(()->s.nowPlaying=!s.nowPlaying));
         var widgetCornerHelpControl=button("Corner: "+s.widgetCorner.label(),right,TOP,half,()->change(()->s.widgetCorner=WidgetCorner.values()[(s.widgetCorner.ordinal()+1)%WidgetCorner.values().length]));
-        var widgetCornerHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_corner.fabric");
+        var widgetCornerHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_corner.card");
         if(!widgetCornerHelpText.getString().isBlank())widgetCornerHelpControl.setTooltip(Tooltip.create(widgetCornerHelpText));
         row++;
         delay=number("Delay (s)",Double.toString(s.popupDelaySeconds),"Delay seconds",left,TOP+row++*ROW,body);
         var delayHelp=Component.translatable("afmr.copy.nowplayingsettings.delay");
         if(!delayHelp.getString().isBlank())delay.setTooltip(Tooltip.create(delayHelp));
         duration=number("Duration (s)",Double.toString(s.popupSeconds),"Popup seconds",left,TOP+row*ROW,half);
-        var widgetDurationHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_duration.fabric");
+        var widgetDurationHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_duration.card");
         if(!widgetDurationHelpText.getString().isBlank())duration.setTooltip(Tooltip.create(widgetDurationHelpText));
         scale=number("Scale (%)",Integer.toString((int)Math.round(s.widgetScale*100)),"Scale percent",right,TOP+row++*ROW,half);
-        var widgetScaleHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_scale.fabric");
+        var widgetScaleHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_scale.card");
         if(!widgetScaleHelpText.getString().isBlank())scale.setTooltip(Tooltip.create(widgetScaleHelpText));
         widgetWidth=number("Width",Integer.toString(s.widgetWidth),"Width",left,TOP+row*ROW,half);
-        var widgetWidthHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_width.fabric");
+        var widgetWidthHelpText=Component.translatable("afmr.copy.nowplayingsettings.widget_width.card");
         if(!widgetWidthHelpText.getString().isBlank())widgetWidth.setTooltip(Tooltip.create(widgetWidthHelpText));
         var textLayout=toggle("Wrap text",right,TOP+row++*ROW,half,()->s.widgetWrap,()->change(()->s.widgetWrap=!s.widgetWrap));
         var textLayoutHelpText=Component.translatable("afmr.copy.nowplayingsettings.text_layout");
@@ -95,7 +95,7 @@ final class NowPlayingSettingsScreen extends MusicScreen {
         int y=TOP+row*ROW;
         backgroundColor=edit(String.format(java.util.Locale.ROOT,"#%06X",s.widgetBackgroundColor),"Background color (#RRGGBB)",left+half-76,y,76,null);
         backgroundColor.setMaxLength(7);labels.add(new Label(backgroundColor,fit("Background",half-106),left));
-        var cardBackgroundColorHelpText=Component.translatable("afmr.copy.nowplayingsettings.card_background_color.fabric");
+        var cardBackgroundColorHelpText=Component.translatable("afmr.copy.nowplayingsettings.card_background_color.card");
         if(!cardBackgroundColorHelpText.getString().isBlank())backgroundColor.setTooltip(Tooltip.create(cardBackgroundColorHelpText));
         var picker=addRenderableWidget(new ColorSwatchButton("Pick Background color",left+half-102,y,20,20,()->s.widgetBackgroundColor,this::pickBackgroundColor));
         opacity=number("Opacity (%)",Double.toString(s.widgetBackgroundOpacity*100),"Background opacity percent",right,TOP+row++*ROW,half);

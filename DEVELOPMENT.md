@@ -1,5 +1,10 @@
 # Developing AFMR
 
+The added [Fabric 26.3 target](ports/fabric-26.3/README.md) uses its own Gradle
+9.8.2 wrapper with Java 25. Run commands from that port directory. The root
+wrapper remains 9.2.1; it is too old for Fabric 26.3 Loom. See [the matrix](docs/PORTING.md)
+for additional targets still in progress.
+
 For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
 Gradle build, JAR and disposable native test profile are separate from the

@@ -6,9 +6,9 @@ class AfmrUiCopy {
     static final String KEY = /afmr\.copy\.[a-z0-9_]+(?:\.[a-z0-9_]+)+/
     static final String SLOT = '%[1-9][0-9]*\\$s'
     static final Map<String, Set<String>> TARGETS = [
-        'Both targets': ['neoforge', 'fabric'] as Set,
-        'NeoForge 26.3 only': ['neoforge'] as Set,
-        'Fabric 1.20.1 only': ['fabric'] as Set
+        'All targets': ['modern', 'legacy'] as Set,
+        'Minecraft 26.3 builds': ['modern'] as Set,
+        'Pre-26.3 builds': ['legacy'] as Set
     ]
 
     static void fail(String message) { throw new GradleException("UI-COPY.md: $message") }
@@ -62,7 +62,7 @@ class AfmrUiCopy {
     }
 
     static Map<String, String> language(Map<String, Map> entries, String target, Map utility, Map<String, String> sources) {
-        if (!(target in ['neoforge', 'fabric'])) fail("unknown build target $target")
+        if (!(target in ['modern', 'legacy'])) fail("unknown build target $target")
         Set<String> used = new TreeSet<>()
         sources.each { path, source ->
             def matches = source =~ /"(afmr\.copy\.[a-z0-9_.]+)"/
@@ -131,7 +131,7 @@ tasks.register('testUiCopy') {
     group = 'verification'
     description = 'Exercise Markdown parsing, validation and native language escaping.'
     doLast {
-        def entry = { String text, String slots = 'None', String targets = 'Both targets' ->
+        def entry = { String text, String slots = 'None', String targets = 'All targets' ->
             """### Test passage
 
 > ID: afmr.copy.test.passage
@@ -159,18 +159,18 @@ $text
         assert prose['afmr.copy.test.passage'].text == 'A "quote", an apostrophe\'s, café and 100%. Wrapped line.\n\nSecond paragraph.'
         checks++
         def source = ['Test.java': 'Component.translatable("afmr.copy.test.passage")']
-        def lang = AfmrUiCopy.language(prose, 'neoforge', ['key.afmr.open': 'Open/close music library'], source)
+        def lang = AfmrUiCopy.language(prose, 'modern', ['key.afmr.open': 'Open/close music library'], source)
         assert lang['afmr.copy.test.passage'].contains('100%%')
         assert lang['key.afmr.open'] == 'Open/close music library'
         assert new JsonSlurper().parseText(JsonOutput.toJson(lang)) == lang
         checks++
         def dynamic = AfmrUiCopy.parse(entry('%2$s, then %1$s at 50%.', '%1$s = name; %2$s = state'))
-        assert AfmrUiCopy.language(dynamic, 'fabric', [:], source)['afmr.copy.test.passage'] == '%2$s, then %1$s at 50%%.'
+        assert AfmrUiCopy.language(dynamic, 'legacy', [:], source)['afmr.copy.test.passage'] == '%2$s, then %1$s at 50%%.'
         checks++
         rejects('duplicate ID') { AfmrUiCopy.parse(entry('One.') + entry('Two.')) }
         def cleared = AfmrUiCopy.parse(entry(' \n\n '))
         assert cleared['afmr.copy.test.passage'].text == ''
-        assert AfmrUiCopy.language(cleared, 'fabric', [:], source)['afmr.copy.test.passage'] == ''
+        assert AfmrUiCopy.language(cleared, 'legacy', [:], source)['afmr.copy.test.passage'] == ''
         checks++
         assert AfmrUiCopy.parse(entry('', '%1$s = name'))['afmr.copy.test.passage'].text == ''
         checks++
@@ -183,13 +183,13 @@ $text
         rejects('keep placeholders') { AfmrUiCopy.parse(entry('%1$s repeated %1$s.', '%1$s = name')) }
         rejects('keep placeholders') { AfmrUiCopy.parse(entry('%2$s.', '%1$s = name')) }
         rejects('malformed placeholder') { AfmrUiCopy.parse(entry('%s and %1$d.')) }
-        rejects('missing entry') { AfmrUiCopy.language(prose, 'fabric', [:], ['Missing.java':'"afmr.copy.test.missing"']) }
-        rejects('unused entries') { AfmrUiCopy.language(prose, 'fabric', [:], [:]) }
-        def restricted = AfmrUiCopy.parse(entry('Only Fabric.', 'None', 'Fabric 1.20.1 only'))
-        rejects('unavailable for neoforge') { AfmrUiCopy.language(restricted, 'neoforge', [:], source) }
-        assert AfmrUiCopy.language(restricted, 'neoforge', [:], [:]).isEmpty()
+        rejects('missing entry') { AfmrUiCopy.language(prose, 'legacy', [:], ['Missing.java':'"afmr.copy.test.missing"']) }
+        rejects('unused entries') { AfmrUiCopy.language(prose, 'legacy', [:], [:]) }
+        def restricted = AfmrUiCopy.parse(entry('Only Fabric.', 'None', 'Pre-26.3 builds'))
+        rejects('unavailable for modern') { AfmrUiCopy.language(restricted, 'modern', [:], source) }
+        assert AfmrUiCopy.language(restricted, 'modern', [:], [:]).isEmpty()
         checks++
-        rejects('utility language') { AfmrUiCopy.language(prose, 'fabric', ['afmr.copy.bad':'bad'], source) }
+        rejects('utility language') { AfmrUiCopy.language(prose, 'legacy', ['afmr.copy.bad':'bad'], source) }
         logger.lifecycle("UI copy compiler: $checks checks passed")
     }
 }

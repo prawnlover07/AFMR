@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "afmr_server_probe",
+  "version": "1.0.0",
+  "name": "AFMR Fabric 26.3 server probes",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "dev.animal.afmr.probe.ServerProbe"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "26.3",
+    "fabric-api": "*",
+    "afmr": "*"
+  }
+}

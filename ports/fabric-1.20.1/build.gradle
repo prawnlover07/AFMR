@@ -40,7 +40,7 @@ compileTestJava { options.release = 25 }
 test { useJUnitPlatform() }
 // The standalone source ZIP carries these shared authoring inputs at its root.
 ext.uiCopyRoot = file('docs/UI-COPY.md').isFile() ? projectDir : file('../..')
-ext.uiCopyTarget = 'fabric'
+ext.uiCopyTarget = 'legacy'
 apply from: new File(uiCopyRoot, 'gradle/ui-copy.gradle')
 processResources { from('LICENSE', 'THIRD_PARTY.md', 'THIRD_PARTY_NOTICES.txt', 'TEMPLATE_LICENSE.txt', 'TWELVEMONKEYS_LICENSE.txt', 'LGPL-2.0.txt', 'LGPL-2.1.txt') }
 loom { runs { client { runDir 'run'; vmArg '-Xmx2G' } } }

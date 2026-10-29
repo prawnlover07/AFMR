@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "afmrprobe",
+  "version": "1.0.0",
+  "name": "AFMR Fabric 26.3 probes",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.animal.afmr.probe.UiFollowupSuite",
+      "dev.animal.afmr.probe.IntegrationSuite",
+      "dev.animal.afmr.probe.CompanionSuite"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "26.3",
+    "fabric-api": "*",
+    "afmr": "*"
+  }
+}

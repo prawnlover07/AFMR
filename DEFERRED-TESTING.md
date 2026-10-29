@@ -1,5 +1,13 @@
 # AFMR: remaining deeper testing
 
+## Additional Minecraft targets — October 29
+
+Fabric 26.3 passes its full build, packaged UI/audio/integration/restart checks,
+headless companion fixture, actual companion connection and vanilla fallback.
+See [the report](docs/testing/2026-10-29-fabric-26.3-port.md). Broader codec/modpack,
+physical keyboard and prolonged multiplayer/large-server cases remain field tests.
+Other new targets are still in progress; [PORTING.md](docs/PORTING.md) is the matrix.
+
 ## Now-playing hotkey — October 29 (Unreleased)
 
 Both full builds pass 1,011 / 1,021 pure regressions, ten component and 20 copy

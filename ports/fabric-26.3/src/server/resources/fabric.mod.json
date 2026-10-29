@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "afmr",
+  "version": "1.1.1",
+  "name": "animal's final music replacer \u2014 server",
+  "description": "Optional structure boundaries and mob-target observations for AFMR clients.",
+  "authors": [
+    "animal"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.animal.afmr.server.ServerAfmr"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

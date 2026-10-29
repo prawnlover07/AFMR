@@ -15,6 +15,9 @@ for the combined update only after all in-progress tasks are complete.
 New Minecraft/loader ports are planned; see the support matrix in
 [PORTING.md](docs/PORTING.md). Planned builds are not released artifacts.
 
+- Add the independently built Fabric 26.3 target and its optional server companion,
+  with matching 26.3 toast/frequency/blur features and packaged native checks.
+
 ## 1.1.1 — October 29, 2026
 
 Hotkey update for the existing NeoForge 26.3 / Java 25 and Fabric 1.20.1 / Java 17
