@@ -21,7 +21,7 @@ IDs before commit. Unmatched playlists follow insertion controls. No new format
 version, compatibility overload or new worker was introduced. `PresetImportProfilesTest`
 adds thirteen cases per target; existing import tests now assert replacement semantics.
 
-For the **1.1** source, reviewed **October 28, 2026**. This guide explains how the
+For the **1.1.1** source, reviewed **October 29, 2026**. This guide explains how the
 current implementation fits together. It is not a reconstruction of development
 before Git. The imported validated baseline is tagged `v0.5.2`.
 

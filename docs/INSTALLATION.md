@@ -1,6 +1,6 @@
 # Installing AFMR
 
-AFMR 1.1 runs on your Minecraft client. The server and other players do not need it
+AFMR 1.1.1 runs on your Minecraft client. The server and other players do not need it
 for ordinary playback. An optional server companion adds structure detection and
 mob-target combat retention in multiplayer.
 Choose the package that matches your game and loader; the two JARs are separate
@@ -59,8 +59,8 @@ ordinary combat detection works without it.
 
 ## Optional server companion
 
-Server owners can install the separate **AFMR-1.1-Server-NeoForge-26.3** or
-**AFMR-1.1-Server-Fabric-1.20.1** package for their loader/game version. Stop the
+Server owners can install the separate **AFMR-1.1.1-Server-NeoForge-26.3** or
+**AFMR-1.1.1-Server-Fabric-1.20.1** package for their loader/game version. Stop the
 server, place its single companion JAR in the server's `mods` directory, and
 restart. Fabric servers also need Fabric API. Install the full client package on
 players' computers. The client and companion use the same mod ID: never install

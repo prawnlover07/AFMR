@@ -4,7 +4,7 @@ For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
 Gradle build, JAR and disposable native test profile are separate from the
 NeoForge target described below. Keep its mod version synchronized with the root
-build; the current release is 1.1 and its shipped bytecode targets Java 17.
+build; the current release is 1.1.1 and its shipped bytecode targets Java 17.
 
 For a guided explanation of the implementation, read the
 [developer guide](docs/DEVELOPER-GUIDE.md). For player-facing instructions, use the
@@ -108,7 +108,7 @@ unfinished validation explicitly.
 
 ## Update versions
 
-Keep the current version (1.1) unchanged while any development tasks are in
+Keep the current version (1.1.1) unchanged while any development tasks are in
 progress, including concurrent work in other chats. Do not increment it for an
 individual fix, feature, or completed task. Record pending changes under
 **Unreleased** in `CHANGELOG.md`; routine builds and tests keep the current version.

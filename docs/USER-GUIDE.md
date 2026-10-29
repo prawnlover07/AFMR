@@ -1,6 +1,6 @@
 # AFMR user guide
 
-For animal's final music replacer **1.1**. Reviewed against the source on
+For animal's final music replacer **1.1.1**. Reviewed against the source on
 **October 29, 2026**.
 
 AFMR gives Minecraft a soundtrack built from your own music and Minecraft's music.
@@ -37,7 +37,7 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
    Install AFMR on your own Minecraft client for ordinary use. The optional server
    companion adds multiplayer structure data and mob-target retention.
    Fabric, Forge, and other Minecraft versions need a separate port.
-2. Close Minecraft. Put `animals-final-music-replacer-1.1.jar` in your game
+2. Close Minecraft. Put `animals-final-music-replacer-1.1.1.jar` in your game
    instance's `mods` folder. Keep exactly one AFMR JAR there.
 3. Launch that instance, join a world, and press **M**. If M is already assigned
    to another mod, change AFMR's binding in **Options → Controls → Key Binds → AFMR**.
@@ -168,8 +168,8 @@ the world behind the same address also requires recapturing it.
 
 The **Structures** filter works in singleplayer and on multiplayer servers with
 AFMR's optional server companion. Install the matching companion from the server
-build's `build/libs/` directory: `animals-final-music-replacer-server-neoforge-26.3-1.1.jar`
-or `animals-final-music-replacer-server-fabric-1.20.1-1.1.jar`. Use only one AFMR
+build's `build/libs/` directory: `animals-final-music-replacer-server-neoforge-26.3-1.1.1.jar`
+or `animals-final-music-replacer-server-fabric-1.20.1-1.1.1.jar`. Use only one AFMR
 JAR per server. Fabric servers also need the matching Fabric API. Clients keep the
 ordinary AFMR client JAR. The companion contains no music or audio code and does
 not require other players to install AFMR.

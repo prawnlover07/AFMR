@@ -4,7 +4,7 @@ AFMR is a client-side Minecraft soundtrack mod with an optional server companion
 It combines local music and vanilla
 tracks, selects playlists from the player's situation, and provides manual controls.
 
-Current build: **1.1**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
+Current build: **1.1.1**, **Minecraft 26.3**, **NeoForge 26.3.0.90**, **Java 25**.
 The imported validated Git baseline remains **0.5.2**.
 The owner/author is **animal**. This folder is the source of truth for development.
 
@@ -12,7 +12,7 @@ An independently buildable **Fabric 1.20.1 / Java 17** backport is maintained in
 [`ports/fabric-1.20.1`](ports/fabric-1.20.1/README.md). It retains AFMR's playback
 and library features with the AFMR card as its sole now-playing style, without
 newer vanilla music-toast/frequency integration or menu blur. Its validation is
-separate from the NeoForge results below; both maintained builds are version 1.1.
+separate from the NeoForge results below; both maintained builds are version 1.1.1.
 
 Keep the version unchanged while any development tasks are in progress, including
 concurrent chats. Increment it once for the combined update only after all
@@ -23,6 +23,14 @@ The [user guide](docs/USER-GUIDE.md) explains current controls and workflows. Th
 keep the documentation current alongside code changes.
 
 ## Accepted product decisions
+
+- Animal authorized 1.1.1 for the existing NeoForge 26.3 and Fabric 1.20.1 builds
+  first, then additional tested ports. The agreed five Minecraft targets are
+  26.3, 1.21.1, 1.20.1, 1.19.2 and 1.18.2, each with Fabric plus NeoForge (26.3 /
+  1.21.1) or Forge (1.20.1 / 1.19.2 / 1.18.2). Matching optional server companions
+  are part of each port. A planned target is not supported until its own build,
+  packaged gameplay/audio and companion/fallback checks pass. Preserve historical
+  releases; public uploading is separate from local release preparation.
 
 - Show now playing is a configurable client-side hotkey, unbound by default, on
   both targets. Reopen the current configured widget/toast immediately for its

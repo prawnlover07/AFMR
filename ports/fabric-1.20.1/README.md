@@ -1,6 +1,6 @@
 # AFMR for Fabric 1.20.1
 
-This is the actively maintained Fabric 1.20.1 backport of AFMR 1.1.
+This is the actively maintained Fabric 1.20.1 backport of AFMR 1.1.1.
 The repository's
 root `src/` remains the separate NeoForge 26.3 implementation. Edit this port's
 sources directly when changing 1.20.1 behavior; it has no runtime compatibility
@@ -26,7 +26,7 @@ silences playback and shows a warning without pausing the song or scheduling.
 
 Use a **Minecraft Java 1.20.1** instance with **Fabric Loader 0.19.5 or newer**, a
 matching **Fabric API for 1.20.1**, and **Java 17 or newer**. Put
-`animals-final-music-replacer-fabric-1.20.1-1.1.jar` from `build/libs/` in that
+`animals-final-music-replacer-fabric-1.20.1-1.1.1.jar` from `build/libs/` in that
 instance's `mods` folder. The audio decoders are included in the JAR.
 
 Press **M** to open the music workspace. Import files or folders with **Add music**;
@@ -47,7 +47,7 @@ The playlist workspace, filters/nested groups, priorities, manual overrides,
 entry/exit finish controls, independent fades, volume, queue/history, profiles,
 library repair, `.afmrp` sharing, metadata, ReplayGain and loudness analysis are
 retained. Structures and combat targeting use owned, bounded server observations. The optional
-`animals-final-music-replacer-server-fabric-1.20.1-1.1.jar` adds these observations
+`animals-final-music-replacer-server-fabric-1.20.1-1.1.1.jar` adds these observations
 to Fabric servers (with Fabric API). Install one AFMR JAR per server; clients keep
 the ordinary client JAR. Vanilla servers remain supported with unavailable structure
 data and attack/damage combat timers.

@@ -1,4 +1,4 @@
-"""Verify numbered artifacts and assemble explicit, private friend packages."""
+"""Verify numbered artifacts and assemble explicit redistributable packages."""
 from pathlib import Path
 import hashlib
 import json
@@ -68,7 +68,7 @@ def main() -> None:
         shutil.copy2(jar, folder / jar.name)
         for notice in NOTICES:
             shutil.copy2(source_root / notice, folder / notice)
-        for relative in ["docs/INSTALLATION.md", "docs/USER-GUIDE.md", "CHANGELOG.md", "BACKLOG.md"]:
+        for relative in ["docs/INSTALLATION.md", "docs/USER-GUIDE.md", "CHANGELOG.md", "BACKLOG.md", "docs/PORTING.md"]:
             destination = folder / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, destination)
@@ -89,7 +89,7 @@ def main() -> None:
                   "Independent project; not an official Minecraft product or approved by Mojang or Microsoft.\n")
         (folder / "README.md").write_text(readme, encoding="utf-8")
         allowed = {Path(name) for name in NOTICES + [jar.name, "README.md",
-                   "docs/INSTALLATION.md", "docs/USER-GUIDE.md", "CHANGELOG.md", "BACKLOG.md"]}
+                   "docs/INSTALLATION.md", "docs/USER-GUIDE.md", "CHANGELOG.md", "BACKLOG.md", "docs/PORTING.md"]}
         allowed.update(Path("third-party-sources") / path.name for path in sources.iterdir()
                        if path.is_file() and (path.name.endswith("-sources.jar") or path.name in {"README.md", "SHA256SUMS.txt"}))
         actual = {path.relative_to(folder) for path in folder.rglob("*") if path.is_file()}
@@ -147,7 +147,7 @@ def main() -> None:
         print(f"Verified server {target}: {jar.name}; scoped classes; no client/audio assets")
 
     (output / "SHA256SUMS.txt").write_text("\n".join(hashes) + "\n", encoding="utf-8")
-    print(f"Prepared private packages under outputs/{version}")
+    print(f"Prepared packages under outputs/{version}")
 
 
 if __name__ == "__main__":

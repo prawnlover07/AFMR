@@ -12,6 +12,15 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
+New Minecraft/loader ports are planned; see the support matrix in
+[PORTING.md](docs/PORTING.md). Planned builds are not released artifacts.
+
+## 1.1.1 — October 29, 2026
+
+Hotkey update for the existing NeoForge 26.3 / Java 25 and Fabric 1.20.1 / Java 17
+builds, with matching optional companions. Additional platform ports follow after
+individual verification.
+
 - Adds an unbound **Show now playing widget/toast** key in Minecraft's AFMR
   controls category on both maintained targets. Reopen the current song for its
   usual display interval, skip its automatic popup delay and refresh the timer

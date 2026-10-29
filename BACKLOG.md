@@ -1,12 +1,18 @@
 # Deferred features
 
-The requested **Show now playing widget/toast** hotkey is implemented under
-Unreleased on both targets, including manual-pause support and backup retention.
+The requested **Show now playing widget/toast** hotkey ships in 1.1.1 on the two
+existing targets, including manual-pause support and backup retention.
 See [its verification](docs/testing/2026-10-29-now-playing-key.md).
 
 The completed feature sections below shipped together in **1.1** on October 28,
 2026. Earlier verification/version statements record their development checkpoints.
 Open future requests and deeper testing remain deferred.
+
+## Multi-version expansion
+
+Agreed targets and release gates are in [PORTING.md](docs/PORTING.md). Finalize
+1.1.1 for the existing two builds first, then add the eight missing client ports
+and their optional companions. Planned targets must not be advertised as working.
 
 ## Transport icons and playlist row menus
 

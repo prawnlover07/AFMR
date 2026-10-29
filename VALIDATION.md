@@ -2,6 +2,14 @@
 
 Target: Minecraft Java 26.3, NeoForge 26.3.0.90, Java 25, Windows 11.
 
+## October 29 — 1.1.1 baseline before port expansion
+
+Existing numbered builds pass 1,011 / 1,021 pure regressions, ten packet/audio
+components and 20 copy checks each. Packaged clients pass 19 / 16 hotkey/playback
+checks; their optional companions pass 13 headless checks each. See the
+[baseline release report](docs/testing/2026-10-29-release-1.1.1.md). New targets in
+[PORTING.md](docs/PORTING.md) require their own verification before release.
+
 ## October 28 — combined 1.1 release
 
 Both numbered builds pass fresh pure regression suites (**1,009 NeoForge / 1,019
