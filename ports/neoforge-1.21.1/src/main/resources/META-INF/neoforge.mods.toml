@@ -5,6 +5,7 @@ license="MIT"
 modId="afmr"
 version="1.1.1"
 displayName="animal's final music replacer"
+logoFile="icon.png"
 authors="animal"
 description='''A personal, context-aware soundtrack with local music, environment playlists, and smooth transitions.'''
 [[mixins]]

@@ -68,7 +68,7 @@ compileTestJava {
 test { javaLauncher=javaToolchains.launcherFor { languageVersion=JavaLanguageVersion.of(25) } }
 tasks.register('serverJar',Jar) {
  archiveBaseName='animals-final-music-replacer-server-forge-1.20.1'
- from(sourceSets.main.output) { include 'dev/animal/afmr/server/**','dev/animal/afmr/network/**','dev/animal/afmr/core/StructureContext*' }
+ from(sourceSets.main.output) { include 'icon.png', 'dev/animal/afmr/server/**','dev/animal/afmr/network/**','dev/animal/afmr/core/StructureContext*' }
  from('src/server/resources');from('LICENSE')
 }
 obfuscation.reobfuscate(tasks.named('serverJar'),sourceSets.main)

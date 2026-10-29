@@ -61,7 +61,7 @@ tasks.register('serverJar', Jar) {
     archiveClassifier = 'dev'
     destinationDirectory = layout.buildDirectory.dir('devlibs')
     from(sourceSets.main.output) {
-        include 'dev/animal/afmr/server/**', 'dev/animal/afmr/network/**', 'dev/animal/afmr/core/StructureContext*', 'dev/animal/afmr/core/CombatOpponent*'
+        include 'icon.png', 'dev/animal/afmr/server/**', 'dev/animal/afmr/network/**', 'dev/animal/afmr/core/StructureContext*', 'dev/animal/afmr/core/CombatOpponent*'
     }
     from('src/server/resources')
     from('LICENSE')

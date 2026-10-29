@@ -12,6 +12,9 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
+- Use the green music-note AFMR artwork as the mod icon across all client targets
+  and optional server companions.
+
 New Minecraft/loader ports are planned; see the support matrix in
 [PORTING.md](docs/PORTING.md). Planned builds are not released artifacts.
 
