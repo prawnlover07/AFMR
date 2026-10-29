@@ -40,6 +40,7 @@ neoForge {
                 if (project.hasProperty('playbackSoak')) jvmArguments.add('-Dafmr.probe.playbackSoak=true')
                 if (project.hasProperty('pickerAudit')) jvmArguments.add('-Dafmr.probe.pickerAudit=true')
                 if (project.hasProperty('overnightAudit')) jvmArguments.add('-Dafmr.probe.overnightAudit=true')
+                if (project.hasProperty('nowPlayingKey')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.nowPlayingKey=true'
                 if (project.hasProperty('navigation')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.navigation=true'
                 if (project.hasProperty('clarity')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.clarity=true'
                 if (project.hasProperty('uiFollowup')) jvmArguments.add('-Dafmr.probe.uiFollowup=true')

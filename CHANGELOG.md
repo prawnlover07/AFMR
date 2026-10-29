@@ -12,7 +12,12 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
-No pending changes.
+- Adds an unbound **Show now playing widget/toast** key in Minecraft's AFMR
+  controls category on both maintained targets. Reopen the current song for its
+  usual display interval, skip its automatic popup delay and refresh the timer
+  on repeat presses, including during manual music pause. Keeps playback, queue,
+  history, cached artwork and visibility preferences intact. Full backups retain
+  the binding; existing backups without it remain readable.
 
 ## 1.1 — October 28, 2026
 

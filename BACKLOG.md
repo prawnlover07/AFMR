@@ -1,5 +1,9 @@
 # Deferred features
 
+The requested **Show now playing widget/toast** hotkey is implemented under
+Unreleased on both targets, including manual-pause support and backup retention.
+See [its verification](docs/testing/2026-10-29-now-playing-key.md).
+
 The completed feature sections below shipped together in **1.1** on October 28,
 2026. Earlier verification/version statements record their development checkpoints.
 Open future requests and deeper testing remain deferred.

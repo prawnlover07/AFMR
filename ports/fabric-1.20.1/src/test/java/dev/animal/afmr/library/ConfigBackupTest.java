@@ -24,6 +24,17 @@ class ConfigBackupTest {
         try(var zip=new ZipOutputStream(Files.newOutputStream(path))){for(var e:files.entrySet()){zip.putNextEntry(new ZipEntry(e.getKey()));zip.write(e.getValue());zip.closeEntry();}}
         return path;
     }
+    @Test void nowPlayingShortcutRoundTripsWithTheOtherKeys()throws Exception{
+        var saved=keys();saved.put("key.afmr.show_now_playing",new ConfigBackup.Key("key.keyboard.f8","NONE"));
+        var data=ConfigBackup.capture(Library.defaults(),List.of(),saved,temp);
+        var path=temp.resolve("popup.afmrb");ConfigBackup.write(path,data);
+        assertEquals(saved,ConfigBackup.read(path).keys());
+    }
+    @Test void optionalShortcutCannotReplaceAMissingExistingKey()throws Exception{
+        var saved=keys();saved.remove("key.afmr.inspect");
+        saved.put("key.afmr.show_now_playing",new ConfigBackup.Key("key.keyboard.f8","NONE"));
+        assertThrows(IOException.class,()->ConfigBackup.capture(Library.defaults(),List.of(),saved,temp));
+    }
     @Test void roundTripKeepsSettingsAllProfilesPathsFlagsMetadataAndHistory()throws Exception{
         Library lib=Library.defaults();var song=new Library.Track("track:fixture",temp.resolve("music/one.wav").toString(),"Title",false);
         song.artist="Artist";song.albumArtist="Album artist";song.trackNumber="3";song.loudness=new TrackLoudness(100,"fixture",-2,0.5);

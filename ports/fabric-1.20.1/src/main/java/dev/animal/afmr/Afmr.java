@@ -30,6 +30,7 @@ public final class Afmr implements ClientModInitializer {
     private static final String CATEGORY="key.categories.afmr";
     private static final KeyMapping OPEN=key("open",InputConstants.KEY_M);
     private static final KeyMapping SKIP=key("skip",-1),NEXT=key("next",-1),PAUSE=key("pause",-1);
+    private static final KeyMapping SHOW_NOW_PLAYING=key("show_now_playing",-1);
     private static final KeyMapping INSPECT=key("inspect",-1),OVERRIDES=key("overrides",-1),AUTOMATIC=key("automatic",-1);
     private static final KeyMapping[] OVERRIDE_KEYS=new KeyMapping[Library.OVERRIDE_SLOTS];
     private static boolean suppressOpen;
@@ -37,7 +38,7 @@ public final class Afmr implements ClientModInitializer {
     public static String overrideKeyName(int slot){return OVERRIDE_KEYS[slot].getTranslatedKeyMessage().getString();}
     public static Map<String,ConfigBackup.Key> backupKeys(){
         var result=new LinkedHashMap<String,ConfigBackup.Key>();
-        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,SHOW_NOW_PLAYING,INSPECT,OVERRIDES,AUTOMATIC));
         Collections.addAll(keys,OVERRIDE_KEYS);
         for(var key:keys)result.put(key.getName(),new ConfigBackup.Key(key.saveString(),"NONE"));
         return Map.copyOf(result);
@@ -49,7 +50,7 @@ public final class Afmr implements ClientModInitializer {
         return count;
     }
     public static void restoreKeys(Map<String,ConfigBackup.Key> saved){
-        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,SHOW_NOW_PLAYING,INSPECT,OVERRIDES,AUTOMATIC));
         Collections.addAll(keys,OVERRIDE_KEYS);
         for(var key:keys){
             var value=saved.get(key.getName());if(value==null)continue;
@@ -59,7 +60,7 @@ public final class Afmr implements ClientModInitializer {
     }
     @Override public void onInitializeClient(){
         METADATA_LOG.setLevel(java.util.logging.Level.WARNING);
-        for(var binding:new KeyMapping[]{OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC})KeyBindingHelper.registerKeyBinding(binding);
+        for(var binding:new KeyMapping[]{OPEN,SKIP,NEXT,PAUSE,SHOW_NOW_PLAYING,INSPECT,OVERRIDES,AUTOMATIC})KeyBindingHelper.registerKeyBinding(binding);
         for(int i=0;i<OVERRIDE_KEYS.length;i++)OVERRIDE_KEYS[i]=KeyBindingHelper.registerKeyBinding(key("override_"+(i+1),-1));
         ClientTickEvents.END_CLIENT_TICK.register(Afmr::tick);
         ScreenEvents.AFTER_INIT.register((client,screen,width,height)->ScreenKeyboardEvents.allowKeyPress(screen).register((current,key,scan,modifiers)->{
@@ -82,6 +83,7 @@ public final class Afmr implements ClientModInitializer {
         while(SKIP.consumeClick())if(mc.screen==null)runtime.skip();
         while(NEXT.consumeClick())if(mc.screen==null)runtime.nextSong();
         while(PAUSE.consumeClick())if(mc.screen==null)runtime.togglePause();
+        while(SHOW_NOW_PLAYING.consumeClick())if(mc.screen==null)runtime.overlay().showCurrent();
         while(INSPECT.consumeClick())if(mc.screen==null)mc.setScreen(new PlaybackInspectorScreen(null,runtime));
         while(OVERRIDES.consumeClick())if(mc.screen==null)mc.setScreen(new OverridesScreen(null,runtime,-1,"combat"));
         while(AUTOMATIC.consumeClick())if(mc.screen==null)runtime.returnAutomatic();

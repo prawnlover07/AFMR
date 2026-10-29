@@ -1,7 +1,7 @@
 # AFMR user guide
 
 For animal's final music replacer **1.1**. Reviewed against the source on
-**October 28, 2026**.
+**October 29, 2026**.
 
 AFMR gives Minecraft a soundtrack built from your own music and Minecraft's music.
 It chooses a playlist based on where you are and what you are doing. You can also
@@ -140,7 +140,7 @@ last hid; use Back / Save & back to return to the editor if needed.
 | Share playlist conditions/options | **M → Import / export → Export selected...** |
 | Add a shared playlist setup | **M → Import / export → Import .afmrp...**, or drop one `.afmrp` file onto the workspace |
 
-Only **M** is bound initially. Skip, Next, Pause, Playback status, Overrides, Return to
+Only **M** is bound initially. Show now playing, Skip, Next, Pause, Playback status, Overrides, Return to
 automatic, and all eight override slot keys start unbound. Gameplay music keys
 do not activate while chat or another screen is open; use the screen buttons there.
 
@@ -1079,6 +1079,14 @@ that ends before the delay never displays a notification. Once shown, the widget
 keeps its full ordinary display duration. This setting applies to every supported
 style, including Minecraft's native toast and pause-menu song metadata on 26.3.
 It is shared across profiles.
+
+To show the current song again, assign **Show now playing widget/toast** under
+**Options → Controls → Key Binds → AFMR**. It starts unbound. Press it during gameplay
+to reopen the selected widget/toast for its usual duration; another press refreshes
+that time. It skips the song-start display delay, also works while AFMR music is
+manually paused, and leaves the song, queue and history unchanged. There must be a
+current song, and the widget must be enabled. Minecraft's native toast setting and
+hidden HUD still apply. With no song playing, the key does nothing.
 
 The same panel sets style, visibility and custom popup duration (initially
 7 seconds; 1–60 allowed). **Scale (%)** sets scale (50–200%, including text and

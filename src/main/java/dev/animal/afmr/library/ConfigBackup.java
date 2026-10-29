@@ -110,12 +110,13 @@ public final class ConfigBackup {
             var keys=new LinkedHashMap<String,Key>();
             for(var e:json(files.get("keys.json")).getAsJsonObject().entrySet()){
                 Key key=GSON.fromJson(e.getValue(),Key.class);
-                if(!e.getKey().matches("key\\.afmr\\.(open|skip|next|pause|inspect|overrides|automatic|override_[1-8])")
+                if(!e.getKey().matches("key\\.afmr\\.(open|skip|next|pause|show_now_playing|inspect|overrides|automatic|override_[1-8])")
                     ||key==null||key.code==null||key.code.length()>128||!key.code.matches("(key\\.(keyboard|mouse)\\.[a-z0-9._-]+|scancode\\.[0-9]+)")
                     ||!Set.of("NONE","SHIFT","CONTROL","CONTROL_OR_COMMAND","ALT").contains(key.modifier))throw new IOException("Invalid AFMR keybinding in backup.");
                 keys.put(e.getKey(),key);
             }
-            if(keys.size()!=15)throw new IOException("Incomplete AFMR keybindings in backup.");
+            // The replay shortcut is optional in existing 1.1 backups; all original bindings remain required.
+            if(keys.size()-(keys.containsKey("key.afmr.show_now_playing")?1:0)!=15)throw new IOException("Incomplete AFMR keybindings in backup.");
             for(String stem:List.of("menu-background","widget-background")){
                 boolean still=files.containsKey(stem+".png"),animation=files.containsKey(stem+".gif");
                 boolean enabled=stem.equals("menu-background")?library.settings.menuImageEnabled:library.settings.widgetImageEnabled;

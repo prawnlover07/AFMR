@@ -5,6 +5,7 @@
   "key.afmr.skip": "Skip song (with normal silence)",
   "key.afmr.next": "Next song (skip silence)",
   "key.afmr.pause": "Pause/resume AFMR music",
+  "key.afmr.show_now_playing": "Show now playing widget/toast",
   "key.afmr.inspect": "Open playback inspector",
   "key.afmr.overrides": "Open playlist overrides",
   "key.afmr.automatic": "Return music to automatic selection",

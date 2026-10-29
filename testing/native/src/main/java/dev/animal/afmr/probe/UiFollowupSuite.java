@@ -27,7 +27,7 @@ public final class UiFollowupSuite {
     private record AudioSample(SoundInstance sound,int state,float offset,float gain,float listenerGain,double progress){}
     private static volatile AudioSample audio=new AudioSample(null,0,0,0,1,0);
     private static final List<Step> steps=new ArrayList<>();
-    private static final Path results=Boolean.getBoolean("afmr.probe.navigation")?Path.of("../../results/navigation-results.txt"):Boolean.getBoolean("afmr.probe.clarity")?Path.of("../../results/clarity-results.txt"):Boolean.getBoolean("afmr.probe.muteWarning")?Path.of("../../results/mute-warning-results.txt"):Path.of("../../results/ui-followup-results.txt");
+    private static final Path results=Boolean.getBoolean("afmr.probe.nowPlayingKey")?Path.of("../../results/now-playing-key-results.txt"):Boolean.getBoolean("afmr.probe.navigation")?Path.of("../../results/navigation-results.txt"):Boolean.getBoolean("afmr.probe.clarity")?Path.of("../../results/clarity-results.txt"):Boolean.getBoolean("afmr.probe.muteWarning")?Path.of("../../results/mute-warning-results.txt"):Path.of("../../results/ui-followup-results.txt");
     private static Minecraft mc;
     private static ClientRuntime rt;
     private static Library lib;
@@ -92,6 +92,7 @@ public final class UiFollowupSuite {
         Path song=Path.of("../../fixtures/long.wav").toAbsolutePath().normalize();first=new Track("file:ui_followup_a",song.toString(),"Generated A",false);second=new Track("file:ui_followup_b",song.toString(),"Generated B",false);lib.tracks.add(first);lib.tracks.add(second);lib.rebuildTrackIndex();p.tracks.put(first.id,true);p.tracks.put(second.id,true);
         lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=lib.settings.bufferSeconds=0;lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;lib.settings.jukeboxMode=JukeboxMode.OFF;
         screen=new LibraryScreen(null,rt,p.id);show();
+        if(Boolean.getBoolean("afmr.probe.nowPlayingKey")){popupKeyChecks();return;}
         if(Boolean.getBoolean("afmr.probe.navigation")){
             navigationChecks();
             if(Boolean.getBoolean("afmr.probe.clarity")){add("Reset for theme regression",()->{rt.engine().reset();((Map<?,?>)field(screen,"pages")).clear();p.enabled=q.enabled=false;p.conditions=new PlaylistConditions();p.tracks.put(first.id,true);p.tracks.put(second.id,true);lib.settings.silenceMinSeconds=lib.settings.silenceMaxSeconds=10;});clarityChecks();}
@@ -230,6 +231,58 @@ public final class UiFollowupSuite {
     private static boolean attached(int state){return audio.sound()==field(field(rt.engine(),"audio"),"sound")&&audio.state()==state;}
     private static void query(String value){((EditBox)field(mc.gui.screen(),"search")).setValue(value);}
     private static void enter(){mc.gui.screen().keyPressed(new KeyEvent(InputConstants.KEY_RETURN,0,0));}
+    private static double popupAt;
+    private static long popupSequence,popupGeneration;
+    private static int popupHistory;
+    private static Object popupSound;
+    private static void pressPopup(){net.minecraft.client.KeyMapping.click(InputConstants.getKey("key.keyboard.f8"));}
+    private static void popupKeyChecks(){
+        lib.settings.nowPlaying=true;lib.settings.popupSeconds=2;lib.settings.popupDelaySeconds=60;lib.settings.widgetArtwork=true;
+        lib.settings.nowPlayingStyle=NowPlayingStyle.AFMR;mc.options.musicToast().set(net.minecraft.client.MusicToastDisplayState.PAUSE_AND_TOAST);
+        first.path=Path.of("../../fixtures/with-cover/long.wav").toAbsolutePath().normalize().toString();
+        add("Configure actual popup key",()->{
+            var keys=Arrays.stream(mc.options.keyMappings).filter(k->k.getName().startsWith("key.afmr.")).toList();
+            var key=keys.stream().filter(k->k.getName().equals("key.afmr.show_now_playing")).findFirst().orElseThrow();
+            check("Sixteen keys in one AFMR category",keys.size()==16&&keys.stream().map(k->k.getCategory()).distinct().count()==1);
+            check("Popup key defaults to unbound",key.getDefaultKey().equals(InputConstants.UNKNOWN));
+            var saved=new LinkedHashMap<>(dev.animal.afmr.Afmr.backupKeys());saved.put(key.getName(),new dev.animal.afmr.library.ConfigBackup.Key("key.keyboard.f8","NONE"));
+            dev.animal.afmr.Afmr.restoreKeys(saved);check("Popup key survives capture and restore",dev.animal.afmr.Afmr.backupKeys().get(key.getName()).code().equals("key.keyboard.f8"));
+            mc.gui.setScreen(null); pressPopup();
+        });
+        add("Empty playback",()->{check("Key during silence does not start music",rt.engine().current()==null);rt.preview(first);});
+        await("Song and cached cover",()->audio.sound!=null&&audio.state==org.lwjgl.openal.AL10.AL_PLAYING&&(boolean)field(rt.overlay(),"hasCover"),()->{
+            check("Normal popup still waits for its start delay",Double.isNaN((double)field(rt.overlay(),"shownAt")));
+            popupSequence=rt.engine().playbackSequence();popupSound=audio.sound;popupGeneration=(long)field(rt.overlay(),"generation");
+            rt.engine().enqueue(second.id,p.id,lib);popupHistory=rt.engine().history().size();pressPopup();
+        });
+        await("Explicit popup before start delay",()->!Double.isNaN((double)field(rt.overlay(),"shownAt")),()->{
+            check("Hotkey skips the automatic start delay",rt.engine().trackPlayed(rt.now())<60);popupAt=(double)field(rt.overlay(),"shownAt");shot("manual-now-playing");
+        });
+        await("Usual display duration elapses",()->rt.now()-popupAt>2.1,()->{check("Hotkey uses the configured display duration",lib.settings.popupSeconds==2&&rt.now()-popupAt>2);pressPopup();});
+        await("Reopen expired popup",()->(double)field(rt.overlay(),"shownAt")>popupAt,()->{
+            check("Hotkey restarts the full display interval",rt.now()-(double)field(rt.overlay(),"shownAt")<1);
+            check("Song and native stream are unchanged",rt.engine().current()==first&&audio.sound==popupSound&&rt.engine().playbackSequence()==popupSequence);
+            check("Queue and history are unchanged",rt.engine().queue().size()==1&&rt.engine().history().size()==popupHistory);
+            check("Album artwork is reused",(boolean)field(rt.overlay(),"hasCover")&&(long)field(rt.overlay(),"generation")==popupGeneration);
+            check("Duration and delay settings are unchanged",lib.settings.popupSeconds==2&&lib.settings.popupDelaySeconds==60);
+            popupAt=(double)field(rt.overlay(),"shownAt");rt.togglePause();pressPopup();
+        });
+        await("Show a paused song",()->(double)field(rt.overlay(),"shownAt")>popupAt&&audio.state==org.lwjgl.openal.AL10.AL_PAUSED,()->{
+            check("Showing metadata does not resume paused audio",rt.engine().paused()&&audio.sound==popupSound);popupAt=(double)field(rt.overlay(),"shownAt");pressPopup();pressPopup();
+        });
+        await("Refresh while already visible",()->(double)field(rt.overlay(),"shownAt")>popupAt,()->check("Repeated presses retain playback identity",rt.engine().paused()&&rt.engine().playbackSequence()==popupSequence));
+        for(var style:List.of(NowPlayingStyle.HYBRID,NowPlayingStyle.MINECRAFT)){
+            add("Switch to "+style,()->{lib.settings.nowPlayingStyle=style;rt.overlay().refresh();pressPopup();});
+            await("Show "+style,()->!Double.isNaN((double)field(rt.overlay(),"shownAt")),()->{
+                check(style+" appears on demand while paused",rt.engine().paused()&&rt.engine().playbackSequence()==popupSequence);
+                if(style==NowPlayingStyle.MINECRAFT){var toast=field(field(mc.gui.toastManager(),"nowPlayingToast"),"toast");check("Native toast is actually shown",rt.overlay().nativeSongName()!=null&&field(toast,"wantedVisibility").toString().equals("SHOW"));shot("manual-native-toast");}
+            });
+        }
+        add("Visibility disabled",()->{lib.settings.nowPlaying=false;rt.overlay().tick();popupAt=(double)field(rt.overlay(),"shownAt");pressPopup();});
+        add("Respect visibility",()->{check("Hidden widget stays disabled",Double.compare(popupAt,(double)field(rt.overlay(),"shownAt"))==0&&!lib.settings.nowPlaying);rt.engine().reset();pressPopup();});
+        add("No song remains no song",()->check("Hotkey cannot select a song after playback stops",rt.engine().current()==null));
+    }
+
     @SuppressWarnings("unchecked") private static void navigationChecks(){
         lib.settings.menuBackgroundOpacity=.95;first.durationSeconds=second.durationSeconds=90;iconChecks();
         add("Verify decoded position",()->{

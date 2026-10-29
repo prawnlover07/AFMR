@@ -64,6 +64,13 @@ public final class NowPlaying {
     }
     /** Settings changes refresh both the cached rows and the current popup. */
     public void refresh(){clear();tick();}
+    /** Reopen this song's existing popup without restarting audio or reloading its artwork. */
+    public void showCurrent(){
+        tick();
+        if(track==null||!enabled)return;
+        shownAt=runtime.now();
+        if(nativeSongName!=null){mc.gui.toastManager().showNowPlayingToast();nativeShown=true;}
+    }
     boolean hasCover(){return hasCover;}
     /** One artwork read at a time; rapid skips/settings changes retain only the latest pending request. */
     private void loadCover(){

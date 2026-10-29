@@ -24,6 +24,14 @@ keep the documentation current alongside code changes.
 
 ## Accepted product decisions
 
+- Show now playing is a configurable client-side hotkey, unbound by default, on
+  both targets. Reopen the current configured widget/toast immediately for its
+  normal duration; bypass song-start delay, refresh on repeated presses, and
+  allow manual music pause. Respect AFMR visibility and Minecraft toast/HUD
+  settings. Do nothing without a current song or while a screen captures input.
+  Preserve audio, scheduler/notification identity, queue/history and cached art.
+  Include the key in full backups without invalidating existing 1.1 backups.
+
 - Animal authorized the combined 1.1 release on October 28, 2026, after concurrent
   development completed. The version freezes recorded in the feature decisions
   below applied while those features were in progress; their combined update is

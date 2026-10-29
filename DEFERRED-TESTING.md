@@ -1,5 +1,17 @@
 # AFMR: remaining deeper testing
 
+## Now-playing hotkey — October 29 (Unreleased)
+
+Both full builds pass 1,011 / 1,021 pure regressions, ten component and 20 copy
+checks each. Packaged clients pass 19 NeoForge / 16 Fabric checks for the actual
+registered shortcut, paused playback, popup timing, visibility and cache/audio/
+queue/history preservation. See [the report](docs/testing/2026-10-29-now-playing-key.md).
+
+- [ ] Physical keyboard/Stream Deck input, third-party key conflicts, repeated
+  native-toast expiration/reopening and display changes/reloads during manual
+  popup refresh remain additional combinations. The probe uses Minecraft's input
+  queue rather than injecting physical desktop key events.
+
 ## 1.1 numbered release — October 28
 
 The combined update is now numbered 1.1. Fresh builds pass 1,009 NeoForge / 1,019

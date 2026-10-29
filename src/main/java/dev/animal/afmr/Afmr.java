@@ -35,6 +35,7 @@ public final class Afmr {
     private static final KeyMapping SKIP = new KeyMapping("key.afmr.skip", InputConstants.UNKNOWN.getValue(), CATEGORY);
     private static final KeyMapping NEXT=new KeyMapping("key.afmr.next",InputConstants.UNKNOWN.getValue(),CATEGORY);
     private static final KeyMapping PAUSE=new KeyMapping("key.afmr.pause",InputConstants.UNKNOWN.getValue(),CATEGORY);
+    private static final KeyMapping SHOW_NOW_PLAYING=new KeyMapping("key.afmr.show_now_playing",InputConstants.UNKNOWN.getValue(),CATEGORY);
     private static final KeyMapping INSPECT=new KeyMapping("key.afmr.inspect",InputConstants.UNKNOWN.getValue(),CATEGORY);
     private static final KeyMapping OVERRIDES=new KeyMapping("key.afmr.overrides",InputConstants.UNKNOWN.getValue(),CATEGORY);
     private static final KeyMapping AUTOMATIC=new KeyMapping("key.afmr.automatic",InputConstants.UNKNOWN.getValue(),CATEGORY);
@@ -44,7 +45,7 @@ public final class Afmr {
 
     public static Map<String,ConfigBackup.Key> backupKeys(){
         var result=new LinkedHashMap<String,ConfigBackup.Key>();
-        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,SHOW_NOW_PLAYING,INSPECT,OVERRIDES,AUTOMATIC));
         Collections.addAll(keys,OVERRIDE_KEYS);
         for(var key:keys)result.put(key.getName(),new ConfigBackup.Key(key.saveString(),key.getKeyModifier().name()));
         return Map.copyOf(result);
@@ -56,7 +57,7 @@ public final class Afmr {
         return count;
     }
     public static void restoreKeys(Map<String,ConfigBackup.Key> saved){
-        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,INSPECT,OVERRIDES,AUTOMATIC));
+        var keys=new ArrayList<KeyMapping>(List.of(OPEN,SKIP,NEXT,PAUSE,SHOW_NOW_PLAYING,INSPECT,OVERRIDES,AUTOMATIC));
         Collections.addAll(keys,OVERRIDE_KEYS);
         for(var key:keys){
             var value=saved.get(key.getName());if(value==null)continue;
@@ -73,7 +74,7 @@ public final class Afmr {
             (ignored, parent) -> MusicMenu.reopen(parent, ClientRuntime.get()));
     }
     @SubscribeEvent public static void keys(RegisterKeyMappingsEvent e) {
-        e.register(OPEN);e.register(SKIP);e.register(NEXT);e.register(PAUSE);e.register(INSPECT);e.register(OVERRIDES);e.register(AUTOMATIC);
+        e.register(OPEN);e.register(SKIP);e.register(NEXT);e.register(PAUSE);e.register(SHOW_NOW_PLAYING);e.register(INSPECT);e.register(OVERRIDES);e.register(AUTOMATIC);
         for(var key:OVERRIDE_KEYS)e.register(key);
     }
     @SubscribeEvent public static void tick(ClientTickEvent.Post e) {
@@ -83,6 +84,7 @@ public final class Afmr {
         while (SKIP.consumeClick()) if(mc.gui.screen()==null)runtime.skip();
         while(NEXT.consumeClick())if(mc.gui.screen()==null)runtime.nextSong();
         while(PAUSE.consumeClick())if(mc.gui.screen()==null)runtime.togglePause();
+        while(SHOW_NOW_PLAYING.consumeClick())if(mc.gui.screen()==null)runtime.overlay().showCurrent();
         while(INSPECT.consumeClick())if(mc.gui.screen()==null)mc.gui.setScreen(new PlaybackInspectorScreen(null,runtime));
         while(OVERRIDES.consumeClick())if(mc.gui.screen()==null)mc.gui.setScreen(new OverridesScreen(null,runtime,-1,"combat"));
         while(AUTOMATIC.consumeClick())if(mc.gui.screen()==null)runtime.returnAutomatic();

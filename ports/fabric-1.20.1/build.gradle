@@ -81,6 +81,7 @@ if (project.hasProperty('smoke')) {
                     programArg '--quickPlayMultiplayer'
                     programArg '127.0.0.1:25586'
                 }
+                if (project.hasProperty('nowPlayingKey')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.nowPlayingKey=true' }
                 if (project.hasProperty('navigation')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.navigation=true' }
                 if (project.hasProperty('clarity')) { vmArg '-Dafmr.smoke.uiFollowup=true'; vmArg '-Dafmr.smoke.clarity=true' }
                 if (project.hasProperty('uiFollowup')) vmArg '-Dafmr.smoke.uiFollowup=true'
