@@ -10,6 +10,7 @@ builds and cannot be used interchangeably.
 | --- | --- | --- | --- |
 | NeoForge | 26.3 | NeoForge 26.3.0.90 or newer for 26.3 | 25 |
 | Fabric | 26.3 | Fabric Loader 0.20.1 or newer, plus Fabric API for 26.3 | 25 |
+| Forge | 1.20.1 | Forge 47.4.0 for 1.20.1 | 17 |
 | Fabric | 1.20.1 | Fabric Loader 0.19.5 or newer, plus Fabric API for 1.20.1 | 17 or newer |
 
 Close Minecraft, back up an existing AFMR setup if needed, and place the package's

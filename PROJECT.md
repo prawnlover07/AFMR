@@ -16,7 +16,9 @@ separate from the NeoForge results below; both maintained builds are version 1.1
 
 An added [Fabric 26.3 target](ports/fabric-26.3/README.md) now passes its independent
 build and packaged client/companion checks. It preserves the modern vanilla
-toast/frequency/blur integrations. Other additional ports remain in progress in
+toast/frequency/blur integrations. The added [Forge 1.20.1 target](ports/forge-1.20.1/README.md)
+also passes its independent build, packaged playback and companion/fallback checks.
+Other additional ports remain in progress in
 [the support matrix](docs/PORTING.md).
 
 Keep the version unchanged while any development tasks are in progress, including
@@ -28,6 +30,14 @@ The [user guide](docs/USER-GUIDE.md) explains current controls and workflows. Th
 keep the documentation current alongside code changes.
 
 ## Accepted product decisions
+
+- For Minecraft 1.18.2 / 1.19.2 ports, clients without the optional companion
+  start combat from local attacks only. Do not infer attackers from proximity or
+  treat falls/fire as fights by default. The bundled integrated-server hooks and
+  matching companions supply precise incoming and ranged-hit events, with no
+  opponent identity/location or music data. Expose the availability limitation.
+  Modern targets keep their native attributed-damage packets. This is a confirmed
+  port decision, not a change to modern combat defaults.
 
 - Animal authorized 1.1.1 for the existing NeoForge 26.3 and Fabric 1.20.1 builds
   first, then additional tested ports. The agreed five Minecraft targets are

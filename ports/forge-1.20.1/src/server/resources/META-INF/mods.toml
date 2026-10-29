@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+[[mods]]
+modId="afmr"
+version="1.1.1"
+displayName="animal's final music replacer server companion"
+authors="animal"
+description="Contextual soundtrack playlists with local music."
+displayTest="IGNORE_ALL_VERSION"
+[[dependencies.afmr]]
+modId="forge"
+mandatory=true
+versionRange="[47.4.0,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.afmr]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="BOTH"

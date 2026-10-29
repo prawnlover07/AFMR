@@ -6,7 +6,28 @@ Fabric 26.3 passes its full build, packaged UI/audio/integration/restart checks,
 headless companion fixture, actual companion connection and vanilla fallback.
 See [the report](docs/testing/2026-10-29-fabric-26.3-port.md). Broader codec/modpack,
 physical keyboard and prolonged multiplayer/large-server cases remain field tests.
+Forge 1.20.1 also passes its full build, packaged UI/audio/integration/restart,
+headless/actual companion and vanilla fallback checks, plus a standalone source
+build. See [its report](docs/testing/2026-10-29-forge-1.20.1-port.md).
 Other new targets are still in progress; [PORTING.md](docs/PORTING.md) is the matrix.
+
+### Older attributed-hit bridge (in progress)
+
+The owner chose attack-only fallback without the optional companion on 1.18.2 /
+1.19.2. The new older-version server event path must be verified for real incoming
+hostile/passive/environment/player hits, ranged player hits, settings off,
+same-tick priority/coalescing, per-client scope, dimension/respawn invalidation and
+cleanup. Keep the existing loaded-structure/target-retention checks and actual
+vanilla fallback. No successful older native bridge validation is claimed yet.
+
+### Packaged decoder gate (in progress)
+
+Forge's early packaged MP3 test caught the merged provider JAR being placed in
+its service layer instead of its game layer, plus provider discovery needing
+module-layer awareness. Forge 1.20.1 now passes seven packaged PCM decoder cases
+(MP3, Vorbis, FLAC, 16/24-bit and float WAV). Fabric and NeoForge 1.21.1 also pass
+these seven packaged cases; their remaining release gates are still open.
+Pure JVM decode tests do not establish nested-mod loading.
 
 ## Now-playing hotkey — October 29 (Unreleased)
 

@@ -9,14 +9,14 @@ ranking of active players.
 | --- | --- | --- | --- |
 | 26.3 | NeoForge | 25 | Existing target; tested 1.1.1 baseline |
 | 26.3 | Fabric | 25 | Tested 1.1.1 port; see [report](testing/2026-10-29-fabric-26.3-port.md) |
-| 1.21.1 | NeoForge | 21 | Planned |
+| 1.21.1 | NeoForge | 21 | Implementation/testing in progress; not released |
 | 1.21.1 | Fabric | 21 | Implementation/testing in progress; not released |
-| 1.20.1 | Forge | 17 | Implementation/testing in progress; not released |
+| 1.20.1 | Forge | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-forge-1.20.1-port.md) |
 | 1.20.1 | Fabric | 17 | Existing target; tested 1.1.1 baseline |
-| 1.19.2 | Forge | 17 | Planned |
-| 1.19.2 | Fabric | 17 | Planned |
-| 1.18.2 | Forge | 17 | Planned |
-| 1.18.2 | Fabric | 17 | Planned |
+| 1.19.2 | Forge | 17 | Implementation/testing in progress; not released |
+| 1.19.2 | Fabric | 17 | Implementation/testing in progress; not released |
+| 1.18.2 | Forge | 17 | Implementation/testing in progress; not released |
+| 1.18.2 | Fabric | 17 | Implementation/testing in progress; not released |
 
 Each client target includes its matching optional dedicated-server companion.
 Forge is the selected Forge-family target through 1.20.1; NeoForge is selected

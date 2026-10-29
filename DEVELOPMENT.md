@@ -5,6 +5,10 @@ The added [Fabric 26.3 target](ports/fabric-26.3/README.md) uses its own Gradle
 wrapper remains 9.2.1; it is too old for Fabric 26.3 Loom. See [the matrix](docs/PORTING.md)
 for additional targets still in progress.
 
+The added [Forge 1.20.1 target](ports/forge-1.20.1/README.md) uses its own build
+and Java 17 runtime. Its source archive is independently buildable; tests also
+provision Java 25. See its README for packaged client/server probes.
+
 For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
 Gradle build, JAR and disposable native test profile are separate from the
