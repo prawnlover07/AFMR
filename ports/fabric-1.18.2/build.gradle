@@ -1,0 +1,134 @@
+plugins {
+    id 'fabric-loom' version '1.14.10'
+    id 'java-library'
+}
+version = mod_version
+group = 'dev.animal.afmr'
+base { archivesName = 'animals-final-music-replacer-fabric-1.18.2' }
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:1.18.2'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.77.0+1.18.2'
+    ['com.googlecode.soundlibs:mp3spi:1.9.5.4',
+     'com.googlecode.soundlibs:vorbisspi:1.0.3.3',
+     'com.googlecode.soundlibs:jlayer:1.0.1.4',
+     'com.googlecode.soundlibs:jorbis:0.0.17.4',
+     'com.googlecode.soundlibs:tritonus-share:0.3.7.4',
+     'org.jflac:jflac-codec:1.5.2',
+     'net.jthink:jaudiotagger:3.0.1'].each { coordinate ->
+        implementation coordinate
+        include coordinate
+    }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    ['imageio-webp','imageio-core','imageio-metadata'].each {
+        implementation "com.twelvemonkeys.imageio:${it}:3.15.3"
+        include "com.twelvemonkeys.imageio:${it}:3.15.3"
+    }
+    ['common-lang','common-io','common-image'].each {
+        implementation "com.twelvemonkeys.common:${it}:3.15.3"
+        include "com.twelvemonkeys.common:${it}:3.15.3"
+    }
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.8.9'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+tasks.withType(JavaCompile).configureEach { options.release = 17; options.encoding = 'UTF-8'; options.compilerArgs += ['-Xmaxerrs', '300'] }
+compileTestJava { options.release = 25 }
+test { useJUnitPlatform() }
+// The standalone source ZIP carries these shared authoring inputs at its root.
+ext.uiCopyRoot = file('docs/UI-COPY.md').isFile() ? projectDir : file('../..')
+ext.uiCopyTarget = 'legacy'
+apply from: new File(uiCopyRoot, 'gradle/ui-copy.gradle')
+processResources { from('LICENSE', 'THIRD_PARTY.md', 'THIRD_PARTY_NOTICES.txt', 'TEMPLATE_LICENSE.txt', 'TWELVEMONKEYS_LICENSE.txt', 'LGPL-2.0.txt', 'LGPL-2.1.txt') }
+loom { runs { client { runDir 'run'; vmArg '-Xmx2G' } } }
+tasks.register('sourceZip', Zip) {
+    archiveFileName = "animals-final-music-replacer-fabric-1.18.2-${project.version}-source.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(projectDir) { exclude '.gradle/**', 'build/**', 'run*/**', '**/logs/**', '**/*.log', '**/*.afmrb', '**/restore-previous/**' }
+    if (uiCopyRoot != projectDir) {
+        from(new File(uiCopyRoot, 'docs/UI-COPY.md')) { into 'docs' }
+        from(new File(uiCopyRoot, 'gradle/ui-copy.gradle')) { into 'gradle' }
+        from(new File(uiCopyRoot, 'copy/utility-en_us.json')) { into 'copy' }
+    }
+}
+
+// Remap the small companion separately; no client assets or nested decoders.
+tasks.register('serverJar', Jar) {
+    archiveBaseName = 'animals-final-music-replacer-server-fabric-1.18.2'
+    archiveClassifier = 'dev'
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+    from(sourceSets.main.output) {
+        include 'dev/animal/afmr/server/**', 'dev/animal/afmr/network/**', 'dev/animal/afmr/core/StructureContext*', 'dev/animal/afmr/core/CombatOpponent*'
+    }
+    from('src/server/resources')
+    from('LICENSE')
+}
+tasks.register('remapServerJar', net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn tasks.named('serverJar')
+    inputFile = tasks.named('serverJar', Jar).flatMap { it.archiveFile }
+    archiveBaseName = 'animals-final-music-replacer-server-fabric-1.18.2'
+    archiveClassifier = ''
+    addNestedDependencies = false
+}
+tasks.named('assemble') { dependsOn tasks.named('remapServerJar') }
+
+// Protocol component tests need Minecraft/Netty; keep pure regression tests independent.
+sourceSets {
+    networkTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+configurations {
+    networkTestImplementation.extendsFrom testImplementation
+    networkTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+tasks.register('networkTest', Test) {
+    testClassesDirs = sourceSets.networkTest.output.classesDirs
+    classpath = sourceSets.networkTest.runtimeClasspath
+    useJUnitPlatform()
+}
+tasks.named('check') { dependsOn tasks.named('networkTest') }
+
+
+if(project.hasProperty('probe')) {
+ def clientProbeDir=project.hasProperty('integration')?(project.findProperty('integrationDir')?:'run-integration'):'run-probe'
+ sourceSets { probe {
+  compileClasspath+=sourceSets.main.output+sourceSets.main.compileClasspath
+  runtimeClasspath=output+(sourceSets.main.runtimeClasspath-sourceSets.main.output).filter { !(it.name ==~ /(?:mp3spi|vorbisspi|jlayer|jorbis|tritonus-share|jflac-codec|jaudiotagger|imageio-webp|imageio-core|imageio-metadata|common-lang|common-io|common-image)-.*/) }
+ } }
+ loom { mods { afmrprobe { sourceSet sourceSets.probe } };runs { client {
+  source sourceSets.probe;runDir clientProbeDir;programArg '--username';programArg 'AFMRFabricPort';
+  vmArg '-Dafmr.smoke.uiFollowup=true'
+  if(project.hasProperty('integration')){vmArg '-Dafmr.smoke.uiFollowup=false';vmArg '-Dafmr.probe.integration=true';if(project.hasProperty('restart'))vmArg '-Dafmr.probe.restart=true'}
+  
+  if(project.hasProperty('companion')){vmArg '-Dafmr.smoke.uiFollowup=false';vmArg '-Dafmr.smoke.serverCompanion=true';if(project.hasProperty('noCompanion'))vmArg '-Dafmr.smoke.noCompanion=true'}
+  if(project.hasProperty('nowPlayingKey'))vmArg '-Dafmr.smoke.nowPlayingKey=true'
+  if(project.hasProperty('navigation'))vmArg '-Dafmr.smoke.navigation=true'
+  if(project.hasProperty('muteWarning'))vmArg '-Dafmr.smoke.muteWarning=true'
+  if(project.hasProperty('codecs'))vmArg '-Dafmr.smoke.packagedCodecs=true'
+ } } }
+ tasks.register('installProbeJar',Copy) { dependsOn remapJar;from remapJar.archiveFile;into new File(clientProbeDir,'mods') }
+ tasks.register('capProbeFps') { doLast {
+  def options=file(new File(clientProbeDir,'options.txt'));def lines=options.isFile()?options.readLines():[];lines=lines.findAll { !it.startsWith('maxFps:')&&!it.startsWith('enableVsync:') };lines=lines.findAll { !it.startsWith('onboardAccessibility:') };lines+=['maxFps:60','enableVsync:false','onboardAccessibility:false'];options.parentFile.mkdirs();options.text=lines.join('\n')+'\n'
+ } }
+ tasks.named('runClient') { dependsOn tasks.named('probeClasses'),tasks.named('installProbeJar'),tasks.named('capProbeFps');javaLauncher=javaToolchains.launcherFor { languageVersion=JavaLanguageVersion.of(17) } }
+}else if(!project.hasProperty("serverProbe")) { loom {mods {afmr { sourceSet sourceSets.main }}} }
+
+
+if(project.hasProperty('serverProbe')) {
+ sourceSets {serverProbe {compileClasspath+=sourceSets.main.output+sourceSets.main.compileClasspath;runtimeClasspath=output+(sourceSets.main.runtimeClasspath-sourceSets.main.output)}}
+ loom {mods {afmr_server_probe {sourceSet sourceSets.serverProbe}};runs {server {
+  source sourceSets.serverProbe;runDir 'run-server-probe';programArg '--nogui';vmArg '-Xmx1G'
+  if(project.hasProperty('socket'))vmArg '-Dafmr.probe.socket=true'
+ }}}
+ tasks.register('prepareServerProbe') {dependsOn tasks.named('remapServerJar');doLast {
+  file('run-server-probe').mkdirs();file('run-server-probe/eula.txt').text='eula=true\n'
+  file('run-server-probe/server.properties').text='server-ip=127.0.0.1\nserver-port='+(project.hasProperty('socket')?'25593':'0')+'\nonline-mode=false\nwhite-list=false\npause-when-empty-seconds=-1\nlevel-name=probe-world\nlevel-type=minecraft:flat\ngenerate-structures=false\nspawn-protection=0\nview-distance=2\nsimulation-distance=2\nmax-tick-time=60000\n'
+  copy {from tasks.named('remapServerJar').get().archiveFile;into 'run-server-probe/mods'}
+ }}
+ tasks.named('runServer') {dependsOn tasks.named('serverProbeClasses'),tasks.named('prepareServerProbe');javaLauncher=javaToolchains.launcherFor {languageVersion=JavaLanguageVersion.of(17)}}
+}

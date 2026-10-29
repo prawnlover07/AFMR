@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.animal.afmr.server.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ServerLivingEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "afmr.refmap.json"
+}

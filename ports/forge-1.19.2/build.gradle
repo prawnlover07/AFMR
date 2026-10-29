@@ -1,0 +1,150 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.148'
+}
+version = mod_version
+group = 'dev.animal.afmr'
+base { archivesName = 'animals-final-music-replacer-forge-1.19.2' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+repositories { mavenCentral() }
+configurations { codecSpis { transitive=false } }
+apply from: 'gradle/codec-spis.gradle'
+legacyForge {
+    enable { forgeVersion = '1.19.2-43.5.0'; disableRecompilation = true }
+    runs { client { client() } }
+    mods { afmr { sourceSet(sourceSets.main) } }
+}
+dependencies {
+    implementation 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
+    codecSpis 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
+    implementation 'com.googlecode.soundlibs:vorbisspi:1.0.3.3'
+    codecSpis 'com.googlecode.soundlibs:vorbisspi:1.0.3.3'
+    implementation jarJar('com.googlecode.soundlibs:jlayer:1.0.1.4')
+    implementation jarJar('com.googlecode.soundlibs:jorbis:0.0.17.4')
+    implementation jarJar('com.googlecode.soundlibs:tritonus-share:0.3.7.4')
+    implementation jarJar('org.jflac:jflac-codec:1.5.2')
+    implementation jarJar('net.jthink:jaudiotagger:3.0.1')
+    ['imageio-webp','imageio-core','imageio-metadata'].each {
+        implementation jarJar("com.twelvemonkeys.imageio:${it}:3.15.3")
+    }
+    ['common-lang','common-io','common-image'].each {
+        implementation jarJar("com.twelvemonkeys.common:${it}:3.15.3")
+    }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.8.9'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test { useJUnitPlatform() }
+ext.uiCopyRoot = file('docs/UI-COPY.md').isFile() ? projectDir : file('../..')
+ext.uiCopyTarget = 'legacy'
+apply from: new File(uiCopyRoot,'gradle/ui-copy.gradle')
+processResources { from('MIXINEXTRAS_LICENSE.txt', 'LICENSE', 'THIRD_PARTY.md', 'THIRD_PARTY_NOTICES.txt', 'TEMPLATE_LICENSE.txt', 'TWELVEMONKEYS_LICENSE.txt', 'LGPL-2.0.txt', 'LGPL-2.1.txt') }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.register('sourceZip', Zip) {
+    archiveFileName = "animals-final-music-replacer-forge-1.19.2-${project.version}-source.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from(projectDir) { exclude '.gradle/**', 'build/**', 'run*/**', '**/logs/**', '**/*.log', '**/*.afmrb', '**/restore-previous/**' }
+    if (uiCopyRoot != projectDir) {
+        from(new File(uiCopyRoot, 'docs/UI-COPY.md')) { into 'docs' }
+        from(new File(uiCopyRoot, 'gradle/ui-copy.gradle')) { into 'gradle' }
+        from(new File(uiCopyRoot, 'copy/utility-en_us.json')) { into 'copy' }
+    }
+}
+
+
+repositories { maven { url='https://repo.spongepowered.org/repository/maven-public/' } }
+dependencies {
+    compileOnly 'io.github.llamalad7:mixinextras-common:0.5.0'
+    implementation jarJar('io.github.llamalad7:mixinextras-forge:0.5.0')
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+mixin { add sourceSets.main,'afmr.refmap.json'; if(!project.hasProperty('serverProbe')){config 'afmr.mixins.json';config 'afmr.server.mixins.json'} }
+jar { manifest.attributes('MixinConfigs':'afmr.mixins.json,afmr.server.mixins.json') }
+compileTestJava {
+    javaCompiler=javaToolchains.compilerFor { languageVersion=JavaLanguageVersion.of(25) }
+    options.release=25
+}
+test { javaLauncher=javaToolchains.launcherFor { languageVersion=JavaLanguageVersion.of(25) } }
+tasks.register('serverJar',Jar) {
+ archiveBaseName='animals-final-music-replacer-server-forge-1.19.2'
+ from(sourceSets.main.output) { include 'dev/animal/afmr/server/**','dev/animal/afmr/network/**','dev/animal/afmr/core/StructureContext*', 'dev/animal/afmr/core/CombatOpponent*' }
+ from('src/server/resources');from('LICENSE');from(layout.buildDirectory.file('mixin/afmr.refmap.json'))
+ manifest.attributes('MixinConfigs':'afmr.server.mixins.json')
+}
+obfuscation.reobfuscate(tasks.named('serverJar'),sourceSets.main)
+tasks.named('assemble') { dependsOn tasks.named('reobfServerJar') }
+sourceSets { networkTest { compileClasspath += sourceSets.main.output+sourceSets.main.compileClasspath; runtimeClasspath += sourceSets.main.output+sourceSets.main.runtimeClasspath } }
+configurations { networkTestImplementation.extendsFrom testImplementation; networkTestRuntimeOnly.extendsFrom testRuntimeOnly }
+tasks.register('networkTest',Test) { testClassesDirs=sourceSets.networkTest.output.classesDirs;classpath=sourceSets.networkTest.runtimeClasspath;useJUnitPlatform();javaLauncher=javaToolchains.launcherFor { languageVersion=JavaLanguageVersion.of(25) } }
+tasks.named('check') { dependsOn tasks.named('networkTest') }
+
+// Forge's development transforms invalidate upstream signatures. Only the component
+// test copy drops those signatures; distributed Minecraft/Forge artifacts are untouched.
+tasks.register('componentForgeJar',Jar) {
+ dependsOn tasks.named('createMinecraftArtifacts')
+ archiveFileName='forge-component-tests.jar';destinationDirectory=layout.buildDirectory.dir('componentTests')
+ from(zipTree(layout.buildDirectory.file('moddev/artifacts/forge-1.19.2-43.5.0.jar'))) {
+  exclude 'META-INF/*.SF','META-INF/*.RSA','META-INF/*.DSA','META-INF/MANIFEST.MF'
+ }
+}
+tasks.named('networkTest') {
+ dependsOn tasks.named('componentForgeJar')
+ classpath=files(tasks.named('componentForgeJar',Jar).flatMap { it.archiveFile })+sourceSets.networkTest.runtimeClasspath.filter { it.name!='forge-1.19.2-43.5.0.jar' }
+}
+sourceSets.test.compileClasspath+=sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath+=sourceSets.main.runtimeClasspath
+tasks.named('test') {
+ dependsOn tasks.named('componentForgeJar')
+ classpath=files(tasks.named('componentForgeJar',Jar).flatMap { it.archiveFile })+sourceSets.test.runtimeClasspath.filter { it.name!='forge-1.19.2-43.5.0.jar' }
+}
+
+
+if(project.hasProperty('probe')) {
+ def clientProbeDir=project.hasProperty('integration')?(project.findProperty('integrationDir')?:'run-integration'):'run-probe'
+ sourceSets { probe { compileClasspath+=sourceSets.main.output+sourceSets.main.compileClasspath;runtimeClasspath+=sourceSets.main.runtimeClasspath-sourceSets.main.output } }
+ legacyForge {
+  addModdingDependenciesTo sourceSets.probe
+  mods { afmr_probe { sourceSet sourceSets.probe } }
+  runs { client {
+   sourceSet=sourceSets.probe;loadedMods=[mods.afmr_probe];gameDirectory=file(clientProbeDir);programArguments.addAll('--username','AFMRForgePort')
+   systemProperty 'afmr.smoke.uiFollowup','true'
+   if(project.hasProperty('integration')){systemProperty 'afmr.smoke.uiFollowup','false';systemProperty 'afmr.probe.integration','true';if(project.hasProperty('restart'))systemProperty 'afmr.probe.restart','true'}
+   if(project.hasProperty('companion')){systemProperty 'afmr.smoke.uiFollowup','false';systemProperty 'afmr.smoke.serverCompanion','true';if(project.hasProperty('noCompanion'))systemProperty 'afmr.smoke.noCompanion','true'}
+   if(project.hasProperty('nowPlayingKey')) systemProperty 'afmr.smoke.nowPlayingKey','true'
+   if(project.hasProperty('navigation')) systemProperty 'afmr.smoke.navigation','true'
+   if(project.hasProperty('muteWarning')) systemProperty 'afmr.smoke.muteWarning','true'
+  if(project.hasProperty('codecs'))systemProperty 'afmr.smoke.packagedCodecs','true'
+  } }
+ }
+ obfuscation.createRemappingConfiguration(configurations.probeRuntimeOnly)
+ repositories { flatDir { dirs layout.buildDirectory.dir('libs') } }
+ dependencies { modProbeRuntimeOnly 'dev.animal.afmr:animals-final-music-replacer-forge-1.19.2:1.1.1' }
+ tasks.register('capProbeFps') { doLast {
+  def options=file(new File(clientProbeDir,'options.txt'));def lines=options.isFile()?options.readLines():[]
+  lines=lines.findAll { !it.startsWith('maxFps:')&&!it.startsWith('enableVsync:') };lines+=['maxFps:60','enableVsync:false'];options.parentFile.mkdirs();options.text=lines.join('\n')+'\n'
+  def fml=file(new File(clientProbeDir,'config/fml.toml'));def config=fml.isFile()?fml.readLines():[];config=config.findAll { !it.startsWith('earlyWindowControl') };config+='earlyWindowControl = false';fml.parentFile.mkdirs();fml.text=config.join('\n')+'\n'
+ } }
+ tasks.named('runClient') { dependsOn tasks.named('probeClasses'),tasks.named('capProbeFps'),tasks.named('reobfJar') }
+}
+
+
+if(project.hasProperty('serverProbe')) {
+ sourceSets { serverProbe { compileClasspath+=sourceSets.main.output } }
+ legacyForge {
+  addModdingDependenciesTo sourceSets.serverProbe
+  mods { afmr_server_probe { sourceSet sourceSets.serverProbe } }
+  runs { server {
+   server();sourceSet=sourceSets.serverProbe;loadedMods=[mods.afmr_server_probe];gameDirectory=file('run-server-probe');programArguments.add('--nogui')
+   if(project.hasProperty('socket')) systemProperty 'afmr.probe.socket','true'
+  } }
+ }
+ obfuscation.createRemappingConfiguration(configurations.serverProbeRuntimeOnly)
+ repositories { flatDir { dirs layout.buildDirectory.dir('libs') } }
+ dependencies { modServerProbeRuntimeOnly 'dev.animal.afmr:animals-final-music-replacer-server-forge-1.19.2:1.1.1' }
+ tasks.register('prepareServerProbe') { doLast {
+  file('run-server-probe').mkdirs();file('run-server-probe/eula.txt').text='eula=true\n'
+  file('run-server-probe/server.properties').text='server-ip=127.0.0.1\nserver-port='+(project.hasProperty('socket')?'25592':'0')+'\nonline-mode=false\nwhite-list=false\nlevel-name=probe-world\nlevel-type=minecraft:flat\ngenerate-structures=false\nspawn-protection=0\nview-distance=2\nsimulation-distance=2\nmax-tick-time=60000\n'
+ } }
+ tasks.named('runServer') { dependsOn tasks.named('serverProbeClasses'),tasks.named('prepareServerProbe') }
+}

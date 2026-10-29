@@ -23,8 +23,24 @@ The owner chose attack-only fallback without the optional companion on 1.18.2 /
 1.19.2. The new older-version server event path must be verified for real incoming
 hostile/passive/environment/player hits, ranged player hits, settings off,
 same-tick priority/coalescing, per-client scope, dimension/respawn invalidation and
-cleanup. Keep the existing loaded-structure/target-retention checks and actual
-vanilla fallback. No successful older native bridge validation is claimed yet.
+cleanup. Initial headless condition fixtures pass 13 cases on each older target.
+Fabric 1.19.2 passes 30 actual companion-connection checks, including hostile,
+passive/environment exclusion, PvP, ranged hits and combat off, plus eight actual
+vanilla fallback checks. This caught and fixed a null-connection simulated-player
+crash in the older bridge. Other older socket validations remain in progress.
+Expanded multi-client load/coalescing and disconnect/respawn combinations remain
+additional field tests; do not count code review as a measured network result.
+
+### Older menu/font persistence (in progress)
+
+Older Screen lifecycle and Gson behavior needed direct changes to keep hidden
+draft controls and deserialize saved immutable values. Their regressions use the
+actual older Gson 2.8.9. Fabric 1.19.2 passes 52 navigation checks including page,
+focus, invalid-draft and font retention; 83 integration and 17 restart cases pass.
+Its full UI/font/background pass is 47/0 after replacing unsupported font-reference
+providers with copied active default providers. Two extra Greek/CJK fallback
+checks are pending a rerun there; the other older clients still need their own
+full native passes. No other port's results substitute for these gates.
 
 ### Packaged decoder gate (in progress)
 
@@ -32,7 +48,9 @@ Forge's early packaged MP3 test caught the merged provider JAR being placed in
 its service layer instead of its game layer, plus provider discovery needing
 module-layer awareness. Forge 1.20.1 now passes seven packaged PCM decoder cases
 (MP3, Vorbis, FLAC, 16/24-bit and float WAV). Fabric and NeoForge 1.21.1 also pass
-these seven packaged cases; their remaining release gates are still open.
+these seven packaged cases and all their release gates. Fabric 1.19.2 also passes
+the seven packaged decoder cases; its source/package and other older targets'
+remaining gates are still open.
 Pure JVM decode tests do not establish nested-mod loading.
 
 ## Now-playing hotkey — October 29 (Unreleased)

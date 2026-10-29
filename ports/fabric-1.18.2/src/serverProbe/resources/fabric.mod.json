@@ -1,0 +1,1 @@
+{"schemaVersion": 1, "id": "afmrserverprobe", "version": "1", "environment": "server", "entrypoints": {"main": ["dev.animal.afmr.probe.ServerProbe"]}, "depends": {"afmr": "*", "fabric-api": "*"}}
