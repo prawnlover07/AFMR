@@ -7,10 +7,11 @@ AFMR gives Minecraft a soundtrack built from your own music and Minecraft's musi
 It chooses a playlist based on where you are and what you are doing. You can also
 choose music yourself, skip songs, and pause just the music.
 
-This guide describes the NeoForge 26.3 build. The maintained Fabric 1.20.1 build
-shares the playlist/library features, uses AFMR's own now-playing card, and lacks
-the newer native music-toast/frequency and menu-blur integration. See the
-[installation checklist](INSTALLATION.md) for both targets' requirements.
+Playlist and library controls are shared across targets. Minecraft 26.3 builds
+also integrate with the native music toast, music-frequency setting and menu blur.
+Older Minecraft builds use AFMR's own now-playing card and custom background
+without those newer vanilla integrations. See the
+[installation checklist](INSTALLATION.md) for matching game, loader and Java requirements.
 
 Start with [your first song](#install-and-hear-your-first-song), keep the
 [quick reference](#quick-reference) handy, or jump to:
@@ -33,11 +34,10 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
 
 ## Install and hear your first song
 
-1. Use **Minecraft Java 26.3**, **NeoForge 26.3.0.90 or later**, and **Java 25**.
-   Install AFMR on your own Minecraft client for ordinary use. The optional server
-   companion adds multiplayer structure data and mob-target retention.
-   Fabric, Forge, and other Minecraft versions need a separate port.
-2. Close Minecraft. Put `animals-final-music-replacer-1.1.1.jar` in your game
+1. Choose the AFMR package matching your Minecraft version and loader in the
+   [installation table](INSTALLATION.md). Install it on your own client for ordinary
+   use. The optional matching companion adds server observations described below.
+2. Close Minecraft. Put the package's AFMR client JAR in your game
    instance's `mods` folder. Keep exactly one AFMR JAR there.
 3. Launch that instance, join a world, and press **M**. If M is already assigned
    to another mod, change AFMR's binding in **Options → Controls → Key Binds → AFMR**.
@@ -154,8 +154,8 @@ it; use **Save & back** to validate and save those fields.
 
 ## Multiplayer
 
-Install AFMR and NeoForge on your own client, then join a vanilla **Minecraft 26.3**
-server normally. Ordinary use needs no server installation or operator permissions.
+Install the matching AFMR client and loader, then join a server for that Minecraft
+version normally. Ordinary use needs no server installation or operator permissions.
 The optional companion supplies structure bounds and mob-target observations through
 AFMR packets on supported servers. Music files, playlists, imports, controls, artwork, and settings stay
 on your computer; other players hear their own soundtrack.
@@ -168,8 +168,8 @@ the world behind the same address also requires recapturing it.
 
 The **Structures** filter works in singleplayer and on multiplayer servers with
 AFMR's optional server companion. Install the matching companion from the server
-build's `build/libs/` directory: `animals-final-music-replacer-server-neoforge-26.3-1.1.1.jar`
-or `animals-final-music-replacer-server-fabric-1.20.1-1.1.1.jar`. Use only one AFMR
+package or that target's `build/libs/` directory. Its filename includes
+`server`, the loader and Minecraft version. Use only one AFMR
 JAR per server. Fabric servers also need the matching Fabric API. Clients keep the
 ordinary AFMR client JAR. The companion contains no music or audio code and does
 not require other players to install AFMR.
@@ -177,6 +177,12 @@ not require other players to install AFMR.
 Servers without the companion remain supported. They cannot supply structure
 bounds, so that filter cannot match; **Match any** can still activate through
 another enabled filter, and manual overrides remain available.
+
+On **1.18.2 and 1.19.2**, precise incoming-hit and confirmed ranged-hit combat
+triggers need singleplayer or the matching server companion. On a server without
+it, combat starts from direct local attacks only. AFMR does not guess an attacker
+from nearby entities or count falls/fire as fights by default. Newer targets
+receive attributed damage through Minecraft's own packets.
 
 Multiplayer menus cannot pause the server. AFMR's own Pause still holds just your
 music, while context detection continues. Disconnecting clears playback, pause,
@@ -1135,8 +1141,8 @@ and restores Fill / 100% image opacity. AFMR stores the copy under
 `config/afmr/widget-background.png` or `widget-background.gif`, leaving the
 original untouched. Widget and menu images are independent, shared across
 profiles and included in full configuration backups. Both use the same import
-size and animation limits described below. On NeoForge, select the AFMR card
-style to use these controls; Fabric's sole widget style already uses it.
+size and animation limits described below. On 26.3, select the AFMR card
+style to use these controls; older versions already use that style.
 
 Choose **Menu font** under **Display → Menus** and **Widget font** under
 **Display → Widget** independently. The picker lists fonts loaded by active resource
@@ -1153,7 +1159,8 @@ is 80%. Text, artwork and foreground indicators stay opaque. **Blur background**
 uses Minecraft's pause-menu blur on the custom image or game, with strength controlled
 by Minecraft's **Menu Background Blur** option. It starts enabled. Fully opaque
 menu panels skip hidden blur work. These choices do not change widget appearance
-or pause gameplay. Fabric 1.20.1 has panel opacity and custom images, without blur.
+or pause gameplay. Blur is available on 26.3; older versions retain panel opacity
+and custom images.
 
 Open **Themes… → Edit colors…** to change Background, Panels, Buttons, Hover, Selection,
 Highlights, Text, Secondary text, Borders and Scrollbars. Enter six RGB hex digits,
@@ -1169,7 +1176,7 @@ the setting live. Focus a gradient and use arrow keys for small adjustments.
 **Apply** keeps the color; **Cancel** or Escape restores the color from when the
 picker opened. Hiding/reopening the picker retains its draft. The same picker is
 available from the widget background swatch under **Display → Widget**; on
-NeoForge, that widget option requires the AFMR card style. Opacity stays separate.
+26.3, that widget option requires the AFMR card style. Opacity stays separate.
 
 Open **Display → Menus → Themes…** to manage color themes. Select a theme to
 preview it, then **Apply** to keep it or **Cancel** to discard the preview.
@@ -1390,10 +1397,10 @@ until restart. Prior managed files remain in `config/afmr/restore-previous`.
 Music paths and world/server links retain their exact original values. If music
 moved, use **Repair / missing** to relink its folders. Review profile links for a
 renamed or moved world. Unsupported shortcuts are shown in the review and become
-unbound; rebind them in the destination install. Fabric 1.20.1 retains its supported
-AFMR card settings and has no NeoForge key modifiers, menu blur or native/hybrid
-music-toast styles. Shared playlist, playback, library and appearance controls
-transfer between both maintained builds.
+unbound; rebind them in the destination install. Fabric builds have no NeoForge
+key modifiers. Versions before 26.3 retain their AFMR card settings without menu
+blur or native/hybrid music-toast styles. Shared playlist, playback, library and
+appearance controls transfer between targets.
 
 Use `.afmrp` when sharing selected playlist templates with someone else. Full
 backups contain your complete setup, including absolute paths and world/server

@@ -14,13 +14,18 @@ builds and cannot be used interchangeably.
 | Fabric | 1.21.1 | Fabric Loader 0.19.5, plus Fabric API for 1.21.1 | 21 |
 | Forge | 1.20.1 | Forge 47.4.0 for 1.20.1 | 17 |
 | Fabric | 1.20.1 | Fabric Loader 0.19.5 or newer, plus Fabric API for 1.20.1 | 17 or newer |
+| Forge | 1.19.2 | Forge 43.5.0 for 1.19.2 | 17 |
+| Fabric | 1.19.2 | Fabric Loader 0.19.5, plus Fabric API 0.77.0+1.19.2 | 17 |
+| Forge | 1.18.2 | Forge 40.3.0 for 1.18.2 | 17 |
+| Fabric | 1.18.2 | Fabric Loader 0.19.5, plus Fabric API 0.77.0+1.18.2 | 17 |
 
 Close Minecraft, back up an existing AFMR setup if needed, and place the package's
 AFMR `.jar` in that instance's `mods` folder. Remove older AFMR JARs so exactly one
 remains. The audio decoders are bundled; do not extract the JAR or install them
 separately. Keep the included license and third-party notices with shared copies.
-Use separate game instances for different targets; do not downgrade a newer world
-to 1.20.1.
+Use separate game instances for different targets; do not open newer worlds in
+older Minecraft versions. These are the tested loader versions, not a guarantee
+that every later loader or modpack behaves identically.
 
 ## Hear your first song
 
@@ -55,16 +60,18 @@ problem, game/loader version, and any relevant modpack details. The summary omit
 song names, paths and saved location details. Do not send a personal full backup
 or music library as a default troubleshooting step.
 
-NeoForge supports Minecraft's newer music toast, Music Frequency setting and menu
-blur. Fabric 1.20.1 uses AFMR's own now-playing card and has no menu blur or native
-music-toast/frequency integration. Structure conditions and mob-target combat
+Both 26.3 builds support Minecraft's newer music toast, Music Frequency setting
+and menu blur. Older versions use AFMR's own now-playing card and timing controls.
+Structure conditions and mob-target combat
 retention work in singleplayer or with the matching optional server companion;
-ordinary combat detection works without it.
+ordinary combat detection works without it. On 1.18.2 / 1.19.2 servers without a
+companion, only direct local attacks start combat; incoming and confirmed ranged
+hits require the companion. Singleplayer includes those hooks already.
 
 ## Optional server companion
 
-Server owners can install the separate **AFMR-1.1.1-Server-NeoForge-26.3** or
-**AFMR-1.1.1-Server-Fabric-1.20.1** package for their loader/game version. Stop the
+Server owners can install the separate **AFMR-1.1.1-Server-Loader-Version**
+package matching their loader/game version. Every target in the table has one. Stop the
 server, place its single companion JAR in the server's `mods` directory, and
 restart. Fabric servers also need Fabric API. Install the full client package on
 players' computers. The client and companion use the same mod ID: never install

@@ -15,14 +15,17 @@ for the combined update only after all in-progress tasks are complete.
 - Use the green music-note AFMR artwork as the mod icon across all client targets
   and optional server companions.
 
-New Minecraft/loader ports are planned; see the support matrix in
-[PORTING.md](docs/PORTING.md). Planned builds are not released artifacts.
-
 - Add the independently built Fabric 26.3 target and its optional server companion,
   with matching 26.3 toast/frequency/blur features and packaged native checks.
 - Add independently verified Forge 1.20.1 and Fabric/NeoForge 1.21.1 targets,
   including optional companions, packaged audio/gameplay/network checks and
   independently buildable source archives. Keep version 1.1.1 during the expansion.
+- Complete Fabric and Forge 1.19.2 / 1.18.2 targets with matching companions,
+  direct older UI/font/persistence support, and independently buildable sources.
+  On those older versions, the companion supplies precise incoming/ranged-hit
+  combat; without it, clients use direct local attacks only. All ten targets pass
+  their scoped release gates; see [the matrix](docs/PORTING.md). The combined local
+  packages remain 1.1.1 and preserve the original baseline release.
 
 ## 1.1.1 — October 29, 2026
 

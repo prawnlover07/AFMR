@@ -21,8 +21,11 @@ also passes its independent build, packaged playback and companion/fallback chec
 Both [Fabric](ports/fabric-1.21.1/README.md) and
 [NeoForge](ports/neoforge-1.21.1/README.md) 1.21.1 targets pass those gates and their
 independent source builds; see [verification](docs/testing/2026-10-29-1.21.1-ports.md).
-Other additional ports remain in progress in
-[the support matrix](docs/PORTING.md).
+Fabric and Forge 1.18.2 / 1.19.2 now pass their own client, companion/fallback
+and independent source-build gates; see [their report](docs/testing/2026-10-29-older-ports.md).
+All ten targets and runtime requirements are in [the support matrix](docs/PORTING.md).
+The combined local 1.1.1 packages include the owner's green-note mod icon;
+the original baseline tag and packages remain intact.
 
 Keep the version unchanged while any development tasks are in progress, including
 concurrent chats. Increment it once for the combined update only after all

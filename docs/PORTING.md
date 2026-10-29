@@ -13,14 +13,24 @@ ranking of active players.
 | 1.21.1 | Fabric | 21 | Tested 1.1.1 port; see [report](testing/2026-10-29-1.21.1-ports.md) |
 | 1.20.1 | Forge | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-forge-1.20.1-port.md) |
 | 1.20.1 | Fabric | 17 | Existing target; tested 1.1.1 baseline |
-| 1.19.2 | Forge | 17 | Implementation/testing in progress; not released |
-| 1.19.2 | Fabric | 17 | Implementation/testing in progress; not released |
-| 1.18.2 | Forge | 17 | Implementation/testing in progress; not released |
-| 1.18.2 | Fabric | 17 | Implementation/testing in progress; not released |
+| 1.19.2 | Forge | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-older-ports.md) |
+| 1.19.2 | Fabric | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-older-ports.md) |
+| 1.18.2 | Forge | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-older-ports.md) |
+| 1.18.2 | Fabric | 17 | Tested 1.1.1 port; see [report](testing/2026-10-29-older-ports.md) |
 
 Each client target includes its matching optional dedicated-server companion.
 Forge is the selected Forge-family target through 1.20.1; NeoForge is selected
 for 1.21.1 and 26.3. Supporting one does not assert compatibility with the other.
+
+On 1.18.2 / 1.19.2 servers without the companion, combat starts from direct local
+attacks only. Singleplayer and companion-enabled servers also provide precise
+incoming and confirmed ranged-hit events. Newer targets use their native damage
+packets. Only 26.3 offers vanilla music-toast/frequency/blur integration; the
+older versions retain AFMR's card and timing controls.
+
+All ten local release packages are under `outputs/1.1.1/multi-version`, with
+matching companions, source archives, notices and SHA-256 manifests. See the
+[combined verification](testing/2026-10-29-multi-version-release.md).
 
 ## Port and verification requirements
 

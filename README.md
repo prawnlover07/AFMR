@@ -5,9 +5,11 @@ AFMR is a client-side custom soundtrack mod for **Minecraft Java 26.3**,
 music, chooses playlists from your surroundings, and gives you manual controls.
 Install it on your client for ordinary multiplayer use. Optional server companions
 add multiplayer structure detection and mob-target combat retention.
-Fabric 26.3, Fabric/NeoForge 1.21.1 and Fabric/Forge 1.20.1 builds are also available; choose the matching
-[installation target](docs/INSTALLATION.md). Additional versions are tracked in
-[the porting matrix](docs/PORTING.md).
+Builds are also available for Fabric 26.3, Fabric/NeoForge 1.21.1 and Fabric/Forge
+1.20.1, 1.19.2 and 1.18.2. Choose the matching
+[installation target](docs/INSTALLATION.md). All ten client targets have optional
+server companions; see [the support matrix](docs/PORTING.md) and
+[combined verification](docs/testing/2026-10-29-multi-version-release.md).
 The playback implementation passed [27 checks on an unmodified vanilla server](docs/testing/2026-10-21-multiplayer.md).
 See the [multiplayer guide](docs/USER-GUIDE.md#multiplayer) for behavior and scope.
 
@@ -44,8 +46,9 @@ See the [release notes](CHANGELOG.md#10--october-23-2026).
 - **[Build and development setup](DEVELOPMENT.md)** — Java/Gradle requirements,
   commands, source packaging, and repository workflow.
 
-To install or upgrade, close Minecraft and put
-`animals-final-music-replacer-1.1.1.jar` in the instance's `mods` folder, replacing
+To install or upgrade, close Minecraft and put the JAR for your loader/game version
+in the instance's `mods` folder (`animals-final-music-replacer-1.1.1.jar` is the
+NeoForge 26.3 build), replacing
 any older AFMR JAR. Keep one version installed. Launch, join a world, and press **M**,
 or open AFMR's Config button from the Mods menu.
 
@@ -59,8 +62,8 @@ Fresh settings use **10–20 minute gaps**. **Next** skips the wait; **Preview**
 the selected song. M still opens/closes AFMR and retains your page and place.
 
 The AFMR card has a plain black background with adjustable color
-and opacity, and removes the redundant Now playing label. A **Hybrid toast** combines
-Minecraft's frame with AFMR album art.
+and opacity, and removes the redundant Now playing label. On 26.3, a **Hybrid toast**
+combines Minecraft's frame with AFMR album art.
 Open **Display** for style, scale, width,
 displayed information, single-line/word-wrap layouts, scrolling and AFMR appearance
 options. Hybrid and AFMR include a preview.

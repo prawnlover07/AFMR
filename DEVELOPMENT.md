@@ -3,7 +3,7 @@
 The added [Fabric 26.3 target](ports/fabric-26.3/README.md) uses its own Gradle
 9.8.2 wrapper with Java 25. Run commands from that port directory. The root
 wrapper remains 9.2.1; it is too old for Fabric 26.3 Loom. See [the matrix](docs/PORTING.md)
-for additional targets still in progress.
+for all ten verified targets and their runtime requirements.
 
 The added [Forge 1.20.1 target](ports/forge-1.20.1/README.md) uses its own build
 and Java 17 runtime. Its source archive is independently buildable; tests also
@@ -12,6 +12,12 @@ provision Java 25. See its README for packaged client/server probes.
 Minecraft 1.21.1 has independent [Fabric](ports/fabric-1.21.1/README.md) and
 [NeoForge](ports/neoforge-1.21.1/README.md) builds using Java 21. Both also pass
 packaged gameplay/network checks and extracted-source builds.
+
+The four Fabric/Forge 1.18.2 / 1.19.2 builds also have independent source archives
+and verified client/companion/fallback probes. Their production/runtime target is
+Java 17; regression tests provision Java 25. Keep older hit attribution and
+font/screen lifecycle changes local to those direct implementations. See
+[their verification](docs/testing/2026-10-29-older-ports.md).
 
 For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,

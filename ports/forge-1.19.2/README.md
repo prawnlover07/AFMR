@@ -30,8 +30,12 @@ Run from this directory:
 Gradle provisions the target compiler and Java 25 test runtime as needed.
 JARs are in `build/libs`; the independently buildable source ZIP is in
 `build/distributions`. UI writing inputs are included in that archive.
-The root [support matrix](../../docs/PORTING.md) records actual release status;
-an implementation directory alone does not establish a verified release.
+Full builds, packaged UI/audio/integration/restart, actual companion and vanilla
+fallback checks pass. This port's extracted source archive also builds on its own.
+The root [support matrix](../../docs/PORTING.md) and
+[measured report](../../docs/testing/2026-10-29-older-ports.md) record coverage and
+remaining field cases. Root-relative documentation links refer to the full
+repository; this standalone archive retains its own build inputs and instructions.
 
 Disposable packaged-client probes use `-Pprobe -PnowPlayingKey runClient`,
 `-Pnavigation`, `-PmuteWarning`, `-Pcodecs` or `-Pintegration` (then `-Prestart`).

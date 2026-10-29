@@ -2,56 +2,54 @@
 
 ## Additional Minecraft targets — October 29
 
-Fabric 26.3 passes its full build, packaged UI/audio/integration/restart checks,
-headless companion fixture, actual companion connection and vanilla fallback.
-See [the report](docs/testing/2026-10-29-fabric-26.3-port.md). Broader codec/modpack,
-physical keyboard and prolonged multiplayer/large-server cases remain field tests.
-Forge 1.20.1 also passes its full build, packaged UI/audio/integration/restart,
-headless/actual companion and vanilla fallback checks, plus a standalone source
-build. See [its report](docs/testing/2026-10-29-forge-1.20.1-port.md).
-Other new targets are still in progress; [PORTING.md](docs/PORTING.md) is the matrix.
+All ten client targets and matching optional companions pass their scoped release
+gates. [PORTING.md](docs/PORTING.md) lists exact targets and individual reports;
+the [combined report](docs/testing/2026-10-29-multi-version-release.md) records
+packaging and source verification. Pure tests alone are not native certification.
 
-Both Minecraft 1.21.1 targets pass their full builds, packaged shortcut/navigation,
-mute, seven decoder, 83 integration and 17 restart cases, plus headless/actual
-companion and vanilla fallback checks. Extracted source archives build independently.
-See [the report](docs/testing/2026-10-29-1.21.1-ports.md). The remaining four
-1.18.2 / 1.19.2 targets are still being verified.
+The four 1.18.2 / 1.19.2 targets each pass 16 shortcut, 52 navigation, 24 mute,
+seven packaged decoder, 49 UI/font/image, 83 integration and 17 restart checks.
+Each also passes 13 final headless, 30 actual companion-connection and eight
+vanilla-fallback checks. Their own extracted source archives build independently.
+Older Gson persistence and screen/font lifecycle fixes have their own measured
+checks; no other target's results substitute for those results.
 
-### Older attributed-hit bridge (in progress)
+### Older attributed-hit bridge — remaining field cases
 
-The owner chose attack-only fallback without the optional companion on 1.18.2 /
-1.19.2. The new older-version server event path must be verified for real incoming
-hostile/passive/environment/player hits, ranged player hits, settings off,
-same-tick priority/coalescing, per-client scope, dimension/respawn invalidation and
-cleanup. Initial headless condition fixtures pass 13 cases on each older target.
-Fabric 1.19.2 passes 30 actual companion-connection checks, including hostile,
-passive/environment exclusion, PvP, ranged hits and combat off, plus eight actual
-vanilla fallback checks. This caught and fixed a null-connection simulated-player
-crash in the older bridge. Other older socket validations remain in progress.
-Expanded multi-client load/coalescing and disconnect/respawn combinations remain
-additional field tests; do not count code review as a measured network result.
+The owner chose direct attack-only fallback without the optional companion on
+1.18.2 / 1.19.2. Singleplayer and matching companions supply precise incoming and
+confirmed ranged hits. All four actual connections test hostile incoming hits,
+passive and fall exclusion, PvP, ranged hits and combat disabled. A simulated
+player's absent connection was caught and fixed during those tests.
 
-### Older menu/font persistence (in progress)
+- [ ] Extend to simultaneous real clients, same-tick priority/coalescing under
+  load, many-client scale, reconnect/dimension/respawn invalidation and unusual
+  third-party combat implementations. Bounded code review is not a measured
+  multiplayer-scale result.
+- [ ] Test natural structures, large modpacks and prolonged gameplay on each
+  added target. Controlled generated fixtures do not establish general modpack
+  compatibility or multi-hour memory behavior.
+- [ ] Physical keyboard/Stream Deck and third-party input conflicts, device
+  changes and unusual resource packs/fonts remain additional field combinations.
 
-Older Screen lifecycle and Gson behavior needed direct changes to keep hidden
-draft controls and deserialize saved immutable values. Their regressions use the
-actual older Gson 2.8.9. Fabric 1.19.2 passes 52 navigation checks including page,
-focus, invalid-draft and font retention; 83 integration and 17 restart cases pass.
-Its full UI/font/background pass is 47/0 after replacing unsupported font-reference
-providers with copied active default providers. Two extra Greek/CJK fallback
-checks are pending a rerun there; the other older clients still need their own
-full native passes. No other port's results substitute for these gates.
+### Older native startup observation
 
-### Packaged decoder gate (in progress)
+Some disposable Java 17 launches exited with Windows 0xc0000005 before their
+checks; Windows identified Minecraft's lwjgl.dll. Unchanged retries completed
+the final passes. No native-library/driver overrides were applied. The exact cause
+is unresolved; see [the older-port report](docs/testing/2026-10-29-older-ports.md).
+Do not describe this as a proven AFMR fix or a proven unrelated issue.
 
-Forge's early packaged MP3 test caught the merged provider JAR being placed in
-its service layer instead of its game layer, plus provider discovery needing
-module-layer awareness. Forge 1.20.1 now passes seven packaged PCM decoder cases
-(MP3, Vorbis, FLAC, 16/24-bit and float WAV). Fabric and NeoForge 1.21.1 also pass
-these seven packaged cases and all their release gates. Fabric 1.19.2 also passes
-the seven packaged decoder cases; its source/package and other older targets'
-remaining gates are still open.
-Pure JVM decode tests do not establish nested-mod loading.
+### Packaged decoder gate — completed
+
+Forge's initial MP3 run exposed a game/service module placement issue and
+module-aware provider discovery. The direct Forge/NeoForge implementations now
+load their providers in the game layer. The seven added targets from 1.18.2 through
+1.21.1 pass seven native
+packaged decoder checks (MP3, Vorbis, FLAC, 16/24-bit and float WAV), with original
+notices and corresponding source archives retained. Pure JVM decode results alone
+do not establish nested-mod loading. Broader files/device/modpack combinations
+remain field cases.
 
 ## Now-playing hotkey — October 29 (Unreleased)
 

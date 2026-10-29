@@ -10,9 +10,10 @@ Open future requests and deeper testing remain deferred.
 
 ## Multi-version expansion
 
-Agreed targets and release gates are in [PORTING.md](docs/PORTING.md). Finalize
-1.1.1 for the existing two builds first, then add the eight missing client ports
-and their optional companions. Planned targets must not be advertised as working.
+Completed for 1.1.1: the original two builds were released first, followed by all
+eight added client ports and matching companions. Agreed targets, runtime
+requirements and measured reports are in [PORTING.md](docs/PORTING.md). Broader
+modpack, hardware and multiplayer-scale cases remain in DEFERRED-TESTING.md.
 
 ## Transport icons and playlist row menus
 
