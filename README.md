@@ -1,90 +1,124 @@
-# animal's final music replacer — 1.1.1
+<!-- Placeholder README assembled from animal's CurseForge text plus GitHub-specific sections. To be rewritten in animal's own words. -->
 
-AFMR is a client-side custom soundtrack mod for **Minecraft Java 26.3**,
-**NeoForge 26.3.0.90+**, and **Java 25**. It combines local music and Minecraft's
-music, chooses playlists from your surroundings, and gives you manual controls.
-Install it on your client for ordinary multiplayer use. Optional server companions
-add multiplayer structure detection and mob-target combat retention.
-Builds are also available for Fabric 26.3, Fabric/NeoForge 1.21.1 and Fabric/Forge
-1.20.1, 1.19.2 and 1.18.2. Choose the matching
-[installation target](docs/INSTALLATION.md). All ten client targets have optional
-server companions; see [the support matrix](docs/PORTING.md) and
-[combined verification](docs/testing/2026-10-29-multi-version-release.md).
-The playback implementation passed [27 checks on an unmodified vanilla server](docs/testing/2026-10-21-multiplayer.md).
-See the [multiplayer guide](docs/USER-GUIDE.md#multiplayer) for behavior and scope.
+<p align="center">
+  <img src="src/main/resources/icon.png" alt="AFMR icon" width="128">
+</p>
 
-## Start here
+<h1 align="center">animal's final music replacer</h1>
 
-Version **1.1.1** adds the configurable **Show now playing widget/toast** hotkey.
-Assign it in Minecraft's AFMR controls category to reopen the current song's popup,
-including while music is manually paused. See the
-[release notes](CHANGELOG.md#111--october-29-2026).
+<p align="center"><b>Turn your music into a soundtrack that reacts to the world</b></p>
 
-Version **1.1** adds playlist-to-playlist transition rules, an inline playlist
-editor with Undo/Redo and drag priority, seeking and settings search, custom themes/
-fonts/widget backgrounds, stronger import/repair matching, riding/proximity-volume
-conditions and optional multiplayer server companions. See the
-[1.1 release notes](CHANGELOG.md#11--october-28-2026) and
-[release verification](docs/testing/2026-10-28-release-1.1.md).
+<p align="center">
+  Minecraft 26.3 · 1.21.1 · 1.20.1 · 1.19.2 · 1.18.2 &nbsp;|&nbsp; Fabric · NeoForge · Forge &nbsp;|&nbsp; MIT license
+</p>
 
-Version **1.0.1** added song groups before silence, current-song assignment,
-notification delay, shuffle return protection and nearby-player themes. See the
-[update notes](CHANGELOG.md#101--october-23-2026) and
-[feature checks](docs/testing/2026-10-23-features-1.0.1.md).
+---
 
-Version **1.0** was the first private release for friends, with contextual playlists,
-profiles, queue/history, moved-library repair, playlist sharing, full backups,
-custom backgrounds and Animal's reviewed UI text on both maintained targets.
-See the [release notes](CHANGELOG.md#10--october-23-2026).
+**animal's final music replacer** (AFMR) automatically plays your own music files based on what's happening in the world. You can set music to play in a variety of situations, including current biome, time of day, health, combat status and more. Want *cozy music* that plays when you're close to home, *eerie music* for caving or even a *theme song* for when your best friends (or enemies...?) are near? **AFMR lets you do this, and much more.**
 
-- **[User guide and quick reference](docs/USER-GUIDE.md)** — installation, your first
-  song, imports, playlists, controls, settings, and troubleshooting. Share this with friends.
-- **[Installation checklist](docs/INSTALLATION.md)** — choose the correct loader,
-  hear the first song, and gather a diagnostic summary if something goes wrong.
-- **[Developer guide](docs/DEVELOPER-GUIDE.md)** — a guided tour of the source,
-  playback state, audio integration, persistence, and how to make changes.
-- **[Build and development setup](DEVELOPMENT.md)** — Java/Gradle requirements,
-  commands, source packaging, and repository workflow.
+## 🎵 Features
 
-To install or upgrade, close Minecraft and put the JAR for your loader/game version
-in the instance's `mods` folder (`animals-final-music-replacer-1.1.1.jar` is the
-NeoForge 26.3 build), replacing
-any older AFMR JAR. Keep one version installed. Launch, join a world, and press **M**,
-or open AFMR's Config button from the Mods menu.
+- **17 conditions** to choose from (time, location, light level, held item...)
+- **Combat and death music**
+- **Mixes with Minecraft's music** or replaces it, your choice
+- **Add songs or folders** from your computer, or import a playlist from **foobar2000**
+- **Works in multiplayer**, including vanilla servers
+- **Custom silence, fades and transitions** between songs and playlists
+- Some songs louder than others? **Normalize volume** with a click
+- **Different profiles** between worlds and servers
+- **Share playlist setups** with a friend (they bring the music)
+- **Now playing widget** shows song title and info in-game
+- **Custom themes and colors**, including fonts, images and even GIFs
+- Reorganize your music folders? **AFMR can find your songs again**
 
-The editor uses a playlist workspace: priority and a music
-library on the left, songs in the center, rules on the right, and persistent playback
-controls below. **Add music** can import straight into the selected playlist;
-the lower-left library also assigns existing songs or folders without leaving the screen.
-**Timing**, **Display**, **Shortcuts**, and **Playback status** are directly accessible.
+## 📥 Download
 
-Fresh settings use **10–20 minute gaps**. **Next** skips the wait; **Preview** plays
-the selected song. M still opens/closes AFMR and retains your page and place.
+Downloads will be on **CurseForge** (link coming soon). Pick the file that matches your Minecraft version and loader. Each build only works on its own version.
 
-The AFMR card has a plain black background with adjustable color
-and opacity, and removes the redundant Now playing label. On 26.3, a **Hybrid toast**
-combines Minecraft's frame with AFMR album art.
-Open **Display** for style, scale, width,
-displayed information, single-line/word-wrap layouts, scrolling and AFMR appearance
-options. Hybrid and AFMR include a preview.
+| Minecraft | Loader | Also needs | Java |
+| --- | --- | --- | --- |
+| 26.3 | NeoForge 26.3.0.90+ | — | 25 |
+| 26.3 | Fabric Loader 0.20.1+ | Fabric API | 25 |
+| 1.21.1 | NeoForge 21.1.265+ | — | 21 |
+| 1.21.1 | Fabric Loader 0.19.5+ | Fabric API | 21 |
+| 1.20.1 | Forge 47.4.0+ | — | 17 |
+| 1.20.1 | Fabric Loader 0.19.5+ | Fabric API | 17 |
+| 1.19.2 | Forge 43.5.0+ | — | 17 |
+| 1.19.2 | Fabric Loader 0.19.5+ | Fabric API | 17 |
+| 1.18.2 | Forge 40.3.0+ | — | 17 |
+| 1.18.2 | Fabric Loader 0.19.5+ | Fabric API | 17 |
 
-AFMR reads original music and foobar playlist data without modifying them. Settings
-and absolute music paths are saved in the instance's `config/afmr/library.json`.
-Each friend should import their own music rather than copy your configuration.
+- **Client-side mod:** servers and friends don't need it
+- **Optional server companion:** structure detection and combat target tracking only work in single-player. Server owners can use the companion to track that data in multiplayer. Without the companion, combat is detected by a simple timer instead of hostile mob aggression.
+  - On **1.18.2** and **1.19.2** servers without the companion, combat only starts when *you* attack something.
+- **Tested on Windows.** Mac and Linux not tested.
 
-## License
+## 🚀 Getting started
 
-AFMR's code and documentation are available under the [MIT license](LICENSE),
-copyright 2026 animal. You may modify and redistribute AFMR while retaining the
-copyright and license notice. [Bundled libraries](THIRD_PARTY.md) retain their own
-licenses; user-supplied music and artwork are separate.
+1. Install **Forge**, **NeoForge** or **Fabric** (see the table above)
+2. Put the AFMR `.jar` file in your `mods` folder
+3. Launch the game and join a world
+4. Press **M**
+5. Select a playlist & click **Add music**
+6. To hear a song right away, right-click the selected song and click **Preview song**, or the skip button at the bottom
 
-## Project references
+> **Note:** there are 10-20 minutes of silence after each song by default
 
-[Accepted product decisions](PROJECT.md) · [Release notes](CHANGELOG.md) ·
-[Validation](VALIDATION.md) · [Remaining tests](DEFERRED-TESTING.md) ·
-[Feature backlog](BACKLOG.md) · [Performance measurements](PERFORMANCE.md) ·
-[Bundled libraries](THIRD_PARTY.md)
+Enjoy :)
 
-The guides are editable Markdown in `docs/`. Update them alongside features using
-[the documentation checklist](docs/DEVELOPER-GUIDE.md#keeping-documentation-current).
+For everything else, see the **[user guide](docs/USER-GUIDE.md)** and the **[installation checklist](docs/INSTALLATION.md)**.
+
+## ❓ FAQ
+
+**Does this mod include any music?**
+
+Nope! Use your own files.
+
+**Which audio formats work?**
+
+MP3, OGG Vorbis, FLAC, WAV. No Opus files.
+
+**Can I use Spotify/YouTube/streaming services?**
+
+Nope! Local files only.
+
+**Will it affect my files?**
+
+AFMR only reads files; your music will never be changed or deleted.
+
+**Will it break my world?**
+
+AFMR only changes music; your world stays as it is.
+
+**Does it work with other mods?**
+
+I hope so! [Open an issue](https://github.com/prawnlover07/AFMR/issues) if you run into any problems.
+
+## 📚 Documentation
+
+- **[User guide](docs/USER-GUIDE.md):** imports, playlists, conditions, controls, settings and troubleshooting
+- **[Installation checklist](docs/INSTALLATION.md):** picking the right build and getting your first song playing
+- **[Changelog](CHANGELOG.md):** what changed in each version
+- **[Supported versions](docs/PORTING.md):** every Minecraft version and loader, with test reports
+
+## 🛠️ For developers
+
+AFMR is written in Java. The NeoForge 26.3 build lives at the repository root, and the other nine builds are under [`ports/`](ports). Each one builds on its own with Gradle.
+
+- **[Build and development setup](DEVELOPMENT.md):** Java/Gradle requirements and commands
+- **[Developer guide](docs/DEVELOPER-GUIDE.md):** a tour of the source, playback, audio and storage
+- **Project records:** [product decisions](PROJECT.md) · [validation](VALIDATION.md) · [remaining tests](DEFERRED-TESTING.md) · [backlog](BACKLOG.md) · [performance](PERFORMANCE.md)
+
+## 📄 License & credits
+
+AFMR is free and open source under the **[MIT license](LICENSE)**. You're welcome to modify and share it, as long as you keep the license notice.
+
+AFMR bundles these open-source libraries, under their own licenses (LGPL, BSD and MIT):
+
+- **MP3SPI, JLayer, VorbisSPI, JOrbis and Tritonus Share:** MP3 and OGG playback
+- **jFLAC:** FLAC playback
+- **jaudiotagger:** song titles, artists and album art
+- **TwelveMonkeys ImageIO:** WebP background images
+- **MixinExtras:** Forge builds only
+
+See [THIRD_PARTY.md](THIRD_PARTY.md) for details. Full license texts and notices are included in every download.
