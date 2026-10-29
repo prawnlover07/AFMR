@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "afmrprobe",
+  "version": "1",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.animal.afmr.probe.UiFollowupSuite",
+      "dev.animal.afmr.probe.IntegrationSuite",
+      "dev.animal.afmr.probe.CompanionSuite"
+    ]
+  },
+  "depends": {
+    "afmr": "*",
+    "fabric-api": "*"
+  }
+}

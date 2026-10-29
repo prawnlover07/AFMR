@@ -17,6 +17,9 @@ New Minecraft/loader ports are planned; see the support matrix in
 
 - Add the independently built Fabric 26.3 target and its optional server companion,
   with matching 26.3 toast/frequency/blur features and packaged native checks.
+- Add independently verified Forge 1.20.1 and Fabric/NeoForge 1.21.1 targets,
+  including optional companions, packaged audio/gameplay/network checks and
+  independently buildable source archives. Keep version 1.1.1 during the expansion.
 
 ## 1.1.1 — October 29, 2026
 

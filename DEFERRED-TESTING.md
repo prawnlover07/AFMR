@@ -11,6 +11,12 @@ headless/actual companion and vanilla fallback checks, plus a standalone source
 build. See [its report](docs/testing/2026-10-29-forge-1.20.1-port.md).
 Other new targets are still in progress; [PORTING.md](docs/PORTING.md) is the matrix.
 
+Both Minecraft 1.21.1 targets pass their full builds, packaged shortcut/navigation,
+mute, seven decoder, 83 integration and 17 restart cases, plus headless/actual
+companion and vanilla fallback checks. Extracted source archives build independently.
+See [the report](docs/testing/2026-10-29-1.21.1-ports.md). The remaining four
+1.18.2 / 1.19.2 targets are still being verified.
+
 ### Older attributed-hit bridge (in progress)
 
 The owner chose attack-only fallback without the optional companion on 1.18.2 /

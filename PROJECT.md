@@ -18,6 +18,9 @@ An added [Fabric 26.3 target](ports/fabric-26.3/README.md) now passes its indepe
 build and packaged client/companion checks. It preserves the modern vanilla
 toast/frequency/blur integrations. The added [Forge 1.20.1 target](ports/forge-1.20.1/README.md)
 also passes its independent build, packaged playback and companion/fallback checks.
+Both [Fabric](ports/fabric-1.21.1/README.md) and
+[NeoForge](ports/neoforge-1.21.1/README.md) 1.21.1 targets pass those gates and their
+independent source builds; see [verification](docs/testing/2026-10-29-1.21.1-ports.md).
 Other additional ports remain in progress in
 [the support matrix](docs/PORTING.md).
 

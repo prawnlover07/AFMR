@@ -9,6 +9,10 @@ The added [Forge 1.20.1 target](ports/forge-1.20.1/README.md) uses its own build
 and Java 17 runtime. Its source archive is independently buildable; tests also
 provision Java 25. See its README for packaged client/server probes.
 
+Minecraft 1.21.1 has independent [Fabric](ports/fabric-1.21.1/README.md) and
+[NeoForge](ports/neoforge-1.21.1/README.md) builds using Java 21. Both also pass
+packaged gameplay/network checks and extracted-source builds.
+
 For the independent **Fabric 1.20.1** target, use
 [`ports/fabric-1.20.1/README.md`](ports/fabric-1.20.1/README.md). Its sources,
 Gradle build, JAR and disposable native test profile are separate from the

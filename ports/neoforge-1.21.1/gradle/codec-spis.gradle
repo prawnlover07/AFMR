@@ -1,0 +1,33 @@
+// These two upstream JARs share the identical javazoom.spi.PropertiesContainer.
+// Forge's Java module layer rejects their split package, so package both SPIs
+// together. Preserve both service registrations and per-artifact notices.
+tasks.register('codecSpiServices') {
+ inputs.files(configurations.codecSpis);outputs.dir(layout.buildDirectory.dir('generated/codecSpiServices'))
+ doLast {
+  def services=[:]
+  configurations.codecSpis.files.sort().each { artifact ->
+   new java.util.zip.ZipFile(artifact).withCloseable { zip ->
+    zip.entries().each { entry ->
+     if(!entry.directory&&entry.name.startsWith('META-INF/services/')) {
+      def names=services.computeIfAbsent(entry.name) { new LinkedHashSet<String>() }
+      zip.getInputStream(entry).withCloseable { input -> input.getText('UTF-8').readLines().each { line -> def provider=line.split('#',2)[0].trim();if(provider)names.add(provider) } }
+     }
+    }
+   }
+  }
+  services.each { name,providers -> def target=layout.buildDirectory.file('generated/codecSpiServices/'+name).get().asFile;target.parentFile.mkdirs();target.setText(providers.join('\n')+'\n','UTF-8') }
+ }
+}
+def codecSpiJar=tasks.register('codecSpiJar',Jar) {
+ dependsOn tasks.named('codecSpiServices')
+ archiveFileName='afmr-codec-spis.jar';destinationDirectory=layout.buildDirectory.dir('codecSpis');duplicatesStrategy=DuplicatesStrategy.EXCLUDE
+ manifest.attributes('FMLModType':'GAMELIBRARY','Automatic-Module-Name':'dev.animal.afmr.codecspis')
+ from(layout.buildDirectory.dir('generated/codecSpiServices'))
+ configurations.codecSpis.files.sort().each { artifact ->
+  from(zipTree(artifact)) {
+   exclude 'META-INF/MANIFEST.MF','META-INF/*.SF','META-INF/*.RSA','META-INF/*.DSA','META-INF/services/**','module-info.class'
+   eachFile { entry -> if(entry.name.toLowerCase().contains('license')||entry.name.toLowerCase().contains('notice'))entry.path='META-INF/afmr-codec-notices/'+artifact.name+'/'+entry.path }
+  }
+ }
+}
+dependencies { jarJar files(codecSpiJar) }
