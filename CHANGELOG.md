@@ -12,7 +12,8 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
-No pending code changes in this release task.
+- Add Rewind to the NeoForge 26.3 transport: restart after more than three seconds
+  into the song, or walk back through history, preserving the queue and active override.
 
 ## 1.1.1 — October 29, 2026
 

@@ -57,7 +57,7 @@ class PlaybackTransportTest {
         assertSame(before,engine.current());assertTrue(engine.paused());engine.setPaused(false,200);tick(204,true);assertEquals(manual.id,engine.sourcePlaylistId());
     }
     @Test void aPreviewSelectedWhilePausedRemainsPaused(){
-        engine.setPaused(true,15);var preview=lib.track(manual.tracks.keySet().iterator().next());engine.preview(preview,100);tick(200,true);
+        engine.setPaused(true,15);var preview=lib.track(manual.tracks.keySet().iterator().next());engine.preview(preview,100,false);tick(200,true);
         assertSame(preview,engine.current());assertTrue(engine.previewing());assertTrue(audio.paused);engine.setPaused(false,200);tick(201,true);assertSame(preview,engine.current());assertEquals(0.25,audio.gain,0.001);
     }
     @Test void ordinarySkipWhilePausedKeepsTheNormalFrozenGap(){
@@ -96,7 +96,7 @@ class PlaybackTransportTest {
         tick(200,true);assertNull(engine.current());engine.setPaused(false,200);tick(200,true);assertNotEquals(previous,engine.current().id);
     }
     @Test void nextEndsAnExplicitPreviewAndReturnsToCurrentSelection(){
-        engine.preview(lib.track(manual.tracks.keySet().iterator().next()),15);next(16,false);assertFalse(engine.previewing());assertEquals("night_outside",engine.sourcePlaylistId());
+        engine.preview(lib.track(manual.tracks.keySet().iterator().next()),15,false);next(16,false);assertFalse(engine.previewing());assertEquals("night_outside",engine.sourcePlaylistId());
     }
     @Test void nextWithNoEligiblePlaylistLeavesTheCurrentSongAlone(){
         var before=engine.current();lib.playlist("day_outside").enabled=false;assertFalse(engine.nextSong(15,lib,context(true,false),Set.of()));assertSame(before,engine.current());

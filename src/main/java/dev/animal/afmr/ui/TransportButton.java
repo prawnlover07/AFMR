@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 
 /** Font-independent transport symbols with explicit tooltip and narration labels. */
 final class TransportButton extends FlatButton {
-    enum Icon { PLAY, PAUSE, NEXT }
+    enum Icon { PLAY, PAUSE, NEXT, PREVIOUS }
     private Icon icon;
     private final Component explanation;
     TransportButton(int x,int y,float scale,String help,Runnable action){
@@ -24,7 +24,10 @@ final class TransportButton extends FlatButton {
         int x=getX()+width/2,y=getY()+height/2;
         int color=MenuAppearance.color(active?MenuColor.TEXT:MenuColor.MUTED_TEXT,active?0xFFEBEEF3:0xFF6F7185);
         if(icon==Icon.PAUSE){g.fill(x-4,y-5,x-1,y+5,color);g.fill(x+2,y-5,x+5,y+5,color);}
-        else{
+        else if(icon==Icon.PREVIOUS){
+            for(int i=0;i<8;i++)g.fill(x+4-i,y-5+i/2,x+5-i,y+5-i/2,color);
+            g.fill(x-6,y-5,x-4,y+5,color);
+        }else{
             int start=icon==Icon.NEXT?x-5:x-3;
             for(int i=0;i<8;i++)g.fill(start+i,y-5+i/2,start+i+1,y+5-i/2,color);
             if(icon==Icon.NEXT)g.fill(x+4,y-5,x+6,y+5,color);

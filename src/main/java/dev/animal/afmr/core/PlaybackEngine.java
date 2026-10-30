@@ -42,6 +42,8 @@ public final class PlaybackEngine {
     private boolean queuedPlaying,queueWaitingForOverride;
     private final PlaybackQueue queue=new PlaybackQueue();
     private final ListeningHistory history=new ListeningHistory();
+    private int rewindCursor=-1;
+    private long rewindRevision=-1;
     private String queueMessage="";
     private boolean playingCombat,wasDead,finishAfterDeath;
     private boolean paused;
@@ -166,7 +168,7 @@ public final class PlaybackEngine {
                     }
                     try{
                         startTrack(track,source,Origin.QUEUE,"Queued manually"+(source==null?"":" from "+source.name),
-                            source!=null&&source.combatDriven(context,lib.settings),now,context.nearbyPlayers());
+                            source!=null&&source.combatDriven(context,lib.settings),now,context.nearbyPlayers(),true);
                         overrideStarted=false;immediateNext=false;triggerPending=triggerBufferBypass=false;
                     }catch(Exception e){
                         audio.stop();failed.add(track.id);error=track.title+": "+e.getMessage();queueMessage=error;silenceUntil=now+1;silenceStarted=Double.NaN;
@@ -196,7 +198,7 @@ public final class PlaybackEngine {
                 try {
                     startTrack(next,selected,overrideId==null?Origin.AUTOMATIC:Origin.OVERRIDE,
                         overrideId==null?automaticReason(selected,context):"Playlist override: "+overrideMode+"; conditions bypassed",
-                        selected.combatDriven(context,lib.settings),now,context.nearbyPlayers());
+                        selected.combatDriven(context,lib.settings),now,context.nearbyPlayers(),true);
                     candidateSince=Math.min(candidateSince,now-lib.settings.bufferSeconds);
                     overrideStarted=overrideId!=null;immediateNext=false;triggerPending=false;
                 } catch (Exception e) {
@@ -222,7 +224,7 @@ public final class PlaybackEngine {
         proximityGain=proximityFrom+(proximityTarget-proximityFrom)*fraction;
         if(desired!=proximityTarget){proximityFrom=proximityGain;proximityTarget=desired;proximityChanged=now;}
     }
-    private void startTrack(Track track,Playlist source,Origin origin,String reason,boolean combat,double now,NearbyPlayers players)throws Exception{
+    private void startTrack(Track track,Playlist source,Origin origin,String reason,boolean combat,double now,NearbyPlayers players,boolean recordHistory)throws Exception{
         joinPending=false;audio.gain(0);audio.start(track,0);
         trackFadeIn=origin==Origin.AUTOMATIC&&transitionRule!=null&&transitionRule.customFadeIn?transitionRule.fadeInSeconds:Double.NaN;
         transitionSource=origin==Origin.AUTOMATIC?source:null;transitionRule=null;
@@ -237,7 +239,7 @@ public final class PlaybackEngine {
         playingSource=source;proximityGain=proximityFrom=proximityTarget=source==null?1:source.conditions.proximityGain(players);proximityChanged=now;
         previewing=origin==Origin.PREVIEW;queuedPlaying=origin==Origin.QUEUE;
         fadeInStarted=now;currentGain=0;error="";waitingForTimeFit=false;durationNeeded=null;
-        history.record(track,source,origin,reason);
+        if(recordHistory){history.record(track,source,origin,reason);rewindCursor=-1;}
     }
 
     public boolean enqueue(String trackId,String playlistId,Library lib){
@@ -318,6 +320,19 @@ public final class PlaybackEngine {
         clearTransition();joinPending=false;now=playbackTime(now);overrideStarted=false;immediateNext=true;triggerPending=triggerBufferBypass=false;audio.stop();enterSilence(now,lib,false);
         selected=target;candidateId=target==null?null:target.id;activeId=candidateId;candidateSince=now-lib.settings.bufferSeconds;return true;
     }
+    /** Replays history without recording it, so consecutive presses keep walking backwards. */
+    public boolean rewind(double now,Library lib){
+        if(rewindRevision!=history.revision()){rewindCursor=-1;rewindRevision=history.revision();}
+        // Past three seconds of position, restart in place; the song keeps its source and origin like any seek.
+        if(current!=null&&trackElapsed(now)>3)return seek(0,now)||preview(current,now,true);
+        var entries=history.snapshot();int index=rewindCursor+1;
+        if(rewindCursor<0&&current!=null&&!entries.isEmpty()&&entries.getFirst().trackId().equals(current.id))index=1;
+        for(;index<entries.size();index++){
+            var track=lib.track(entries.get(index).trackId());if(track==null||failed.contains(track.id))continue;
+            rewindCursor=index;return preview(track,now,true);
+        }
+        return false;
+    }
     private boolean updateJukebox(double wallNow,Library lib,boolean playing){
         Settings settings=lib.settings;
         double now=playbackTime(wallNow);
@@ -390,18 +405,21 @@ public final class PlaybackEngine {
     public void returnAutomatic(){clearOverride();}
     private void clearOverride(){overrideId=null;overrideMode=null;overrideStarted=false;immediateNext=false;queueWaitingForOverride=false;}
     /** Explicit previews bypass automatic playlist rules and finish before scheduling resumes. */
-    public void preview(Track track, double now) {
+    public boolean preview(Track track,double now,boolean rewind) {
         clearTransition();joinPending=false;triggerPending=triggerBufferBypass=false;
         waitingForTimeFit=false;durationNeeded=null;
         now=playbackTime(now);
-        clearOverride();
+        if(!rewind)clearOverride();
+        overrideStarted=immediateNext=false;
         audio.stop(); current = null; previewing = false;queuedPlaying=false;phase = Phase.SILENCE;
         playingPlaylistId=null;playingCombat=false;finishAfterDeath=false;
         try {
-            startTrack(track,null,Origin.PREVIEW,"Manual preview",false,now,NearbyPlayers.EMPTY);failed.remove(track.id);
+            startTrack(track,null,Origin.PREVIEW,"Manual preview",false,now,NearbyPlayers.EMPTY,!rewind);failed.remove(track.id);
+            audio.setPaused(paused||jukeboxHeld);return true;
         } catch (Exception e) {
             audio.stop(); failed.add(track.id); error = track.title + ": " + e.getMessage(); silenceUntil = now + 1;silenceStarted=Double.NaN;
         }
+        return false;
     }
     public boolean previewing() { return previewing; }
     public float proximityGain(){return proximityGain;}
@@ -423,6 +441,7 @@ public final class PlaybackEngine {
     public static int songsBeforeSilence(Playlist p,Settings s){return p!=null&&p.customSongCount?p.songsBeforeSilence:s.songsBeforeSilence;}
     public boolean paused(){return paused;}
     public void reset() {
+        rewindCursor=-1;rewindRevision=history.revision();
         pendingSeek=Double.NaN;clearTransition();trackFadeIn=Double.NaN;proximityGain=proximityFrom=proximityTarget=1;joinPending=false;playingSource=null;silenceSource=null;groupPlaylistId=null;groupStarted=0;
         queue.clear();queueMessage="";queuedPlaying=queueWaitingForOverride=false;
         triggerPending=triggerBufferBypass=false;

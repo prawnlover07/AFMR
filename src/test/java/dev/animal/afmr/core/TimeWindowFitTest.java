@@ -101,7 +101,7 @@ class TimeWindowFitTest {
         var lib=library();var p=playlist(lib,window(0,11999));var longSong=song(lib,p,"long",900);
         var e=engine(new PlaybackEngineTest.FakeAudio());assertTrue(e.overridePlaylist(p.id,OverrideMode.ONE_SONG,0,lib,Set.of()));
         e.tick(0,lib,context(11999),Set.of());assertSame(longSong,e.current());
-        e.reset();e.preview(longSong,1);assertSame(longSong,e.current());
+        e.reset();e.preview(longSong,1,false);assertSame(longSong,e.current());
         p.conditions.fitSongsToTimeWindow=false;longSong.durationSeconds=0;e.reset();e.tick(0,lib,context(11999),Set.of());assertSame(longSong,e.current());
     }
     @Test void nextDoesNotBypassAutomaticFitting(){

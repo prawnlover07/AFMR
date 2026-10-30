@@ -44,13 +44,13 @@ class CurrentPlaybackTest {
     @Test void manualPreviewBypassesDisabledPlaylistsAndContextChanges() {
         setup(); library.playlists.forEach(p -> p.enabled = false);
         engine.tick(0, library, outside(), Set.of());
-        engine.preview(song, 1);
+        engine.preview(song, 1,false);
         engine.tick(5, library, context("any", "any", false, true, true), Set.of());
         assertEquals(song, engine.current()); assertTrue(engine.previewing());
         assertEquals(PlaybackEngine.Phase.PLAYING, engine.phase());
     }
     @Test void previewFinishesThenResumesNormalContextAndSilence() {
-        setup(); engine.preview(song, 1);
+        setup(); engine.preview(song, 1,false);
         engine.tick(2, library, outside(), Set.of());
         engine.tick(5, library, outside(), Set.of());
         assertTrue(engine.previewing());
@@ -62,9 +62,9 @@ class CurrentPlaybackTest {
         assertFalse(engine.previewing());
     }
     @Test void failedPreviewShowsErrorAndCanBeRetriedExplicitly() {
-        setup(); audio.fail = song.id; engine.preview(song, 1);
+        setup(); audio.fail = song.id; engine.preview(song, 1,false);
         assertFalse(engine.error().isBlank()); assertNull(engine.current()); assertFalse(engine.previewing());
-        audio.fail = null; engine.preview(song, 2);
+        audio.fail = null; engine.preview(song, 2,false);
         assertEquals(song, engine.current()); assertTrue(engine.error().isBlank());
         engine.reset(); assertFalse(engine.previewing());
     }

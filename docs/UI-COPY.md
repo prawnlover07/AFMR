@@ -1235,6 +1235,19 @@ Measure loudness for local songs in this playlist. Results are cached in AFMR on
 
 Pause or resume AFMR playback and its timers.
 
+### Rewind
+
+> ID: afmr.copy.library.rewind
+> Targets: Minecraft 26.3 builds
+> Where: NeoForge 26.3 playlists and library workspace - Hover text
+> Placeholders: None
+> Reference behavior: Restart after more than three seconds into the song; otherwise walk backwards through listening history. Keep the queue and active override.
+
+**Text to edit:**
+
+Restart after more than three seconds into the song; otherwise play the previous song.
+Repeated presses go further back through listening history.
+
 ### Next
 
 > ID: afmr.copy.library.next

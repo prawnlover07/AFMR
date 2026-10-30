@@ -104,13 +104,111 @@ class PlaybackEngineTest {
         var dimension=new Playlist("nether","Nether");dimension.conditions.dimensionEnabled=true;dimension.conditions.dimension="minecraft:the_nether";dimension.tracks.put(c.id,true);
         library.playlists.add(0,dimension);assertEquals(dimension,library.select(context));
     }
+    @Test void rewindRestartsAfterThreeSecondsWithoutRecording(){
+        engine.preview(a,0,false);b.durationSeconds=120;engine.preview(b,1,false);
+        var history=engine.history().snapshot();long sequence=engine.playbackSequence();
+        assertTrue(engine.rewind(4.01,library));assertSame(b,engine.current());assertEquals(0,engine.trackElapsed(4.01));
+        tick(4.01,forest);assertEquals(0,audio.position);assertEquals(sequence,engine.playbackSequence());
+        assertEquals(history,engine.history().snapshot());
+        assertTrue(engine.rewind(4.02,library));assertSame(a,engine.current());
+    }
+    @Test void rewindAtExactlyThreeSecondsPlaysPreviousHistoryTrack(){
+        engine.preview(a,0,false);engine.preview(b,1,false);var history=engine.history().snapshot();
+        assertTrue(engine.rewind(4,library));assertSame(a,engine.current());assertTrue(engine.previewing());
+        assertEquals(history,engine.history().snapshot());
+    }
+    @Test void repeatedRewindWalksThreeDistinctEntriesWithoutPingPong(){
+        var d=track("d");engine.preview(a,0,false);engine.preview(b,1,false);engine.preview(c,2,false);engine.preview(d,3,false);
+        var history=engine.history().snapshot();
+        assertTrue(engine.rewind(3.1,library));assertSame(c,engine.current());
+        assertTrue(engine.rewind(3.2,library));assertSame(b,engine.current());
+        assertTrue(engine.rewind(3.3,library));assertSame(a,engine.current());
+        assertFalse(engine.rewind(3.4,library));assertSame(a,engine.current());assertEquals(history,engine.history().snapshot());
+    }
+    @Test void normalNextStartResetsRewindWalk(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.preview(c,2,false);
+        assertTrue(engine.rewind(2.1,library));assertSame(b,engine.current());
+        assertTrue(engine.rewind(2.2,library));assertSame(a,engine.current());
+        assertTrue(engine.nextSong(3,library,forest,Set.of()));tick(3,forest);assertSame(b,engine.current());
+        assertEquals(4,engine.history().size());assertTrue(engine.rewind(3.1,library));assertSame(c,engine.current());
+    }
+    @Test void normalPreviewResetsRewindWalk(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.preview(c,2,false);
+        assertTrue(engine.rewind(2.1,library));engine.preview(a,3,false);
+        assertTrue(engine.rewind(3.1,library));assertSame(c,engine.current());assertEquals(4,engine.history().size());
+    }
+    @Test void rewindSkipsMissingAndFailedHistoryTracks(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.failed(b.id,"bad audio",1,library);
+        var missing=track("missing");engine.preview(missing,2,false);engine.preview(c,3,false);
+        library.tracks.remove(missing);library.rebuildTrackIndex();var history=engine.history().snapshot();
+        assertTrue(engine.rewind(3.1,library));assertSame(a,engine.current());assertEquals(history,engine.history().snapshot());
+    }
+    @Test void rewindPreservesOneSongOverrideAndQueueThroughReplayEnd(){
+        engine.preview(a,0,false);library.settings.fadeOutSeconds=0;
+        assertTrue(engine.overridePlaylist(forestPlaylist.id,OverrideMode.ONE_SONG,1,library,Set.of()));
+        tick(1,forest);assertSame(b,engine.current());assertTrue(engine.enqueue(c.id,"",library));
+        var queue=engine.queue().snapshot();var history=engine.history().snapshot();
+        assertTrue(engine.rewind(2,library));assertSame(a,engine.current());tick(3,desert);
+        assertEquals(forestPlaylist.id,engine.overrideId());assertEquals(OverrideMode.ONE_SONG,engine.overrideMode());
+        assertEquals(queue,engine.queue().snapshot());assertEquals(history,engine.history().snapshot());
+        audio.current=null;tick(4,desert);assertEquals(forestPlaylist.id,engine.overrideId());
+        tick(14,desert);assertSame(c,engine.current());assertEquals(forestPlaylist.id,engine.overrideId());
+        audio.current=null;tick(15,desert);tick(25,desert);assertSame(b,engine.current());
+    }
+    @Test void rewindWithNoEarlierHistoryDoesNotStopAnything(){
+        assertFalse(engine.rewind(0,library));engine.preview(a,1,false);int stops=audio.stops,starts=audio.starts;
+        assertFalse(engine.rewind(2,library));assertSame(a,audio.current);
+        assertEquals(stops,audio.stops);assertEquals(starts,audio.starts);assertEquals(1,engine.history().size());
+    }
+    @Test void rewindDuringSilenceStartsNewestHistoryEntry(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.skip(2,library);
+        assertTrue(engine.rewind(3,library));assertSame(b,engine.current());
+        assertTrue(engine.rewind(3.1,library));assertSame(a,engine.current());
+    }
+    @Test void rewindRestartsUnknownDurationWithoutRecording(){
+        engine.preview(a,0,false);b.durationSeconds=Double.NaN;engine.preview(b,1,false);
+        var history=engine.history().snapshot();int starts=audio.starts;
+        assertTrue(engine.rewind(5,library));assertSame(b,audio.current);assertEquals(starts+1,audio.starts);
+        assertEquals(0,audio.position);assertEquals(0,engine.trackPlayed(5));assertEquals(history,engine.history().snapshot());
+        assertTrue(engine.rewind(5.1,library));assertSame(a,engine.current());
+    }
+    @Test void rewindThresholdUsesSongPosition(){
+        engine.preview(a,0,false);b.durationSeconds=120;engine.preview(b,1,false);
+        assertTrue(engine.seek(90,2));tick(2,forest);assertTrue(engine.rewind(3,library));assertSame(b,engine.current());
+        tick(3,forest);assertEquals(0,audio.position);assertTrue(engine.rewind(3.5,library));assertSame(a,engine.current());
+    }
+    @Test void pausedRewindKeepsPauseAndDoesNotCountPausedTime(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.setPaused(true,2);
+        assertTrue(engine.rewind(100,library));assertSame(a,engine.current());assertTrue(engine.paused());assertTrue(audio.paused);
+        assertEquals(0,engine.trackPlayed(200));
+    }
+    @Test void pausedKnownLengthRestartKeepsPause(){
+        engine.preview(a,0,false);b.durationSeconds=120;engine.preview(b,1,false);engine.setPaused(true,5);
+        assertTrue(engine.rewind(100,library));tick(100,forest);assertSame(b,engine.current());
+        assertTrue(engine.paused());assertTrue(audio.paused);assertEquals(0,audio.position);assertEquals(0,engine.trackElapsed(200));
+        assertTrue(engine.rewind(101,library));assertSame(a,engine.current());assertTrue(audio.paused);
+    }
+    @Test void historyMutationsAndResetInvalidateRewindCursor(){
+        engine.preview(a,0,false);engine.preview(b,1,false);engine.preview(c,2,false);
+        var saved=engine.history().snapshot();assertTrue(engine.rewind(2.1,library));assertSame(b,engine.current());
+        engine.history().restore(saved);assertTrue(engine.rewind(2.2,library));assertSame(c,engine.current());
+        engine.history().relink(Map.of(c.id,a.id));assertTrue(engine.rewind(2.3,library));assertSame(a,engine.current());
+        engine.history().clear();assertFalse(engine.rewind(2.4,library));assertSame(a,engine.current());
+        engine.history().restore(saved);engine.reset();assertTrue(engine.rewind(3,library));assertSame(c,engine.current());
+    }
+    @Test void rewoundSongFinishesBeforeNormalSchedulingResumes(){
+        engine.preview(a,0,false);engine.preview(b,1,false);assertTrue(engine.rewind(2,library));
+        tick(3,desert);tick(6,desert);assertSame(a,engine.current());assertEquals(PlaybackEngine.Phase.PLAYING,engine.phase());
+        audio.current=null;tick(7,desert);assertNull(engine.current());tick(17,desert);assertSame(c,engine.current());
+        assertEquals(3,engine.history().size());
+    }
     static class FakeAudio implements PlaybackEngine.Audio{
-        Track current;float gain;String fail;boolean paused;
-        public void start(Track t,double position)throws Exception{if(t.id.equals(fail))throw new Exception("bad audio");current=t;}
+        Track current;float gain;String fail;boolean paused;double position;int starts,stops;
+        public void start(Track t,double position)throws Exception{if(t.id.equals(fail))throw new Exception("bad audio");current=t;this.position=position;starts++;}
         public boolean started(){return playing();}
         public boolean playing(){return current!=null;}
         public void gain(float value){gain=value;}
-        public void stop(){current=null;}
+        public void stop(){current=null;stops++;}
         public void setPaused(boolean value){paused=value;}
     }
 }

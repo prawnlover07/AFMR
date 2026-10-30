@@ -359,6 +359,11 @@ public final class ClientRuntime {
         if(!inWorld()||!enabled()){status="Join a world before selecting the next song.";return;}
         status=engine.nextSong(clock,library,context,applicableVanilla)?"":"No next song available for the current playlist selection.";
     }
+    public void rewind(){
+        if(!inWorld()||!enabled()){status="Join a world before rewinding music.";return;}
+        status=engine.rewind(clock,library)?"":"No earlier song in listening history.";
+        saveHistory();
+    }
     public void togglePause(){
         if(!inWorld()||!enabled()){status="Join a world before pausing music.";return;}
         engine.setPaused(!engine.paused(),clock);status="";
@@ -380,7 +385,7 @@ public final class ClientRuntime {
     public void preview(Track track) {
         if (!inWorld()) { status = "Join a world before previewing music."; return; }
         if (!enabled()) return;
-        engine.preview(track, clock);
+        engine.preview(track, clock,false);
         saveHistory();
         status = engine.error().isBlank() ? "Previewing: " + track.title : engine.error();
     }

@@ -34,7 +34,7 @@ class DiagnosticSummaryTest {
         group.area.world="singleplayer:C:\\Users\\PrivateUser\\saves\\PrivateWorld";group.area.x=777888;group.area.y=999111;group.area.z=222333;group.area.radius=444555;
         day().conditions.groups.add(group);lib.profiles.activeId="private-profile-id";lib.profiles.activeName="Private profile name";
         lib.profiles.bindings.put("private-server.example:25565","private-profile-id");
-        engine.preview(lib.tracks.getFirst(),0);
+        engine.preview(lib.tracks.getFirst(),0,false);
         String text=report(day().id);
         for(String secret:List.of("PrivateUser","PrivateWorld","private-server.example","Private Song","Private Artist","private-track-id",
             "Private group name","Private profile name","private-profile-id","Injected report line","123456","654321","777888","999111","222333","444555"))assertFalse(text.contains(secret),secret);
@@ -42,7 +42,7 @@ class DiagnosticSummaryTest {
         assertTrue(text.contains("preview: true"));assertTrue(text.contains("Current track: local file"));assertTrue(text.contains("custom (name omitted)"));
     }
     @Test void errorsNeverCopyRawMessagesOrExceptionPaths(){
-        song(day());var track=lib.tracks.getFirst();engine.preview(track,0);
+        song(day());var track=lib.tracks.getFirst();engine.preview(track,0,false);
         engine.failed(track.id,"Private Song: AccessDeniedException: C:\\Users\\PrivateUser\\secret.mp3 on private-server.example",1,lib);
         String text=report(day().id);
         assertTrue(text.contains("Playback error: access denied (details omitted)"));assertTrue(text.contains("failed songs this session: 1"));
