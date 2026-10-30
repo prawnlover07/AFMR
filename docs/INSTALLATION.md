@@ -3,8 +3,9 @@
 AFMR 1.1.1 runs on your Minecraft client. The server and other players do not need it
 for ordinary playback. An optional server companion adds structure detection and
 mob-target combat retention in multiplayer.
-Choose the package that matches your game and loader; these JARs are separate
-builds and cannot be used interchangeably.
+Download the file that matches your game and loader from
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files);
+these JARs are separate builds and cannot be used interchangeably.
 
 | Package | Minecraft Java | Loader | Java runtime |
 | --- | --- | --- | --- |
@@ -55,8 +56,9 @@ Playlist `.afmrp` sharing can include settings and optional relative song refere
 each recipient supplies their own music.
 
 If playback seems wrong, open **Playback status** to see the winning playlist and reason.
-Use **Copy diagnostic summary** and send that text with the steps to reproduce the
-problem, game/loader version, and any relevant modpack details. The summary omits
+Use **Copy diagnostic summary** and paste that text into a
+[bug report](https://github.com/prawnlover07/AFMR/issues/new/choose) with the steps to
+reproduce the problem, game/loader version, and any relevant modpack details. The summary omits
 song names, paths and saved location details. Do not send a personal full backup
 or music library as a default troubleshooting step.
 
@@ -70,8 +72,9 @@ hits require the companion. Singleplayer includes those hooks already.
 
 ## Optional server companion
 
-Server owners can install the separate **AFMR-1.1.1-Server-Loader-Version**
-package matching their loader/game version. Every target in the table has one. Stop the
+Server owners can install the separate server companion JAR
+(`animals-final-music-replacer-server-<loader>-<version>-1.1.1.jar`) matching their
+loader/game version. Every target in the table has one. Stop the
 server, place its single companion JAR in the server's `mods` directory, and
 restart. Fabric servers also need Fabric API. Install the full client package on
 players' computers. The client and companion use the same mod ID: never install

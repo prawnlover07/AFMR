@@ -1,0 +1,21 @@
+name: Idea or feature request
+description: Suggest a new condition, setting or improvement.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What would you like AFMR to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When would you use it?
+      description: Describe the moment in game where this would help.
+  - type: input
+    id: target
+    attributes:
+      label: Minecraft version and loader you play on
+      placeholder: "1.20.1 Fabric"

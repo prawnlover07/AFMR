@@ -34,8 +34,9 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
 
 ## Install and hear your first song
 
-1. Choose the AFMR package matching your Minecraft version and loader in the
-   [installation table](INSTALLATION.md). Install it on your own client for ordinary
+1. Download the AFMR file matching your Minecraft version and loader from
+   [CurseForge](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files);
+   the [installation table](INSTALLATION.md) lists each one's requirements. Install it on your own client for ordinary
    use. The optional matching companion adds server observations described below.
 2. Close Minecraft. Put the package's AFMR client JAR in your game
    instance's `mods` folder. Keep exactly one AFMR JAR there.
@@ -167,9 +168,9 @@ Joining through a different address requires capturing the area again; replacing
 the world behind the same address also requires recapturing it.
 
 The **Structures** filter works in singleplayer and on multiplayer servers with
-AFMR's optional server companion. Install the matching companion from the server
-package or that target's `build/libs/` directory. Its filename includes
-`server`, the loader and Minecraft version. Use only one AFMR
+AFMR's optional server companion. Download the matching companion from the
+[AFMR CurseForge page](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files).
+Its filename includes `server`, the loader and Minecraft version. Use only one AFMR
 JAR per server. Fabric servers also need the matching Fabric API. Clients keep the
 ordinary AFMR client JAR. The companion contains no music or audio code and does
 not require other players to install AFMR.
@@ -1286,9 +1287,9 @@ measurements or a memory-leak test. Copying does not scan files or change playba
 
 Failed songs are excluded for the session to avoid repeated errors. **Retry failed**
 clears that exclusion without scanning or repairing files. A completed rescan also
-clears it. For a bug report, include the diagnostic summary, reproduction steps
-and relevant log lines if needed. Paths in logs
-or configuration can reveal personal folder names.
+clears it. Report bugs on [GitHub Issues](https://github.com/prawnlover07/AFMR/issues/new/choose).
+Include the diagnostic summary, reproduction steps and relevant log lines if needed.
+Paths in logs or configuration can reveal personal folder names.
 
 ## Sharing playlist setups (.afmrp)
 

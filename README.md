@@ -33,7 +33,7 @@
 
 ## 📥 Download
 
-Downloads will be on **CurseForge** (link coming soon). Pick the file that matches your Minecraft version and loader. Each build only works on its own version.
+Download AFMR from **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files)**. Pick the file that matches your Minecraft version and loader. Each build only works on its own version.
 
 | Minecraft | Loader | Also needs | Java |
 | --- | --- | --- | --- |
@@ -92,7 +92,11 @@ AFMR only changes music; your world stays as it is.
 
 **Does it work with other mods?**
 
-I hope so! [Open an issue](https://github.com/prawnlover07/AFMR/issues) if you run into any problems.
+I hope so! [Report a bug](https://github.com/prawnlover07/AFMR/issues/new/choose) if you run into any problems.
+
+## 🐞 Bugs & ideas
+
+Found a bug or have an idea? [Open an issue](https://github.com/prawnlover07/AFMR/issues/new/choose). For bugs, press **M → Playback status → Copy diagnostic summary** and paste it into the form; it leaves out your file paths and song names.
 
 ## 📚 Documentation
 

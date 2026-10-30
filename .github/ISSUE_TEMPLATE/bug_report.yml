@@ -1,0 +1,96 @@
+name: Bug report
+description: Something in AFMR is broken, crashes, or doesn't play the music you expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more of this you fill in, the faster it can be fixed.
+
+        **Tip:** in game, press **M → Playback status → Copy diagnostic summary** and paste it below. It leaves out your song names, file paths and saved locations.
+  - type: dropdown
+    id: target
+    attributes:
+      label: Minecraft version and loader
+      options:
+        - 26.3 NeoForge
+        - 26.3 Fabric
+        - 1.21.1 NeoForge
+        - 1.21.1 Fabric
+        - 1.20.1 Forge
+        - 1.20.1 Fabric
+        - 1.19.2 Forge
+        - 1.19.2 Fabric
+        - 1.18.2 Forge
+        - 1.18.2 Fabric
+    validations:
+      required: true
+  - type: input
+    id: afmr-version
+    attributes:
+      label: AFMR version
+      description: Shown in the file name and in the Mods menu.
+      placeholder: "1.1.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: world
+    attributes:
+      label: Where were you playing?
+      options:
+        - Singleplayer
+        - Multiplayer server with the AFMR server companion
+        - Multiplayer server without the companion
+        - Multiplayer, not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Press M and select the Night playlist
+        2. Add a folder of FLAC files
+        3. ...
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: Diagnostic summary
+      description: Press M → Playback status → Copy diagnostic summary, then paste here. Select the playlist you're asking about before copying.
+      render: text
+  - type: input
+    id: log
+    attributes:
+      label: Log or crash report
+      description: |
+        For crashes or errors, upload `logs/latest.log` (or the file in `crash-reports/`) to https://mclo.gs and paste the link. Logs can include your Windows user name and music folder paths, so check before sharing.
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods or modpack
+      description: A modpack name and version, or a list of other mods you have installed.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this hasn't been reported yet.
+          required: true
