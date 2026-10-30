@@ -6,10 +6,21 @@ import java.util.*;
 public final class ColorTheme {
     public static final String GRAPHITE="graphite";
     public static final int MAX_SAVED=128,MAX_NAME=80;
+    private static final MenuColor[] TEXT_ROLES={MenuColor.TEXT,MenuColor.MUTED_TEXT},SURFACES={MenuColor.BACKGROUND,MenuColor.PANELS,MenuColor.CONTROLS};
     public String id="",name="";
     public Map<MenuColor,Integer> menuColors=MenuColor.defaults();
     public double menuOpacity=.8,widgetOpacity=.92;
     public int widgetBackground;
+
+    /** Opaque swatches and a neutral grey reference flag risk without sampling the changing world. */
+    public boolean lowContrast(){
+        for(var text:TEXT_ROLES)for(var surface:SURFACES){
+            int foreground=text.rgb(menuColors),background=surface.rgb(menuColors);
+            if(Contrast.ratio(foreground,background)<4.5||Contrast.ratio(foreground,Contrast.composite(background,menuOpacity,Contrast.REFERENCE))<4.5)return true;
+        }
+        int text=widgetOpacity<.5?Contrast.WIDGET_LIGHT:Contrast.widgetText(widgetBackground);
+        return Contrast.ratio(text,widgetBackground)<4.5||Contrast.ratio(text,Contrast.composite(widgetBackground,widgetOpacity,Contrast.REFERENCE))<4.5;
+    }
 
     public static ColorTheme graphite(){var theme=new ColorTheme();theme.id=GRAPHITE;theme.name="Graphite";return theme;}
     public static ColorTheme capture(String name,Library.Settings settings){

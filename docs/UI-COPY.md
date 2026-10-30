@@ -2242,6 +2242,18 @@ New profile keeps the import separate and lets you choose its name. Select an ex
 
 Themes include menu colors and opacity, plus widget background color and opacity. Select to preview; Apply keeps the changes.
 
+### Theme contrast warning
+
+> ID: afmr.copy.themes.low_contrast
+> Targets: Minecraft 26.3 builds
+> Where: Display: Themes and Theme colors — warning line
+> Placeholders: None
+> Reference behavior: Shown when Text or Secondary text is below 4.5:1 against Background, Panels or Buttons, or the widget text is below 4.5:1 against the widget background. Translucent colors are also checked over neutral #808080. It does not sample images or the world, and does not block Apply.
+
+**Text to edit:**
+
+Low contrast: some text is below 4.5:1.
+
 ### Song actions
 
 > ID: afmr.copy.library.song_actions

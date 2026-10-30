@@ -11,6 +11,7 @@ public enum MenuColor {
     TEXT("Text",0xEBEEF3), MUTED_TEXT("Secondary text",0xABB5C2),
     BORDERS("Borders",0x3B424C), SCROLLBARS("Scrollbars",0x66778B);
 
+    public static final int DISABLED_TEXT=0xFF969DAA;
     public final String label;
     public final int defaultRgb;
     MenuColor(String label,int rgb){this.label=label;defaultRgb=rgb;}

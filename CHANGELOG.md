@@ -12,7 +12,12 @@ for the combined update only after all in-progress tasks are complete.
 
 ## Unreleased
 
-No pending code changes in this release task.
+- Draw the workspace and page headers in whole physical pixels, bounded by GUI
+  Scale, with a 900x516 minimum canvas, so menu text stays crisp. Where snapping
+  would shrink text by more than 15% (e.g. 1366x768), keep the larger size.
+- Adapt HUD text to plain background colors and add shadows over translucent
+  fills/images; warn about low theme text contrast and brighten disabled labels
+  and the song table's "off" marker to at least 4.5:1.
 
 ## 1.1.1 — October 29, 2026
 

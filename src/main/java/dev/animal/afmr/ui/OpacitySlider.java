@@ -21,7 +21,7 @@ final class OpacitySlider extends AbstractSliderButton {
         int handle=x+(int)(value*(width-8));
         g.fill(handle,y,handle+8,y+height,isHoveredOrFocused()?MenuAppearance.background(MenuColor.HOVER,0x3B424D):MenuAppearance.background(MenuColor.SELECTION,0x304963));
         var font=MenuAppearance.font();
-        g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-12),x+6,y+(height-8)/2,active?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF6F7185),false);
+        g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-12),x+6,y+(height-8)/2,active?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):MenuAppearance.color(MenuColor.MUTED_TEXT,MenuColor.DISABLED_TEXT),false);
         handleCursor(g);
     }
 }

@@ -36,7 +36,7 @@ class FlatButton extends AbstractWidget {
         int background=selected?MenuAppearance.background(MenuColor.SELECTION,0x304963):isHoveredOrFocused()?MenuAppearance.background(MenuColor.HOVER,0x3B424D):MenuAppearance.background(MenuColor.CONTROLS,0x2C3038);
         g.fill(getX(),getY(),getX()+width,getY()+height,opaque?background|0xFF000000:background);
         if(selected)g.fill(getX(),getY()+height-2,getX()+width,getY()+height,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF));
-        var font=MenuAppearance.font();g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-8),getX()+4,getY()+(height-8)/2,active?(labelTextColor==null?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):labelTextColor):MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF6F7185),false);
+        var font=MenuAppearance.font();g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-8),getX()+4,getY()+(height-8)/2,active?(labelTextColor==null?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):labelTextColor):MenuAppearance.color(MenuColor.MUTED_TEXT,MenuColor.DISABLED_TEXT),false);
     }
     @Override public void onClick(MouseButtonEvent e,boolean twice){action.run();}
     @Override public boolean keyPressed(KeyEvent e){if(isFocused()&&active&&(e.key()==InputConstants.KEY_RETURN||e.key()==InputConstants.KEY_SPACE)){playDownSound(Minecraft.getInstance().getSoundManager());action.run();return true;}return false;}

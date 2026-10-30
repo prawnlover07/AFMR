@@ -8,6 +8,13 @@ The completed feature sections below shipped together in **1.1** on October 28,
 2026. Earlier verification/version statements record their development checkpoints.
 Open future requests and deeper testing remain deferred.
 
+## Workspace text size beyond the fitted pixel factor
+
+- Reflow or scroll the workspace so players can choose text larger than the
+  fitted whole-pixel factor, up to Minecraft's GUI Scale, without overlapping
+  columns, navigation or transport controls. The current fit prioritizes keeping
+  the complete workspace visible; larger text needs a separate layout pass.
+
 ## Multi-version expansion
 
 Completed for 1.1.1: the original two builds were released first, followed by all

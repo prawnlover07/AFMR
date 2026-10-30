@@ -22,7 +22,7 @@ final class TransportButton extends FlatButton {
     @Override protected void extractWidgetRenderState(GuiGraphicsExtractor g,int mx,int my,float dt){
         g.fill(getX(),getY(),getRight(),getBottom(),MenuAppearance.background(isHoveredOrFocused()?MenuColor.HOVER:MenuColor.CONTROLS,isHoveredOrFocused()?0x3B424D:0x2C3038));
         int x=getX()+width/2,y=getY()+height/2;
-        int color=MenuAppearance.color(active?MenuColor.TEXT:MenuColor.MUTED_TEXT,active?0xFFEBEEF3:0xFF6F7185);
+        int color=MenuAppearance.color(active?MenuColor.TEXT:MenuColor.MUTED_TEXT,active?0xFFEBEEF3:MenuColor.DISABLED_TEXT);
         if(icon==Icon.PAUSE){g.fill(x-4,y-5,x-1,y+5,color);g.fill(x+2,y-5,x+5,y+5,color);}
         else{
             int start=icon==Icon.NEXT?x-5:x-3;

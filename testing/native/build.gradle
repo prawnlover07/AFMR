@@ -46,6 +46,8 @@ neoForge {
                 if (project.hasProperty('uiFollowup')) jvmArguments.add('-Dafmr.probe.uiFollowup=true')
                 if (project.hasProperty('muteWarning')) jvmArguments.addAll '-Dafmr.probe.uiFollowup=true', '-Dafmr.probe.muteWarning=true'
                 if (project.hasProperty('inlineSettings')) jvmArguments.add('-Dafmr.probe.inlineSettings=true')
+                if (project.hasProperty('readability')) jvmArguments.add('-Dafmr.probe.readability=true')
+                if (project.hasProperty('compare')) jvmArguments.addAll '-Dafmr.probe.readability=true', "-Dafmr.probe.compare=${project.property('compare')}"
                 if (project.hasProperty('proximityVolume')) jvmArguments.addAll '-Dafmr.probe.features101=true', '-Dafmr.probe.proximityVolume=true'
                 if (project.hasProperty('features101')) jvmArguments.add('-Dafmr.probe.features101=true')
                 if (project.hasProperty('transitions')) jvmArguments.add('-Dafmr.probe.transitions=true')

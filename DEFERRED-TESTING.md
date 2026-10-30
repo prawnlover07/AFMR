@@ -1,5 +1,28 @@
 # AFMR: remaining deeper testing
 
+## Menu/HUD readability (Unreleased)
+
+- Whole-pixel workspace scaling, HUD colour, theme warning and grey-text
+  changes are applied; `build` (including ContrastTest and WorkspaceLayoutTest)
+  passes with the local JDK 25. The song-table width floor is now 350 canvas
+  pixels (was 420).
+- [x] October 30 isolated 60 FPS run (`runClient -Pworkspace -Preadability`,
+  results in `testing/native/results/readability-results.txt`, screenshots
+  `readability-*.png`): measured 1.000 px per canvas pixel at 1920x1080 GUI 1,
+  2.000 at GUI 2/3/4 (canvas 960x540). Small screens keep the larger fractional
+  size when snapping would shrink text more than 15%: 1.488 at 1366x768 GUI 3
+  and 1.395 at 1280x720 GUI 2 (canvas 917x516; released 1.1.1 drew 1.37 and
+  1.28). Screenshots show crisp 1080p text and no overlap; at 960 wide the song
+  table scrolls horizontally to reach Time, and at 917 wide the Album header is
+  clipped and Playlist Settings needs scrolling for its last row. Editing
+  Secondary text to the button colour shows the warning and restoring it clears
+  it. Widget fills pick light text on black (19.3:1) and #757575 (4.24:1), dark
+  on white (19.0:1) and #F0C040 (11.2:1). Before/after captures:
+  `runClient -Pworkspace -Pcompare=before|after` with the matching JAR staged.
+- [ ] Not yet checked natively: 3840x2160, tiny-window fallback, tooltip and
+  mouse alignment at the new factors, widget image/Hybrid/fades over the world,
+  theme picker return, reset and imports.
+
 ## Additional Minecraft targets — October 29
 
 All ten client targets and matching optional companions pass their scoped release
