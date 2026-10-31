@@ -83,7 +83,7 @@ class QueuedPlaybackTest {
         s.engine.setPaused(false,60);s.tick(60);assertSame(s.b,s.engine.current());
     }
     @Test void previewInterruptsWithoutDiscardingPendingQueue(){
-        var s=new Scenario();s.enqueue(s.b);s.engine.preview(s.c,0);s.tick(2);assertSame(s.c,s.engine.current());assertTrue(s.engine.previewing());
+        var s=new Scenario();s.enqueue(s.b);s.engine.preview(s.c,0,false);s.tick(2);assertSame(s.c,s.engine.current());assertTrue(s.engine.previewing());
         s.end(3);s.tick(13);assertSame(s.b,s.engine.current());
     }
     @Test void queuedRequestsTemporarilyTakePrecedenceAndThenResumeAHeldOverride(){
@@ -143,7 +143,7 @@ class QueuedPlaybackTest {
         s.engine.returnAutomatic();assertFalse(s.engine.queueWaitingForOverride());assertEquals(1,s.engine.queue().size());s.end(1);s.tick(11);assertSame(s.b,s.engine.current());
     }
     @Test void historyDistinguishesPreviewsOverridesAndQueuedStarts(){
-        var s=new Scenario();s.engine.preview(s.c,0);assertEquals(Origin.PREVIEW,s.engine.history().snapshot().getFirst().origin());
+        var s=new Scenario();s.engine.preview(s.c,0,false);assertEquals(Origin.PREVIEW,s.engine.history().snapshot().getFirst().origin());
         s.engine.overridePlaylist(s.automatic.id,OverrideMode.UNTIL_RELEASED,1,s.lib,Set.of());s.tick(1);
         assertEquals(Origin.OVERRIDE,s.engine.history().snapshot().getFirst().origin());s.enqueue(s.b);s.engine.nextSong(2,s.lib,context(false,false),Set.of());s.tick(2);
         var entry=s.engine.history().snapshot().getFirst();assertEquals(Origin.QUEUE,entry.origin());assertEquals(s.requests.name,entry.playlistName());assertTrue(entry.reason().contains("Queued manually"));

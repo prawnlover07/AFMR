@@ -25,8 +25,8 @@ class PlaybackNotificationTest {
         tick(6);engine.setPaused(true,6);tick(20);assertEquals(first,engine.playbackSequence());
         engine.setPaused(false,20);engine.nextSong(21,library,outside,Set.of());tick(21);
         assertSame(track,engine.current());assertEquals(first+1,engine.playbackSequence());
-        engine.preview(track,22);assertEquals(first+2,engine.playbackSequence());
-        engine.reset();engine.preview(track,23);assertEquals(first+3,engine.playbackSequence());
+        engine.preview(track,22,false);assertEquals(first+2,engine.playbackSequence());
+        engine.reset();engine.preview(track,23,false);assertEquals(first+3,engine.playbackSequence());
     }
 
     @Test void failedStartDoesNotNotify(){
@@ -38,7 +38,7 @@ class PlaybackNotificationTest {
             public void stop(){}
             public void setPaused(boolean paused){}
         },new Random(1));
-        broken.preview(track,0);assertNull(broken.current());assertEquals(0,broken.playbackSequence());
+        broken.preview(track,0,false);assertNull(broken.current());assertEquals(0,broken.playbackSequence());
     }
 
     @Test void frequencyChangeRestartsPendingGapAndKeepsAPlayingSong(){

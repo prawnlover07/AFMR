@@ -52,7 +52,7 @@ class CombatDeathTest {
         library.settings.combatDeathMusic=DeathMusic.CUT;tick(14,false,true);assertNull(engine.current());
     }
     @Test void manualPreviewsAreNotTreatedAsAutomaticCombatMusic(){
-        engine.preview(combat,13);tick(14,false,true);tick(20,false,true);assertSame(combat,engine.current());assertTrue(engine.previewing());
+        engine.preview(combat,13,false);tick(14,false,true);tick(20,false,true);assertSame(combat,engine.current());assertTrue(engine.previewing());
     }
     @Test void anyModeSongStartedByWeatherWhilePeacefulDoesNotReceiveCombatDeathCut(){
         var p=library.createPlaylist("Fight or clear");p.conditions.matchAny=true;p.conditions.combat=State.YES;

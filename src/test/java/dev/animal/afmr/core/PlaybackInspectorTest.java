@@ -52,7 +52,7 @@ class PlaybackInspectorTest {
         assertEquals("OVERRIDE / Automatic selection disabled",row(p.id,context(true,false)).status());assertFalse(p.enabled);
     }
     @Test void previewAndFadingAreReported(){
-        var day=lib.playlist("day_outside");song(day,"day");engine.preview(lib.track("day"),0);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),0).contains("Manual preview"));
+        var day=lib.playlist("day_outside");song(day,"day");engine.preview(lib.track("day"),0,false);assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),0).contains("Manual preview"));
         var combat=lib.playlist("combat");song(combat,"fight");lib.settings.fadeInSeconds=lib.settings.fadeOutSeconds=2;
         engine.overridePlaylist(combat.id,OverrideMode.UNTIL_RELEASED,1,lib,Set.of());assertTrue(PlaybackInspector.waiting(engine,lib,context(true,false),Set.of(),1).contains("Combat; no gap"));
     }

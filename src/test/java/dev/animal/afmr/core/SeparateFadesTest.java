@@ -36,7 +36,7 @@ class SeparateFadesTest {
         s.tick(13,false);assertEquals(0.5,s.audio.gain,0.001);s.tick(16,false);assertEquals(1,s.audio.gain);
     }
     @Test void previewUsesFadeInIndependently(){
-        var s=new Scenario(4,20);s.engine.preview(s.lib.track(s.b.id),0);s.tick(1,false);assertEquals(0.25,s.audio.gain,0.001);
+        var s=new Scenario(4,20);s.engine.preview(s.lib.track(s.b.id),0,false);s.tick(1,false);assertEquals(0.25,s.audio.gain,0.001);
         s.tick(4,false);assertEquals(1,s.audio.gain);assertTrue(s.engine.previewing());
     }
     @Test void eitherFadeCanBeZeroWithoutDisablingTheOther(){

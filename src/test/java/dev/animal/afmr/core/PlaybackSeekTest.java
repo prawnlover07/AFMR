@@ -17,7 +17,7 @@ class PlaybackSeekTest {
     private final Library lib=Library.defaults();
     private final Context context=new Context("minecraft:overworld","minecraft:plains",false,false,6000,false,15,"world",0,70,0,0,.8,false,StructureContext.UNAVAILABLE,false,false,Precipitation.NONE,10,false,"","",GameMode.SURVIVAL,false,NearbyPlayers.EMPTY,false);
     private void tick(double now){engine.tick(now,lib,context,java.util.Set.of());}
-    private void start(){track.durationSeconds=120;engine.preview(track,10);}
+    private void start(){track.durationSeconds=120;engine.preview(track,10,false);}
     @Test void seekRetainsPlaybackIdentityAndDoesNotReplayNotifications(){
         start();long sequence=engine.playbackSequence();
         assertTrue(engine.seek(80,15));assertSame(track,engine.current());assertTrue(engine.previewing());

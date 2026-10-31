@@ -47,7 +47,7 @@ class SongGroupsTest {
     }
     @Test void skipKeepsTheNormalGapAndResetsGroup(){var s=new Scenario();s.start();s.engine.skip(1,s.lib);assertEquals(10,s.engine.remainingSilence(1));s.tick(11);assertEquals(1,s.engine.groupStarted());}
     @Test void nextBypassesGapButBeginsANewGroup(){var s=new Scenario();s.start();s.end(1);s.engine.nextSong(2,s.lib,CONTEXT,Set.of());s.tick(2);assertEquals(1,s.engine.groupStarted());}
-    @Test void previewDoesNotCountAndKeepsItsNormalGap(){var s=new Scenario();s.start();s.engine.preview(s.lib.tracks.get(0),1);s.end(2);assertNull(s.engine.current());assertEquals(10,s.engine.remainingSilence(2));}
+    @Test void previewDoesNotCountAndKeepsItsNormalGap(){var s=new Scenario();s.start();s.engine.preview(s.lib.tracks.get(0),1,false);s.end(2);assertNull(s.engine.current());assertEquals(10,s.engine.remainingSilence(2));}
     @Test void manualQueueRetainsNormalSilence(){
         var s=new Scenario();s.start();assertTrue(s.engine.enqueue("a1","a",s.lib));s.end(1);assertNull(s.engine.current());assertEquals(10,s.engine.remainingSilence(1));
         s.tick(11);assertTrue(s.engine.queuedPlaying());s.end(12);assertNull(s.engine.current());assertEquals(10,s.engine.remainingSilence(12));

@@ -61,7 +61,7 @@ class PlaylistVolumeTest {
         s.tick(2,false);s.tick(3,false);assertEquals(1,s.audio.gain,0.001);
     }
     @Test void previewDoesNotInheritPreviousPlaylistVolume(){
-        var s=new Scenario();s.start();s.engine.preview(s.lib.track(s.b.id),2);s.tick(3,false);assertEquals(1,s.audio.gain,0.001);
+        var s=new Scenario();s.start();s.engine.preview(s.lib.track(s.b.id),2,false);s.tick(3,false);assertEquals(1,s.audio.gain,0.001);
     }
     @Test void jukeboxResumeUsesTheSameVolumeWithoutSquaringIt(){
         var s=new Scenario();s.start();s.lib.settings.jukeboxMode=JukeboxMode.RESUME;s.lib.settings.fadeOutSeconds=2;s.lib.settings.fadeInSeconds=4;

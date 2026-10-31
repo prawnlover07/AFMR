@@ -87,7 +87,7 @@ class PlayImmediatelyOnJoinTest {
         s.tick(600);assertSame(s.a,s.engine.current());assertTrue(s.engine.queuedPlaying());
     }
     @Test void previewsAndOverridesRetainTheirUsualPriorityAndLaterGap(){
-        var s=new Scenario();s.enable();s.engine.preview(s.a,0);s.tick(2);assertSame(s.a,s.engine.current());
+        var s=new Scenario();s.enable();s.engine.preview(s.a,0,false);s.tick(2);assertSame(s.a,s.engine.current());
         s.audio.current=null;s.tick(10);assertEquals(600,s.engine.remainingSilence(10));
         s.engine.reset();s.join();assertTrue(s.engine.overridePlaylist(s.fallback.id,OverrideMode.UNTIL_RELEASED,20,s.lib,Set.of()));
         s.tick(20);assertSame(s.a,s.engine.current());assertEquals(s.fallback.id,s.engine.overrideId());

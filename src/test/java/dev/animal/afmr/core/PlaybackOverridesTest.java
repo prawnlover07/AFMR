@@ -94,7 +94,7 @@ class PlaybackOverridesTest {
         assertNull(engine.overrideId());tick(20,true);assertEquals("day_outside",engine.sourcePlaylistId());
     }
     @Test void previewCancelsOverrideAndThenReturnsAutomatic(){
-        force(13,manual,OverrideMode.UNTIL_RELEASED);tick(15,true);var preview=lib.track(manual.tracks.keySet().iterator().next());engine.preview(preview,16);
+        force(13,manual,OverrideMode.UNTIL_RELEASED);tick(15,true);var preview=lib.track(manual.tracks.keySet().iterator().next());engine.preview(preview,16,false);
         assertNull(engine.overrideId());assertTrue(engine.previewing());audio.current=null;tick(17,true);tick(27,true);assertEquals("day_outside",engine.sourcePlaylistId());
     }
     @Test void forcedCombatRetainsConfiguredDeathPolicy(){

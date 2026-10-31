@@ -84,7 +84,7 @@ class JukeboxPlaybackTest {
     @Test void nextAndPreviewCanBeQueuedWithoutPlayingOverTheRecord(){
         var s=new Scenario(JukeboxMode.RESUME);s.hold();assertTrue(s.engine.nextSong(10,s.lib,context(true,false),Set.of()));s.tick(11,true);assertNull(s.engine.current());
         s.tick(20,false);assertNotNull(s.engine.current());
-        var preview=new Scenario(JukeboxMode.RESUME);preview.hold();var track=new Track("preview","file","Preview",false);preview.engine.preview(track,10);preview.tick(11,true);
+        var preview=new Scenario(JukeboxMode.RESUME);preview.hold();var track=new Track("preview","file","Preview",false);preview.engine.preview(track,10,false);preview.tick(11,true);
         assertTrue(preview.audio.paused);preview.tick(20,false);assertSame(track,preview.engine.current());assertTrue(preview.engine.previewing());
     }
     @Test void immediateDoesNotBypassTheDeathGuard(){

@@ -31,7 +31,7 @@ public final class LibraryScreen extends Screen {
     private final Map<String,Integer> ranks=new HashMap<>();
     private final EnumMap<WorkspacePage,MusicScreen> pages=new EnumMap<>(WorkspacePage.class);
     private FlatButton addPlaying,skipWait,repairButton,undoButton,redoButton,songActions,playlistActions;
-    private TransportButton playPause,nextTrack;
+    private TransportButton rewind,playPause,nextTrack;
     private static final int PLAYLIST_ACTION_WIDTH=22,PLAYLIST_ACTION_GAP=4;
     private Playlist actionPlaylist;
     private final PriorityDrag priorityDrag=new PriorityDrag();
@@ -137,14 +137,16 @@ public final class LibraryScreen extends Screen {
         if(settingsPanels.containsKey(playlistId)&&settingsPanels.get(playlistId).playlist!=playlist())settingsPanels.remove(playlistId);
         settingsPanel=settingsPanels.computeIfAbsent(playlistId,id->new PlaylistSettingsPanel(this,runtime,playlist()));
         for(var control:settingsPanel.build(layout))addRenderableWidget(control);
-        int transportX=vw/2-100,transportY=layout.footerY()+15;
-        playPause=addRenderableWidget(new TransportButton(transportX,transportY,scale,"afmr.copy.library.pause_and_resume",()->{
+        int transportX=vw/2-107,transportY=layout.footerY()+15;
+        rewind=addRenderableWidget(new TransportButton(transportX,transportY,scale,"afmr.copy.library.rewind",runtime::rewind));
+        rewind.state(TransportButton.Icon.PREVIOUS,"Rewind (restart / previous song)");
+        playPause=addRenderableWidget(new TransportButton(transportX+34,transportY,scale,"afmr.copy.library.pause_and_resume",()->{
             if(runtime.engine().paused()||runtime.engine().current()!=null)runtime.togglePause();
             else runtime.playNow();
         }));
-        nextTrack=addRenderableWidget(new TransportButton(transportX+34,transportY,scale,"afmr.copy.library.next",runtime::nextSong));
+        nextTrack=addRenderableWidget(new TransportButton(transportX+68,transportY,scale,"afmr.copy.library.next",runtime::nextSong));
         nextTrack.state(TransportButton.Icon.NEXT,"Next song now");
-        skipWait=flat("Skip & wait",transportX+68,transportY,112,22,runtime::skip);
+        skipWait=flat("Skip & wait",transportX+102,transportY,112,22,runtime::skip);
         var skipHelp=Component.translatable("afmr.copy.library.skip_wait");
         if(!skipHelp.getString().isBlank())skipWait.setTooltip(Tooltip.create(skipHelp));
         addPlaying=flat("Add playing to playlist",transportX,transportY+26,228,22,()->{
@@ -174,7 +176,7 @@ public final class LibraryScreen extends Screen {
         runtime.engine().requestCurrentDuration();var track=runtime.engine().current();
         if(playPause!=null){
             boolean canPlay=runtime.inWorld()&&runtime.enabled();
-            playPause.active=nextTrack.active=canPlay;skipWait.active=canPlay&&track!=null;
+            rewind.active=playPause.active=nextTrack.active=canPlay;skipWait.active=canPlay&&track!=null;
             playPause.state(track!=null&&!runtime.engine().paused()?TransportButton.Icon.PAUSE:TransportButton.Icon.PLAY,runtime.engine().paused()?"Resume":track==null?"Play now":"Pause");
         }
         nowPlayingTitle.active=track!=null&&runtime.library().playlist(runtime.engine().sourcePlaylistId())!=null;

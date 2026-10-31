@@ -85,7 +85,7 @@ class PlaylistTransitionsTest {
         s.tick(30,s.b);s.tick(31,s.c);s.tick(33,s.c);assertEquals(PlaybackEngine.Phase.FADING,s.engine.phase());
     }
     @Test void previewsStayIndependentOfPlaylistEntryAndExitSettings(){
-        var s=new Scenario();var preview=new Track("preview","file","Preview",false);s.engine.preview(preview,13);
+        var s=new Scenario();var preview=new Track("preview","file","Preview",false);s.engine.preview(preview,13,false);
         s.enterB();assertSame(preview,s.audio.current);assertTrue(s.engine.previewing());
         s.audio.current=null;s.tick(20,s.b);s.tick(30,s.b);assertEquals(s.b.id,s.audio.current.id);assertFalse(s.engine.previewing());
     }

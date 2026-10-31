@@ -70,7 +70,7 @@ class PlayOnTriggerTest {
         s.tick(25,14000);assertEquals(s.b.id,s.engine.sourcePlaylistId());
     }
     @Test void previewsAndHeldOverridesRetainPriority(){
-        var s=new Scenario();var t=new Track("preview","file","Preview",false);s.engine.preview(t,13);s.tick(14,14000);s.tick(18,14000);assertSame(t,s.engine.current());
+        var s=new Scenario();var t=new Track("preview","file","Preview",false);s.engine.preview(t,13,false);s.tick(14,14000);s.tick(18,14000);assertSame(t,s.engine.current());
         s.audio.current=null;s.tick(20,14000);s.tick(29.99,14000);assertNull(s.engine.current());s.tick(30,14000);assertEquals(s.b.id,s.engine.sourcePlaylistId());
         var held=new Scenario();assertTrue(held.engine.overridePlaylist(held.a.id,OverrideMode.UNTIL_RELEASED,13,held.lib,Set.of()));
         held.tick(14,14000);held.tick(16,14000);assertEquals(held.a.id,held.engine.sourcePlaylistId());assertEquals(held.a.id,held.engine.overrideId());

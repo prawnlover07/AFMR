@@ -71,6 +71,12 @@ resume. **Skip & wait** ends the current song and
 uses the usual silence before another starts. Hover the icons for their current
 action names; keyboard focus and Enter/Space work too.
 
+On NeoForge 26.3, **Rewind** (left of Play/Pause) restarts the current song after
+more than three seconds into the song. At three seconds or less, or during silence, it
+plays the previous song from listening history. Repeated presses walk further
+back; any normal song start resets that walk. Rewind keeps the queue and active
+override, and manual replays finish before normal scheduling resumes.
+
 Hover a playlist in the priority list to reveal its **…** button on the right.
 It opens the same menu as right-clicking that playlist. A focused playlist also
 shows the button; **Shift+F10** opens its menu and **F2** still renames it. Drag
