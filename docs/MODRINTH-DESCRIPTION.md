@@ -54,7 +54,7 @@ Enjoy :)
 | 1.18.2 | Fabric Loader 0.19.5 | Fabric API | 17 |
 
 - **Client-side mod:** servers and friends don't need it
-- **Optional server companion:** lets structure detection and combat target tracking work in multiplayer. Without it, combat is detected by a simple timer.
+- **Optional [server companion](https://modrinth.com/mod/afmr-server-companion):** lets structure detection and combat target tracking work in multiplayer. Without it, combat is detected by a simple timer.
   - On **1.18.2** and **1.19.2** servers without the companion, combat only starts when *you* attack something.
 - **Tested on Windows.** Mac and Linux not tested.
 

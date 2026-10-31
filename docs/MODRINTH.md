@@ -81,14 +81,16 @@ checkers can tell the files apart.
 
 ### Server companions
 
-Not uploaded yet. Modrinth's version form warns that supplementary files are
-"not for alternative versions or variants", so the companion JARs may not pass
-review as additional files. The ten client versions were created without them on
-October 30, 2026. Pick one before adding them:
-
-- a separate small project (Client-side **Unsupported**, Server-side **Required**)
-  with the ten `-server-` JARs, or
-- leave them on CurseForge only and link there from the description.
+Modrinth warns that supplementary files are "not for alternative versions or
+variants", so the companions have their own draft project, set up October 30-31, 2026:
+`animal's final music replacer: server companion` at
+https://modrinth.com/mod/afmr-server-companion. Description:
+[MODRINTH-COMPANION-DESCRIPTION.md](MODRINTH-COMPANION-DESCRIPTION.md). Its ten
+versions use the same numbers as the client (`1.1.1+<version>-<loader>`), the
+`-server-` JARs, environment **Server-side only, dedicated server only**, and Fabric
+API as required on the Fabric ones. They do **not** depend on the client project,
+so server installs never pull in the client JAR. License, Utility tag, links and
+Ko-fi match the main project; disclosures and submission are left to the owner.
 
 ### Changelog (same text for every version)
 
