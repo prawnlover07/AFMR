@@ -97,9 +97,8 @@ Use as raw material. Pick what matters to *your* reader; you don't need all of i
 - Name: **animal's final music replacer** (AFMR) · Author: animal · License: **MIT**
 - Mod ID: `afmr` · Version: **1.1.1** (October 29, 2026)
 - Source: https://github.com/prawnlover07/AFMR (public)
-- CurseForge: project ID 1773357, `animals-final-music-replacer` (files, screenshots
-  and third-party distribution set up; public page still 404 on October 29, 2026,
-  presumably awaiting moderation)
+- CurseForge: project ID 1773357, `afmr` (https://www.curseforge.com/minecraft/mc-mods/afmr; files, screenshots
+  and third-party distribution set up; public and approved by October 30, 2026)
 - Bug reports: GitHub Issues with forms in `.github/ISSUE_TEMPLATE/`
 
 ### Requirements
@@ -363,7 +362,7 @@ Notes on the current README:
 - [ ] On the public Files tab, check each JAR's Minecraft version, loader, Client/Server
       tag and Fabric API dependency.
 - [x] Add the CurseForge link to the README, user guide and installation checklist
-      (uses the `animals-final-music-replacer` slug; recheck once the page is public).
+      (uses the `afmr` slug; checked live on October 30, 2026).
 - [x] Turn on third-party distribution.
 - [x] Set up bug reporting: GitHub issue forms (bug report, idea) in `.github/ISSUE_TEMPLATE/`.
 - [ ] Next update: homepage/issue links in the mod metadata.

@@ -35,7 +35,7 @@ Start with [your first song](#install-and-hear-your-first-song), keep the
 ## Install and hear your first song
 
 1. Download the AFMR file matching your Minecraft version and loader from
-   [CurseForge](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files);
+   [CurseForge](https://www.curseforge.com/minecraft/mc-mods/afmr/files);
    the [installation table](INSTALLATION.md) lists each one's requirements. Install it on your own client for ordinary
    use. The optional matching companion adds server observations described below.
 2. Close Minecraft. Put the package's AFMR client JAR in your game
@@ -169,7 +169,7 @@ the world behind the same address also requires recapturing it.
 
 The **Structures** filter works in singleplayer and on multiplayer servers with
 AFMR's optional server companion. Download the matching companion from the
-[AFMR CurseForge page](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files).
+[AFMR CurseForge page](https://www.curseforge.com/minecraft/mc-mods/afmr/files).
 Its filename includes `server`, the loader and Minecraft version. Use only one AFMR
 JAR per server. Fabric servers also need the matching Fabric API. Clients keep the
 ordinary AFMR client JAR. The companion contains no music or audio code and does

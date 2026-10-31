@@ -4,7 +4,7 @@ AFMR 1.1.1 runs on your Minecraft client. The server and other players do not ne
 for ordinary playback. An optional server companion adds structure detection and
 mob-target combat retention in multiplayer.
 Download the file that matches your game and loader from
-[CurseForge](https://www.curseforge.com/minecraft/mc-mods/animals-final-music-replacer/files);
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/afmr/files);
 these JARs are separate builds and cannot be used interchangeably.
 
 | Package | Minecraft Java | Loader | Java runtime |

@@ -1,6 +1,6 @@
 **animal's final music replacer** automatically plays your own music files based on what's happening in the world. You can set music to play in a variety of situations, including current biome, time of day, health, combat status and more. Want *cozy music* that plays when you're close to home, *eerie music* for caving or even a *theme song* for when your best friends (or enemies...?) are near? **AFMR lets you do this, and much more.**
 
-*[Screenshot: replace this line with your best image]*
+![](https://media.forgecdn.net/attachments/description/1773357/description_6837e401-ef2b-4e17-9ecb-698615a7a03e.png)
 
 ---
 
@@ -19,7 +19,7 @@
 - **Custom themes and colors**, including fonts, images and even GIFs
 - Reorganize your music folders? **AFMR can find your songs again**
 
-*[Screenshot: optional second image, e.g. the now playing widget]*
+![](https://media.forgecdn.net/attachments/description/1773357/description_8a378151-acf2-4858-9034-290d8aed5fdf.png)
 
 ---
 
@@ -42,19 +42,19 @@ Enjoy :)
 
 | Minecraft | Loader | Also needs | Java |
 | --- | --- | --- | --- |
-| 26.3 | NeoForge 26.3.0.90+ | — | 25 |
-| 26.3 | Fabric Loader 0.20.1+ | Fabric API | 25 |
-| 1.21.1 | NeoForge 21.1.265+ | — | 21 |
-| 1.21.1 | Fabric Loader 0.19.5+ | Fabric API | 21 |
-| 1.20.1 | Forge 47.4.0+ | — | 17 |
-| 1.20.1 | Fabric Loader 0.19.5+ | Fabric API | 17 |
-| 1.19.2 | Forge 43.5.0+ | — | 17 |
-| 1.19.2 | Fabric Loader 0.19.5+ | Fabric API | 17 |
-| 1.18.2 | Forge 40.3.0+ | — | 17 |
-| 1.18.2 | Fabric Loader 0.19.5+ | Fabric API | 17 |
+| 26.3 | NeoForge 26.3.0.90 | — | 25 |
+| 26.3 | Fabric Loader 0.20.1 | Fabric API | 25 |
+| 1.21.1 | NeoForge 21.1.265 | — | 21 |
+| 1.21.1 | Fabric Loader 0.19.5 | Fabric API | 21 |
+| 1.20.1 | Forge 47.4.0 | — | 17 |
+| 1.20.1 | Fabric Loader 0.19.5 | Fabric API | 17 |
+| 1.19.2 | Forge 43.5.0 | — | 17 |
+| 1.19.2 | Fabric Loader 0.19.5 | Fabric API | 17 |
+| 1.18.2 | Forge 40.3.0 | — | 17 |
+| 1.18.2 | Fabric Loader 0.19.5 | Fabric API | 17 |
 
 - **Client-side mod:** servers and friends don't need it
-- **Optional server companion:** structure detection and combat target tracking only work in single-player. Server owners can use the companion to track that data in multiplayer. Without the companion, combat is detected by a simple timer instead of hostile mob aggression.
+- **Optional server companion:** lets structure detection and combat target tracking work in multiplayer. Without it, combat is detected by a simple timer.
   - On **1.18.2** and **1.19.2** servers without the companion, combat only starts when *you* attack something.
 - **Tested on Windows.** Mac and Linux not tested.
 
@@ -98,6 +98,8 @@ AFMR is free and open source under the **MIT license**. You're welcome to modify
 
 ### 🙏 Credits
 
+thanks to my friends for supporting this project & helping make it better :)
+
 AFMR bundles these open-source libraries, under their own licenses (LGPL, BSD and MIT):
 
 - **MP3SPI, JLayer, VorbisSPI, JOrbis and Tritonus Share:** MP3 and OGG playback
@@ -108,8 +110,8 @@ AFMR bundles these open-source libraries, under their own licenses (LGPL, BSD an
 
 Full license texts and notices are included in every download.
 
----
-
 If you enjoy AFMR, you can support me here:
+
+---
 
 [![Support me on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/animal12345)
