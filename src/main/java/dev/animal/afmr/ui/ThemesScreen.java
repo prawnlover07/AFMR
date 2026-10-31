@@ -16,6 +16,7 @@ final class ThemesScreen extends MusicScreen {
     private DenseList<ColorTheme> themes;
     private int revision,menuFocus;
     private String seenImport="";
+    private String contrastWarning="";
     private boolean revealSelection=true;
     private List<ColorTheme> rows=List.of();
     private final List<FlatButton> menu=new ArrayList<>();
@@ -27,6 +28,7 @@ final class ThemesScreen extends MusicScreen {
     void selected(String id){selectedId=id;revealSelection=true;}
     @Override protected void init(){
         int offset=themes==null?0:themes.offset();super.init();if(runtime.themes().preview()==null)runtime.themes().draft();menu.clear();revision=runtime.themes().revision();int half=(contentWidth-6)/2;boolean ready=!runtime.themes().busy();
+        contrastWarning=runtime.themes().draft().lowContrast()?fit(MenuAppearance.CONTRAST_WARNING.getString(),contentWidth):"";
         button("Edit colors…",left,49,half,()->minecraft.gui.setScreen(new ThemeEditorScreen(this,runtime))).active=ready;
         button("Save as…",left+half+6,49,half,()->minecraft.gui.setScreen(new ThemeNameScreen(this,runtime,""))).active=ready&&runtime.library().settings.savedThemes.size()<ColorTheme.MAX_SAVED;
         themes=addRenderableWidget(new DenseList<>(left,79,contentWidth,Math.max(28,bodyBottom()-164),(g,theme,x,y,w,hover)->{
@@ -60,7 +62,7 @@ final class ThemesScreen extends MusicScreen {
     private void item(String label,int x,int y,int w,Runnable action,boolean active){var button=new FlatButton(label,x,y+menu.size()*24,w,24,1,()->{menu.clear();action.run();});button.active=active;button.opaque=true;menu.add(button);}
     @Override public boolean mouseClicked(MouseButtonEvent event,boolean twice){
         if(!menu.isEmpty()){for(var button:List.copyOf(menu))if(button.mouseClicked(event,twice))return true;menu.clear();return true;}
-        if(event.buttonInfo().button()==InputConstants.MOUSE_BUTTON_RIGHT){var theme=themes.itemAt(event.x(),event.y());if(theme!=null&&!runtime.themes().busy()&&runtime.themes().previewTheme(theme.id)){selected(theme.id);revision=runtime.themes().revision();openMenu((int)event.x(),(int)event.y());return true;}}
+        if(event.buttonInfo().button()==InputConstants.MOUSE_BUTTON_RIGHT){var theme=themes.itemAt(event.x(),event.y());if(theme!=null&&!runtime.themes().busy()&&runtime.themes().previewTheme(theme.id)){selected(theme.id);revision=runtime.themes().revision();contrastWarning=runtime.themes().draft().lowContrast()?fit(MenuAppearance.CONTRAST_WARNING.getString(),contentWidth):"";openMenu((int)event.x(),(int)event.y());return true;}}
         return super.mouseClicked(event,twice);
     }
     @Override public boolean keyPressed(KeyEvent event){
@@ -79,5 +81,8 @@ final class ThemesScreen extends MusicScreen {
 
     }
     @Override public void extractRenderState(GuiGraphicsExtractor g,int x,int y,float dt){super.extractRenderState(g,x,y,dt);if(!menu.isEmpty())g.nextStratum();for(var button:menu)button.extractRenderState(g,x,y,dt);}
-    @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float dt){g.text(menuFont,fit(runtime.themes().status(),contentWidth),left,bodyBottom()-78,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF),false);}
+    @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float dt){
+        g.text(menuFont,fit(runtime.themes().status(),contentWidth),left,bodyBottom()-78,MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF),false);
+        if(!contrastWarning.isEmpty())g.text(menuFont,contrastWarning,left,bodyBottom()-66,0xFFFFA0A0,true);
+    }
 }

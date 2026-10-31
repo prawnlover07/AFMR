@@ -73,7 +73,7 @@ public final class LibraryScreen extends Screen {
         menuButtons.clear();
         int folderOffset=folders==null?0:folders.offset(),songOffset=songs==null?0:songs.offset();
         int priorityOffset=priorities==null?0:priorities.offset();
-        layout=WorkspaceLayout.fit(width,height);scale=layout.scale();vw=layout.width();vh=layout.height();
+        layout=WorkspaceLayout.fit(minecraft.getWindow().getWidth(),minecraft.getWindow().getHeight(),minecraft.getWindow().getGuiScale());scale=layout.scale();vw=layout.width();vh=layout.height();
         split=layout.sidebarWidth();tableX=layout.tableX();tableWidth=layout.tableWidth();
         backgrounds=new ArrayList<>();backgrounds.add(new MenuSurface(0,0,vw,vh,MenuColor.BACKGROUND,0x17191D));
         for(var panel:List.of(new MenuSurface(0,0,vw,64,MenuColor.PANELS,0x202329),
@@ -362,8 +362,8 @@ public final class LibraryScreen extends Screen {
     }
     private void drawSong(GuiGraphicsExtractor g,Track t,int x,int y,int w,boolean hover){
         if(songSelection.contains(t.id)||hover)g.fill(x,y,x+w,y+14,songSelection.contains(t.id)?MenuAppearance.color(MenuColor.SELECTION,0xFF304963):MenuAppearance.color(MenuColor.HOVER,0xFF2C303E));
-        Boolean explicit=playlist().tracks.get(t.id);int color=Boolean.FALSE.equals(explicit)?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF7A808F):MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED);
-        g.text(menuFont,explicit==null?"auto":explicit?"on":"off",x+3,y+3,Boolean.FALSE.equals(explicit)?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF7A808F):MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF),false);
+        Boolean explicit=playlist().tracks.get(t.id);int color=Boolean.FALSE.equals(explicit)?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADB7C4):MenuAppearance.color(MenuColor.TEXT,0xFFE6E8ED);
+        g.text(menuFont,explicit==null?"auto":explicit?"on":"off",x+3,y+3,Boolean.FALSE.equals(explicit)?MenuAppearance.color(MenuColor.MUTED_TEXT,0xFFADB7C4):MenuAppearance.color(MenuColor.ACCENT,0xFF90C6FF),false);
         if(runtime.engine().current()!=null&&t.id.equals(runtime.engine().current().id))PlaybackIndicator.draw(g,x+30,y+2,runtime.engine().paused());
         if(y>=songs.getY()&&y+14<=songs.getY()+songs.getHeight()&&(hover||actionSong==null&&(songs.isFocused()||songActions.isFocused())&&t.id.equals(songAnchor))){actionSong=t;songActions.setY(y);songActions.visible=true;}
         var cells=songCells.get(t.id);if(cells==null)return;

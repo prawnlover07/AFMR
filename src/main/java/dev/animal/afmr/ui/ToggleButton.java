@@ -22,6 +22,6 @@ final class ToggleButton extends FlatButton {
         }
         var font=MenuAppearance.font();
         g.text(font,font.plainSubstrByWidth(getMessage().getString(),width-22),getX()+20,getY()+(height-8)/2,
-            active?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):MenuAppearance.color(MenuColor.MUTED_TEXT,0xFF6F7185),false);
+            active?MenuAppearance.color(MenuColor.TEXT,0xFFEBEEF3):MenuAppearance.color(MenuColor.MUTED_TEXT,MenuColor.DISABLED_TEXT),false);
     }
 }

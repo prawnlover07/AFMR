@@ -24,16 +24,18 @@ abstract class MusicScreen extends Screen {
     private long highlightUntil;
     private IntConsumer scrollPage;
     private List<MenuSurface> backgrounds;
+    private WorkspaceLayout layout;
     protected MusicScreen(String title, Screen parent, ClientRuntime runtime) {
         super(Component.literal(title)); this.parent = parent; this.runtime = runtime;
     }
     @Override protected void init() {
         menuFont=runtime.fonts().font(CustomFonts.Target.MENU);
         backgrounds=null;
+        var window=minecraft.getWindow();layout=WorkspaceLayout.fit(window.getWidth(),window.getHeight(),window.getGuiScale());
         contentWidth = Math.min(760, width - 24); left = (width-contentWidth)/2;
         LibraryScreen editor=workspace();
         if(editor!=null){
-            var layout=WorkspaceLayout.fit(width,height);float headerScale=layout.scale();
+            float headerScale=layout.scale();
             var find=addRenderableWidget(new WorkspaceButton("Search settings...",layout.width()-484,4,126,18,headerScale,()->{
                 onClose();if(minecraft.gui.screen()!=this){runtime.themes().cancelPreview();editor.openSearch();}
             }));find.visible=!(this instanceof SettingsSearchScreen);
@@ -41,7 +43,7 @@ abstract class MusicScreen extends Screen {
             currentTitle=addRenderableWidget(new NowPlayingLink(12,height-23,titleWidth,1,()->{onClose();if(minecraft.gui.screen()!=this){runtime.themes().cancelPreview();editor.locatePlayingSong();}}));
             seekBar=addRenderableWidget(new SeekBar(runtime,titleWidth+24,height-25,Math.max(100,width-titleWidth-36)));
 
-            float scale=WorkspaceLayout.fit(width,height).scale();int navX=12;
+            float scale=layout.scale();int navX=12;
             for(WorkspacePage page:WorkspacePage.values()){
                 var tab=addRenderableWidget(new WorkspaceButton(page.label,navX,24,page.width,22,scale,()->{
                     onClose();if(minecraft.gui.screen()!=this){runtime.themes().cancelPreview();editor.openPage(page);}
@@ -126,14 +128,14 @@ abstract class MusicScreen extends Screen {
         }
         if(backgrounds==null){
             backgrounds=new ArrayList<>();
-            backgrounds.add(new MenuSurface(0,0,width,Math.round(64*WorkspaceLayout.fit(width,height).scale()),MenuColor.PANELS,0x202329));
-            backgrounds.add(new MenuSurface(0,Math.round(64*WorkspaceLayout.fit(width,height).scale()),width,bodyBottom(),MenuColor.BACKGROUND,0x17191D));
+            backgrounds.add(new MenuSurface(0,0,width,Math.round(64*layout.scale()),MenuColor.PANELS,0x202329));
+            backgrounds.add(new MenuSurface(0,Math.round(64*layout.scale()),width,bodyBottom(),MenuColor.BACKGROUND,0x17191D));
             if(seekBar!=null)backgrounds.add(new MenuSurface(0,bodyBottom(),width,height,MenuColor.PANELS,0x202329));
             for(var child:children())if(child instanceof DenseList<?> list)
                 MenuSurface.cutOut(backgrounds,list.getX(),list.getY(),list.getRight(),list.getBottom());
         }
         for(var surface:backgrounds)g.fill(surface.x0(),surface.y0(),surface.x1(),surface.y1(),MenuAppearance.background(surface.color(),surface.rgb()));
-        var layout=WorkspaceLayout.fit(width,height);float headerScale=layout.scale();
+        float headerScale=layout.scale();
         g.pose().pushMatrix();g.pose().scale(headerScale,headerScale);
         String heading=runtime.scanning()?"Working / "+runtime.scanProgress().processed()+" / "+runtime.scanProgress().discovered():title.getString();
         g.text(menuFont,fit(heading,layout.width()-500),12,6,MenuAppearance.color(MenuColor.TEXT,0xFFEFF0F3),false);

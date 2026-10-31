@@ -116,6 +116,16 @@ run `runClient -Pworkspace -PmenuColors`. This mode writes
 invalid/hidden drafts, live custom RGB/alpha render states and palette reset.
 See [the report](../../docs/testing/2026-10-22-menu-colors.md).
 
+For readability checks, prepare the workspace profile, then run
+`runClient -Pworkspace -Preadability`. It resizes the window and switches GUI
+Scale to record the workspace's physical pixels per canvas pixel, edits a theme
+color to trigger the contrast warning, and previews light/dark/translucent widget
+fills. It disables any leftover widget image first and restores the window and
+GUI Scale on exit. Results use `readability-results.txt`; screenshots use
+`readability-*.png`. `-Pcompare=before` or `-Pcompare=after` instead takes
+screenshots only (workspace at three sizes, light widget fills) with whichever
+AFMR JAR is staged, so a released JAR can supply the "before" images.
+
 From the AFMR repository root, with Java 25 and Python 3 available:
 
 ```powershell

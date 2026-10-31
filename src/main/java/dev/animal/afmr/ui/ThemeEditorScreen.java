@@ -14,6 +14,7 @@ final class ThemeEditorScreen extends MusicScreen {
     private final Map<String,EditBox> fields=new LinkedHashMap<>();
     private final Map<String,String> drafts=new LinkedHashMap<>();
     private String error="";
+    private String contrastWarning="";
     private int page;
     private final List<String> keys=new ArrayList<>();
     ThemeEditorScreen(ThemesScreen parent,ClientRuntime runtime){
@@ -28,9 +29,11 @@ final class ThemeEditorScreen extends MusicScreen {
         var s=runtime.themes().draft();
         if(color(key)){int rgb=MenuColor.parse(text);if(key.equals("widgetBackground"))s.widgetBackground=rgb;else s.menuColors.put(MenuColor.valueOf(key),rgb);}
         else{double opacity=Double.parseDouble(text.strip())/100;if(!ColorTheme.validOpacity(opacity))throw new IllegalArgumentException("Use opacity from 0 to 100.");if(key.equals("menuOpacity"))s.menuOpacity=opacity;else s.widgetOpacity=opacity;}
+        contrastWarning=s.lowContrast()?fit(MenuAppearance.CONTRAST_WARNING.getString(),contentWidth):"";
     }
     @Override protected void init(){
-        super.init();fields.forEach((key,field)->drafts.put(key,field.getValue()));fields.clear();int size=pageSize(50,65);page=Math.max(0,Math.min(page,(keys.size()-1)/size));
+        super.init();contrastWarning=runtime.themes().draft().lowContrast()?fit(MenuAppearance.CONTRAST_WARNING.getString(),contentWidth):"";
+        fields.forEach((key,field)->drafts.put(key,field.getValue()));fields.clear();int size=pageSize(50,83);page=Math.max(0,Math.min(page,(keys.size()-1)/size));
         for(int i=page*size;i<Math.min(keys.size(),(page+1)*size);i++){
             String key=keys.get(i);int y=50+(i-page*size)*22;
             var field=edit(drafts.getOrDefault(key,value(key)),label(key),left+contentWidth-90,y,90,null);field.setMaxLength(color(key)?7:10);fields.put(key,field);
@@ -55,10 +58,14 @@ final class ThemeEditorScreen extends MusicScreen {
         fields.forEach((key,field)->drafts.put(key,field.getValue()));
         for(var draft:drafts.entrySet())try{apply(draft.getKey(),draft.getValue());}catch(IllegalArgumentException ex){
             error=color(draft.getKey())?"Use six hex digits: #RRGGBB":"Use opacity from 0 to 100.";
-            if(!fields.containsKey(draft.getKey())){page=keys.indexOf(draft.getKey())/pageSize(50,65);rebuildWidgets();}return false;
+            if(!fields.containsKey(draft.getKey())){page=keys.indexOf(draft.getKey())/pageSize(50,83);rebuildWidgets();}return false;
         }
         error="";return true;
     }
     @Override public void onClose(){runtime.themes().restoreDraft(opening);super.onClose();}
-    @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float dt){int row=0;for(var key:fields.keySet())g.text(menuFont,fit(label(key),contentWidth-126),left,56+row++*22,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));if(!error.isBlank())g.text(menuFont,fit(error,contentWidth-138),left+138,bodyBottom()-47,0xFFFFA0A0);}
+    @Override protected void drawBody(GuiGraphicsExtractor g,int x,int y,float dt){
+        int row=0;for(var key:fields.keySet())g.text(menuFont,fit(label(key),contentWidth-126),left,56+row++*22,MenuAppearance.color(MenuColor.TEXT,0xFFE3EAED));
+        if(!contrastWarning.isEmpty())g.text(menuFont,contrastWarning,left,bodyBottom()-69,0xFFFFA0A0,true);
+        if(!error.isBlank())g.text(menuFont,fit(error,contentWidth-138),left+138,bodyBottom()-47,0xFFFFA0A0);
+    }
 }
