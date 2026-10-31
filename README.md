@@ -98,6 +98,8 @@ I hope so! [Report a bug](https://github.com/prawnlover07/AFMR/issues/new/choose
 
 Found a bug or have an idea? [Open an issue](https://github.com/prawnlover07/AFMR/issues/new/choose). For bugs, press **M → Playback status → Copy diagnostic summary** and paste it into the form; it leaves out your file paths and song names.
 
+Questions, help or want to share your setups? Join the **[AFMR Discord](https://discord.gg/48DFR6Zt4A)**.
+
 ## 📚 Documentation
 
 - **[User guide](docs/USER-GUIDE.md):** imports, playlists, conditions, controls, settings and troubleshooting

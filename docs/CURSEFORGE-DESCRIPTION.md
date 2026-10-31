@@ -92,6 +92,8 @@ I hope so! [Report a bug](https://github.com/prawnlover07/AFMR/issues/new/choose
 
 Found a bug or have an idea? **[Open an issue on GitHub](https://github.com/prawnlover07/AFMR/issues/new/choose)**. For bugs, press **M → Playback status → Copy diagnostic summary** and paste it into the form. Comments here are welcome too, but bugs are easier to track on GitHub.
 
+Questions, help or want to share your setups? Join the **[AFMR Discord](https://discord.gg/48DFR6Zt4A)**.
+
 ### 📄 License
 
 AFMR is free and open source under the **MIT license**. You're welcome to modify and share it, as long as you keep the license notice.

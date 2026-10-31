@@ -30,7 +30,7 @@ combat and more`. Pick whichever sounds like you.
 | Issues | `https://github.com/prawnlover07/AFMR/issues` |
 | Source | `https://github.com/prawnlover07/AFMR` |
 | Wiki | `https://github.com/prawnlover07/AFMR/blob/main/docs/USER-GUIDE.md` |
-| Discord | (leave empty) |
+| Discord | `https://discord.gg/48DFR6Zt4A` (permanent invite, set October 30, 2026) |
 | Donation | Ko-fi: `https://ko-fi.com/animal12345` |
 
 The client JAR stays **server-side unsupported** even though the optional companion
@@ -81,11 +81,14 @@ checkers can tell the files apart.
 
 ### Server companions
 
-In each version, after the primary client JAR, upload that folder's
-`animals-final-music-replacer-server-<loader>-<version>-1.1.1.jar` as an
-**additional file**. Make sure the client JAR stays marked **primary**: the Modrinth
-app only installs the primary file, so players never get the companion by accident.
-Server owners download the companion by hand from the version's page.
+Not uploaded yet. Modrinth's version form warns that supplementary files are
+"not for alternative versions or variants", so the companion JARs may not pass
+review as additional files. The ten client versions were created without them on
+October 30, 2026. Pick one before adding them:
+
+- a separate small project (Client-side **Unsupported**, Server-side **Required**)
+  with the ten `-server-` JARs, or
+- leave them on CurseForge only and link there from the description.
 
 ### Changelog (same text for every version)
 
@@ -103,8 +106,6 @@ First release on Modrinth. Also available on CurseForge.
 - [ ] Each version has exactly one loader and one game version, and the right JAR
       (the file name says the loader and version).
 - [ ] All five Fabric versions list Fabric API as required.
-- [ ] Each version has the client JAR as primary and the matching `-server-` JAR
-      as an additional file.
 - [ ] Description screenshots show in the preview.
 - [ ] Featured gallery image is set.
 - [ ] After approval, add the Modrinth link to the README next to CurseForge.
